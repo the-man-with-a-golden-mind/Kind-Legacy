@@ -51,3 +51,5 @@ jobs:
       - name: Fmt uses source, not show_term
         run: |
           node --stack-size=10000 bin/js/src/main.js fmt examples/hello/src/Hello.sure | grep -q 'module Hello'
+      - name: Bounded test
+        run: node --stack-size=10000 bin/js/src/main.js test

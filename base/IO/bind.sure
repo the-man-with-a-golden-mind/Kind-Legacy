@@ -4,4 +4,5 @@ IO.bind<A: Type, B: Type>(a: IO<A>, f: A -> IO<B>): IO<B>
     ask: IO.ask<B>(a.query, a.param, (x) IO.bind<A,B>(a.then(x), f)),
     par: IO.par<B, a.X, a.Y>(a.left, a.right, (xy) IO.bind<A,B>(a.join(xy), f)),
     race: IO.race<B, a.X, a.Y>(a.left, a.right, (e) IO.bind<A,B>(a.join(e), f)),
+    bracket: IO.bracket<B, a.X>(a.acquire, (x) IO.bind<A,B>(a.use(x), f), a.release),
   }

@@ -3577,6 +3577,14 @@ function compile_defs(defs, main, opts) {
     code += "        } catch (e) {\n";
     code += "          host_release_all(lib); throw e;\n";
     code += "        }\n";
+    code += "      case 'IO.bracket':\n";
+    code += "        if (typeof io.use !== 'function' || typeof io.release !== 'function') throw new Error('IO.bracket missing use/release');\n";
+    code += "        var resource = await run_io(lib, io.acquire, 0, ac);\n";
+    code += "        try {\n";
+    code += "          return await run_io(lib, io.use(resource), 0, ac);\n";
+    code += "        } finally {\n";
+    code += "          try { await run_io(lib, io.release(resource), 0, ac); } catch (eRel) {}\n";
+    code += "        }\n";
     code += "      default:\n";
     code += "        throw new Error('unknown IO ctor ' + (io && io._));\n";
     code += "      }\n";

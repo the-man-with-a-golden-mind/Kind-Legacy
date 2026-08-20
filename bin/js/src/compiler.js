@@ -383,14 +383,52 @@ function mod_owner(catalog, qual) {
   return best;
 }
 
+function mod_has_name(name, xs) {
+  if (!xs) return false;
+  if (Array.isArray(xs)) return xs.indexOf(name) >= 0;
+  return !!xs[name];
+}
+
+function mod_from_imp(imps, name) {
+  for (var i = 0; i < (imps || []).length; i++) {
+    var imp = imps[i];
+    var modn = imp && (imp.mod || imp.fst || (imp.name));
+    var names = imp && (imp.names || imp.snd || (imp.exposing && imp.exposing.names));
+    if (!modn || !names) continue;
+    if (mod_has_name(name, names)) return modn + "." + name;
+  }
+  return null;
+}
+
+// Same rule as Sure.Mod.resolve: locals, then module.qual, then import exposing, else leave.
+function mod_resolve(mod, locals, imps, name) {
+  if (!name) return name;
+  var loc = locals;
+  var locList = Array.isArray(locals) ? locals : Object.keys(locals || {});
+  if (mod_has_name(name, loc) || mod_has_name(name, locList)) return name;
+  if (mod) {
+    var q = mod + "." + name;
+    if (mod_has_name(q, loc) || mod_has_name(q, locList)) return q;
+    var a = mod_from_imp(imps, name);
+    return a || name;
+  }
+  return mod_from_imp(imps, name) || name;
+}
+
 function mod_resolve_ident(mod, locals, imports, name, catalog) {
   if (!name || MOD_KW[name]) return name;
+  var imps = (imports || []).map(function(imp) {
+    var aliases = mod_import_aliases(imp, catalog);
+    return {mod: imp.name, names: Object.keys(aliases), exposing: imp.exposing};
+  });
+  var resolved = mod_resolve(mod, locals, imps, name);
+  if (resolved !== name) return resolved;
   if (locals[name]) return name;
   var q = mod ? mod + "." + name : "";
   if (q && locals[q]) return q;
   for (var i = 0; i < (imports || []).length; i++) {
-    var aliases = mod_import_aliases(imports[i], catalog);
-    if (aliases[name]) return aliases[name];
+    var map = mod_import_aliases(imports[i], catalog);
+    if (map[name]) return map[name];
   }
   return name;
 }
@@ -879,6 +917,7 @@ module.exports = {
   symbols: symbols,
   get_map: get_map,
   map_offset: map_offset,
+  mod_resolve: mod_resolve,
   mod_name_ok: mod_name_ok,
   mod_read_module: mod_read_module,
   mod_read_import: mod_read_import

@@ -4,7 +4,7 @@
   "description": "Sure — a fork of Legacy Kind",
   "main": "src/sure.js",
   "scripts": {
-    "test": "node --stack-size=10000 src/main.js prove Example.Spec.add2 && node --stack-size=10000 src/main.js prove Host.decode.untagged && node --stack-size=10000 src/main.js prove Stream.take.zero && node src/gen-host.js --check"
+    "test": "node --stack-size=10000 src/main.js test && node src/gen-host.js --check && node ../../bootstrap.js --check"
   },
   "bin": {
     "sure": "src/main.js",

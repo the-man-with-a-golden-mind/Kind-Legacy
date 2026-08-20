@@ -41,7 +41,28 @@ var ADD_PATH = "";
 var ORIG_CWD = process.cwd();
 var STDLIB_BASE = null;
 
-// Default check set: prelude only.
+// Bounded gates. Prove.all / Test.suite / Sure.*.all are Unit bundles and are not CI.
+var BOUNDED_THEOREMS = [
+  "Example.Spec.add2",
+  "Stream.take.zero",
+  "Host.decode.untagged",
+  "Host.decode.empty",
+  "Html.ok_ident.junk",
+  "DOM.render.junk_tag",
+  "Sure.Mod.resolve.short",
+  "Sure.Mod.resolve.imp",
+  "Host.encode.all.fs_open"
+];
+var BOUNDED_CHECKS = [
+  "Nat.add",
+  "List.map",
+  "Bool.not",
+  "Main",
+  "Path.from_string",
+  "File.bracket",
+  "IO.bind"
+];
+// --lib uses the same bounded set. Prove.all is not a theorem and is unbounded.
 var PRELUDE_TERMS = [
   "Nat.add",
   "List.map",
@@ -1056,11 +1077,12 @@ async function check_term_ok(name) {
 
 async function check_prelude() {
   var failed = 0;
-  for (var i = 0; i < PRELUDE_TERMS.length; i++) {
+  var terms = BOUNDED_CHECKS.concat(BOUNDED_THEOREMS);
+  for (var i = 0; i < terms.length; i++) {
     try {
-      failed += await check_term_ok(PRELUDE_TERMS[i]);
+      failed += await check_term_ok(terms[i]);
     } catch (e) {
-      console.log("prelude fail: " + PRELUDE_TERMS[i]);
+      console.log("prelude fail: " + terms[i]);
       console.log(e);
       failed += 1;
     }
@@ -5067,6 +5089,11 @@ async function run_prove_edges() {
   if (hx.indexOf("<input type=kind class=\"x\"") < 0 || hx.indexOf("</input>") < 0 || hx.indexOf("List<Nat>") < 0 || hx.indexOf("n < m") < 0 || hx.indexOf("type={kind}") >= 0) {
     console.log("fail html expand " + hx); failed += 1;
   } else console.log("ok   html expand");
+  if (compiler.mod_resolve("Tweeter", ["Tweeter.ok"], [], "ok") !== "Tweeter.ok"
+    || compiler.mod_resolve("Tweeter", ["Tweeter.ok"], [], "Nat.add") !== "Nat.add"
+    || compiler.mod_resolve("Audit", ["Audit.report"], [{mod: "Boxes", names: ["len"]}], "len") !== "Boxes.len") {
+    console.log("fail mod resolve"); failed += 1;
+  } else console.log("ok   mod resolve");
   var shad = mod_expand_source("Routes.sure", "module Routes exposing (..)\nreq(method: String): String\n  method\necho(req: String): String\n  open req\n  req\n");
   if (shad.indexOf("open Routes.req") >= 0 || shad.indexOf("echo(Routes.req") >= 0 || shad.indexOf("Routes.echo") < 0 || shad.indexOf("Routes.req") < 0) {
     console.log("fail binder shadow " + shad); failed += 1;
@@ -5604,19 +5631,23 @@ function run_compiled_js(js_path, use_bun, extra) {
 
 function spawn_term_run(term) {
   var main_js = path.join(__dirname, "main.js");
+  var root = path.join(__dirname, "../../..");
+  var base = path.join(root, "base");
   var env = Object.assign({}, process.env, {
-    SURE_BASE: process.cwd(),
-    KIND_BASE: process.cwd()
+    SURE_BASE: base,
+    KIND_BASE: base
   });
+  delete env.SURE_PATH;
+  delete env.KIND_PATH;
   var want = sure_runtime_pick(false, process.env.SURE_RUNTIME, bun_native()) === "bun"
     || process.argv.indexOf("--bun") >= 0;
   if (want) {
     if (!bun_native() && !bun_available()) throw new Error("bun not found");
     var bun_bin = bun_native() ? process.execPath : "bun";
-    run_spawn(bun_bin, [main_js, term, "--run"], {stdio: "inherit", env: env});
+    run_spawn(bun_bin, [main_js, term, "--run"], {stdio: "inherit", env: env, cwd: base});
     return;
   }
-  run_spawn(process.execPath, ["--stack-size=10000", main_js, term, "--run"], {stdio: "inherit", env: env});
+  run_spawn(process.execPath, ["--stack-size=10000", main_js, term, "--run"], {stdio: "inherit", env: env, cwd: base});
 }
 
 (async () => {
@@ -5893,7 +5924,7 @@ function spawn_term_run(term) {
     var distRun = emit_js_abs(rootRun, term);
     var stampRun = manRun ? read_build_stamp(rootRun) : null;
     var hashRun = manRun ? project_src_hash(manRun, {runtime: process.env.SURE_RUNTIME || "node"}) : "";
-    if (distRun && fs.existsSync(distRun) && (!manRun || emit_is_fresh(stampRun, hashRun, term, rootRun))) {
+    if (distRun && fs.existsSync(distRun) && manRun && emit_is_fresh(stampRun, hashRun, term, rootRun)) {
       run_compiled_js(distRun, use_bun, run_extra);
       return;
     }
@@ -5936,11 +5967,20 @@ function spawn_term_run(term) {
   }
 
   if (name === "test" || name === "--test") {
-    console.log("== prover (type checker) ==");
-    var failed = await check_prelude();
-    console.log("== tester (runtime) ==");
+    console.log("== prove (bounded) ==");
+    var failed = await cmd_prove(BOUNDED_THEOREMS, false, true);
+    console.log("== check (bounded) ==");
+    for (var ti = 0; ti < BOUNDED_CHECKS.length; ti++) {
+      try { failed += await check_term_ok(BOUNDED_CHECKS[ti]); }
+      catch (e) {
+        console.log("check fail: " + BOUNDED_CHECKS[ti]);
+        console.log(e);
+        failed += 1;
+      }
+    }
+    console.log("== runtime ==");
     try {
-      spawn_term_run("Test.main");
+      spawn_term_run("Main");
     } catch (e) {
       console.log(e);
       failed += 1;

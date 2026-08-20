@@ -49,7 +49,8 @@ sure help env | cfg | ssr | ui | web
 | `sure add` / `remove` | Dependencies |
 | `sure install` | Materialize `sure.lock` pins (git rev, not latest HEAD) |
 | `sure expose <Module>` | Package public modules |
-| `sure --lib` | Prelude + `Prove.all` |
+| `sure --lib` | Bounded checks (not `Prove.all`) |
+| `sure test` | Bounded theorems + checks + `Main --run` + prove-edges |
 
 A failing test or a false equality exits **1**. There is no silent success.
 

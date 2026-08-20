@@ -7,19 +7,17 @@ File.bracket.release(id: String): IO<Unit>
     return Unit.new
   }
 
-File.bracket.go<A: Type>(h: File.Handle, got: Outcome<File.Err, String>, use: String -> IO<Outcome<File.Err, A>>): IO<Outcome<File.Err, A>>
-  case got as g {
-    err:
-      IO {
-        get closed = File.bracket.release(File.Handle.id(h))
-        return File.bracket.err<A>(g.error)
-      }
-    ok:
-      IO {
-        get r = use(g.value)
-        get closed = File.bracket.release(File.Handle.id(h))
-        return r
-      }
+File.bracket.body<A: Type>(id: String, use: String -> IO<Outcome<File.Err, A>>): IO<Outcome<File.Err, A>>
+  IO {
+    get got = File.bracket.read_fd(id)
+    case got as g {
+      err:
+        IO {
+          return File.bracket.err<A>(g.error)
+        }
+      ok:
+        use(g.value)
+    }
   }
 
 File.bracket.read_fd(id: String): IO<Outcome<File.Err, String>>
@@ -41,9 +39,10 @@ File.bracket<A: Type>(path: Path, use: String -> IO<Outcome<File.Err, A>>): IO<O
           return File.bracket.err<A>(oid.error)
         }
       ok:
-        IO {
-          get body = File.bracket.read_fd(oid.value)
-          File.bracket.go<A>(File.Handle.new(oid.value), body, use)
-        }
+        IO.bracket<Outcome<File.Err, A>, String>(
+          IO.end<String>(oid.value),
+          (id) File.bracket.body<A>(id, use),
+          File.bracket.release
+        )
     }
   }

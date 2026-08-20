@@ -14,6 +14,9 @@ Truth pass (audit):
 - `Host.decode` accepts only tagged `0\\n` / `1\\n` replies. Empty and untagged payloads are `Host.Err.empty` / `Host.Err.bad_tag`.
 - `Proc.exec(file, args)` / `Proc.run(file, args)` spawn argv with `shell: false`. `Proc.unsafe.shell(cmd)` is the shell-string hatch.
 - Bootstrap writes `sure.js` atomically, injects the prepare hook as a fixed point, and uses `process.execPath` (no shell). `node bin/bootstrap.js --check` is in CI. Full compile-twice regeneration is unbounded and is not CI.
+- `IO.bracket` always runs `release` (JS `finally`). `File.bracket` uses it so a cancelled `use` still closes the fd.
+- `sure test` is a bounded suite (listed theorems, checks, `Main --run`, prove-edges). It does not type-check `Prove.all` or run `Test.main`.
+- Module qualification matches `Sure.Mod.resolve` / `Sure.Parser.file.rewrite` (locals, then `Module.name`, then import exposing).
 
 `when { pred: val ... } default rest` is the table form of nested `if` (first true wins). `case` stays constructor matching. `switch f { key: v }` stays one `A -> Bool`. `String.ok(s, banned)` is nonempty and none of those substrings. `String.has_none` is the same without the empty check.
 

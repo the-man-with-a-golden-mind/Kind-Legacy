@@ -11,4 +11,9 @@ type IO <A: Type> {
     right: IO<Y>,
     join: (e: Either<X, Y>) -> IO<A>
   ),
+  bracket<X: Type>(
+    acquire: IO<X>,
+    use: (x: X) -> IO<A>,
+    release: (x: X) -> IO<Unit>
+  ),
 }
