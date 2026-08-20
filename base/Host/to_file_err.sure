@@ -1,0 +1,7 @@
+Host.to_file_err(e: Host.Err): File.Err
+  case e {
+    empty: File.Err.io("empty")
+    missing: File.Err.missing
+    io: File.Err.io(e.message)
+    bad_tag: File.Err.io("bad host tag")
+  }

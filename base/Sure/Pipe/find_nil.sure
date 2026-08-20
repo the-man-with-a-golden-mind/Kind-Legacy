@@ -1,0 +1,2 @@
+Sure.Pipe.find_nil: Maybe.is_none<Nat>(Sure.Pipe.find<Nat>((n) Bool.true, [])) == true
+  refl

@@ -1,0 +1,2 @@
+Sure.Agent.Edge.self.no: Sure.Agent.Edge.self(Sure.Agent.Edge.new("A", "B")) == false
+  refl

@@ -1,0 +1,2 @@
+Ffi.decode.missing: Ffi.decode("1\nmissing") == Outcome.err<Ffi.Err, JSON>(Ffi.Err.missing)
+  refl

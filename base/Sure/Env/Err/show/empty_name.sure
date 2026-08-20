@@ -1,0 +1,2 @@
+Sure.Env.Err.show.empty_name: Sure.Env.Err.show(Sure.Env.Err.empty_name) == "empty_name"
+  refl

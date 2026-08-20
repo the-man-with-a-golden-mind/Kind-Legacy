@@ -1,0 +1,2 @@
+Host.as_outcome.unit: Host.as_outcome(Host.ok_unit) == Outcome.ok<Host.Err, String>("")
+  refl

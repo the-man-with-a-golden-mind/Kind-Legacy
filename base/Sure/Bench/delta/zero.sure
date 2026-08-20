@@ -1,0 +1,2 @@
+Sure.Bench.delta.zero: Sure.Bench.delta(5, 5) == 0
+  refl

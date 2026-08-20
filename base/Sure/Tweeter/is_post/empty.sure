@@ -1,0 +1,2 @@
+Sure.Tweeter.is_post.empty: Sure.Tweeter.is_post("") == false
+  refl

@@ -1,0 +1,2 @@
+Sure.Cli.nth.empty: Maybe.is_none<String>(Sure.Cli.nth(Sure.Cli.empty, 0)) == true
+  refl

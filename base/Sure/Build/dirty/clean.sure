@@ -1,0 +1,2 @@
+Sure.Build.dirty.clean: Sure.Build.dirty("a", "a", false) == false
+  refl

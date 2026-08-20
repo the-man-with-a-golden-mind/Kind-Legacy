@@ -1,0 +1,118 @@
+File.decode.all.junk: File.from_tagged("nope") == Outcome.ok<File.Err, String>("nope")
+  refl
+
+File.decode.all.raw_empty: File.from_tagged("") == Outcome.ok<File.Err, String>("")
+  refl
+
+File.decode.all.host_missing: File.from_tagged("1\nmissing") == Outcome.err<File.Err, String>(File.Err.missing)
+  refl
+
+File.decode.all.io: File.from_tagged("1\nbad") == Outcome.err<File.Err, String>(File.Err.io("bad"))
+  refl
+
+File.decode.all.not_found: File.from_tagged("1\nnot found") == Outcome.err<File.Err, String>(File.Err.missing)
+  refl
+
+File.decode.all.empty_name: File.from_tagged("1\nempty_name") == Outcome.err<File.Err, String>(File.Err.io("empty"))
+  refl
+
+File.decode.all.write_empty: File.write.decode("") == Outcome.ok<File.Err, Unit>(unit)
+  refl
+
+File.decode.all.write_junk: File.write.decode("nope") == Outcome.ok<File.Err, Unit>(unit)
+  refl
+
+File.decode.all.write_io: File.write.decode("1\nbad") == Outcome.err<File.Err, Unit>(File.Err.io("bad"))
+  refl
+
+File.decode.all.write_host_missing: File.write.decode("1\nmissing") == Outcome.err<File.Err, Unit>(File.Err.missing)
+  refl
+
+File.decode.all.delete_ok: File.delete.decode("0\n") == Outcome.ok<File.Err, Unit>(unit)
+  refl
+
+File.decode.all.delete_empty: File.delete.decode("") == Outcome.ok<File.Err, Unit>(unit)
+  refl
+
+File.decode.all.delete_junk: File.delete.decode("nope") == Outcome.ok<File.Err, Unit>(unit)
+  refl
+
+File.decode.all.bytes_empty:
+  case File.read_bytes.decode("0\n") as o {
+    err: false
+    ok: Bytes.is_empty(o.value)
+  } == true
+  refl
+
+File.decode.all.bytes_missing: Outcome.is_ok<File.Err, Bytes>(File.read_bytes.decode("1\nENOENT")) == false
+  refl
+
+File.decode.all.dir_empty: Outcome.is_ok<File.Err, List<String>>(Dir.read.decode("")) == true
+  refl
+
+File.decode.all.dir_ok:
+  case Dir.read.decode("0\na;b") as o {
+    err: ""
+    ok:
+      case o.value as xs {
+        nil: ""
+        cons: xs.head
+      }
+  } == "a"
+  refl
+
+File.decode.all.dir_junk:
+  case Dir.read.decode("nope") as o {
+    err: ""
+    ok:
+      case o.value as xs {
+        nil: ""
+        cons: xs.head
+      }
+  } == "nope"
+  refl
+
+File.decode.all.dir_io: Outcome.is_ok<File.Err, List<String>>(Dir.read.decode("1\nbad")) == false
+  refl
+
+File.decode.all.show_missing: File.Err.show(File.Err.missing) == "file not found"
+  refl
+
+File.decode.all.show_io: File.Err.show(File.Err.io("bad")) == "bad"
+  refl
+
+File.decode.all.show_empty_path: File.Err.show(File.Err.bad_path(Path.Err.empty)) == "empty path"
+  refl
+
+File.decode.all.show_nul: File.Err.show(File.Err.bad_path(Path.Err.nul)) == "NUL in path"
+  refl
+
+File.decode.all.show_dotdot: File.Err.show(File.Err.bad_path(Path.Err.dotdot)) == "path contains .."
+  refl
+
+File.decode.all: Unit
+  let a0 = File.decode.all.junk
+  let a1 = File.decode.all.raw_empty
+  let a2 = File.decode.all.host_missing
+  let a3 = File.decode.all.io
+  let a4 = File.decode.all.not_found
+  let a5 = File.decode.all.empty_name
+  let a6 = File.decode.all.write_empty
+  let a7 = File.decode.all.write_junk
+  let a8 = File.decode.all.write_io
+  let a9 = File.decode.all.write_host_missing
+  let b0 = File.decode.all.delete_ok
+  let b1 = File.decode.all.delete_empty
+  let b2 = File.decode.all.delete_junk
+  let b3 = File.decode.all.bytes_empty
+  let b4 = File.decode.all.bytes_missing
+  let b5 = File.decode.all.dir_empty
+  let b6 = File.decode.all.dir_ok
+  let b7 = File.decode.all.dir_junk
+  let b8 = File.decode.all.dir_io
+  let s0 = File.decode.all.show_missing
+  let s1 = File.decode.all.show_io
+  let s2 = File.decode.all.show_empty_path
+  let s3 = File.decode.all.show_nul
+  let s4 = File.decode.all.show_dotdot
+  unit

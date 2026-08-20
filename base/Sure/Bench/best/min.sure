@@ -1,0 +1,2 @@
+Sure.Bench.best.min: Sure.Bench.best([5, 2, 9]) == some(2)
+  refl

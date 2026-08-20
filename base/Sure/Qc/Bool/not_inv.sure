@@ -1,0 +1,2 @@
+Sure.Qc.Bool.not_inv(b: Bool): Bool.not(Bool.not(b)) == b
+  Bool.double_negation(b)

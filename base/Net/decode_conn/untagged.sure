@@ -1,0 +1,2 @@
+Net.decode_conn.untagged: Outcome.is_ok<Net.Err, Net.Conn>(Net.decode_conn("nope")) == false
+  refl

@@ -1,0 +1,2 @@
+Html.Tag.void.br: Html.Tag.void(Html.Tag.br) == true
+  refl

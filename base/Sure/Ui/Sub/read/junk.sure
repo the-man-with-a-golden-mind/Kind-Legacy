@@ -1,0 +1,2 @@
+Sure.Ui.Sub.read.junk: Sure.Ui.Sub.is_none(Sure.Ui.Sub.read("nope")) == true
+  refl

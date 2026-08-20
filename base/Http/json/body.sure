@@ -1,0 +1,2 @@
+Http.json.body: Http.json("x")@body == "x"
+  refl

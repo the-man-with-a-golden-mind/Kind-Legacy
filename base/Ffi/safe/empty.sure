@@ -1,0 +1,2 @@
+Ffi.safe.empty: Ffi.safe("") == false
+  refl

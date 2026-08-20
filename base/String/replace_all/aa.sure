@@ -1,0 +1,2 @@
+String.replace_all.aa: String.replace_all("aa", "a", "b") == "bb"
+  refl

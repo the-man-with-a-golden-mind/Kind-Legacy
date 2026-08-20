@@ -1,0 +1,2 @@
+Regex.ok.alt: Regex.ok("a|b", "b") == true
+  refl

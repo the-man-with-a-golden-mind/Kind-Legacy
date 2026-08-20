@@ -1,0 +1,3 @@
+// Replace every `?implement` hole. Identity when none remain.
+Sure.Agent.fill(src: String, term: String): String
+  String.join(term, String.split(src, "?implement"))

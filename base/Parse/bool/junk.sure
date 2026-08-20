@@ -1,0 +1,2 @@
+Parse.bool.junk: Maybe.is_none<Bool>(Parse.bool("yes")) == true
+  refl

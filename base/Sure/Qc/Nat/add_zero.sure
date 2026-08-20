@@ -1,0 +1,2 @@
+Sure.Qc.Nat.add_zero(n: Nat): Nat.add(n, 0) == n
+  Nat.add.zero_right(n)

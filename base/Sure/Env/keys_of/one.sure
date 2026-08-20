@@ -1,0 +1,2 @@
+Sure.Env.keys_of.one: List.length<String>(Sure.Env.keys_of("PATH")) == 1
+  refl

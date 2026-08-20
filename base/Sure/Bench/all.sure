@@ -1,0 +1,10 @@
+Sure.Bench.all: Unit
+  let d0 = Sure.Bench.delta.zero
+  let d1 = Sure.Bench.delta.pos
+  let d2 = Sure.Bench.delta.back
+  let m0 = Sure.Bench.mean.empty
+  let m1 = Sure.Bench.mean.one
+  let m2 = Sure.Bench.mean.two
+  let b0 = Sure.Bench.best.empty
+  let b1 = Sure.Bench.best.min
+  unit

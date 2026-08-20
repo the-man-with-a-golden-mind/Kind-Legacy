@@ -1,0 +1,2 @@
+Worker.Err.show.empty_name: Worker.Err.show(Worker.Err.empty_name) == "empty_name"
+  refl

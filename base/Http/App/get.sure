@@ -1,0 +1,5 @@
+Http.App.get(
+  pattern: String,
+  handle: Http.Server.Req -> List<Pair<String, String>> -> IO<Http.Response>
+): Http.App.Route
+  Http.App.Route.new(Http.Method.get, pattern, handle)

@@ -1,0 +1,2 @@
+Http.Method.read_show.get: Http.Method.read(Http.Method.show(Http.Method.get)) == some(Http.Method.get)
+  refl

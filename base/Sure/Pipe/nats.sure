@@ -1,0 +1,2 @@
+Sure.Pipe.nats(xs: List<String>): List<Nat>
+  Sure.Pipe.decode<Nat>(Parse.nat, xs)

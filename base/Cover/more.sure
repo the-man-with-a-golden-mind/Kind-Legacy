@@ -1,0 +1,134 @@
+Cover.more.set_set: Set.has("a", Set.set("a", Set.new)) == true
+  refl
+
+Cover.more.set_del: Set.has("a", Set.del("a", Set.set("a", Set.new))) == false
+  refl
+
+Cover.more.string_last_empty: Maybe.is_none<Char>(String.last("")) == true
+  refl
+
+Cover.more.string_pure: String.pure('a') == "a"
+  refl
+
+Cover.more.string_null: String.null("") == true
+  refl
+
+Cover.more.string_at_empty: Maybe.is_none<Char>(String.at(0, "")) == true
+  refl
+
+Cover.more.string_cap_empty: String.capitalize("") == ""
+  refl
+
+Cover.more.string_show_empty: String.show("") == "\"\""
+  refl
+
+Cover.more.string_intercalate_nil: String.intercalate(",", []) == ""
+  refl
+
+Cover.more.string_intersperse_empty: String.intersperse(',', "") == ""
+  refl
+
+Cover.more.string_cmp_empty: String.cmp("", "") == Cmp.eql
+  refl
+
+Cover.more.string_escape_empty: String.escape("") == ""
+  refl
+
+Cover.more.string_remove_spaces_empty: String.remove_spaces("") == ""
+  refl
+
+Cover.more.string_span_empty: String.span(Char.is_space, "") == Pair.new<String, String>("", "")
+  refl
+
+Cover.more.list_insort_nil: List.insert_sort_nat([]) == []
+  refl
+
+Cover.more.nat_cmp_00: Nat.cmp(0, 0) == Cmp.eql
+  refl
+
+Cover.more.nat_range_00: Nat.range(0, 0) == []
+  refl
+
+Cover.more.nat_and_0: Nat.bitwise_and(0, 1) == 0
+  refl
+
+Cover.more.nat_parse_hex_empty: Nat.parse_hex("") == 0
+  refl
+
+Cover.more.nat_show_digit_0: Nat.show_digit(10, 0) == '0'
+  refl
+
+Cover.more.nat_log2_0: Nat.log2(0) == 0
+  refl
+
+Cover.more.nat_to_base_0: Nat.to_base(10, 0) == [0]
+  refl
+
+Cover.more.time_ms_sec: Time.ms_sec == 1000
+  refl
+
+Cover.more.time_epoch: Time.epoch_year == 1970
+  refl
+
+Cover.more.time_jan: Time.Month.nat(Time.Month.jan) == 1
+  refl
+
+Cover.more.time_jan_iso: Time.Month.iso(Time.Month.jan) == "01"
+  refl
+
+Cover.more.time_stamp_add0: Time.Stamp.eql(Time.Stamp.add(Time.Stamp.epoch, Time.Duration.zero), Time.Stamp.epoch) == true
+  refl
+
+Cover.more.time_stamp_sub0: Time.Stamp.eql(Time.Stamp.sub(Time.Stamp.epoch, Time.Duration.zero), Time.Stamp.epoch) == true
+  refl
+
+Cover.more.time_stamp_show0: Time.Stamp.show(Time.Stamp.epoch) == "0"
+  refl
+
+Cover.more.time_cut_miss: Maybe.is_none<String>(Time.cut_suf("ab", "x")) == true
+  refl
+
+Cover.more.time_expect_empty: Maybe.is_none<String>(Time.expect("", 'a')) == true
+  refl
+
+Cover.more.http_ok: Http.Server.ok == Outcome.ok<Http.Err, Unit>(unit)
+  refl
+
+Cover.more.http_fail: Http.Server.fail("") == Outcome.err<Http.Err, Unit>(Http.Err.io(""))
+  refl
+
+Cover.more.json_set_null: JSON.set(JSON.null, "k", JSON.null) == JSON.null
+  refl
+
+Cover.more.semver_cmp_eq: Semver.cmp(Semver.new(0, 0, 0), Semver.new(0, 0, 0)) == Cmp.eql
+  refl
+
+Cover.more.semver_cmp_lt: Semver.cmp(Semver.new(0, 0, 0), Semver.new(1, 0, 0)) == Cmp.ltn
+  refl
+
+Cover.more.cmp_equal: Cmp.equal(Cmp.eql, Cmp.eql) == true
+  refl
+
+Cover.more.db_err_missing: Db.err_of("missing") == Db.Err.missing
+  refl
+
+Cover.more.db_err_empty: Db.err_of("") == Db.Err.io("")
+  refl
+
+Cover.more.db_key_empty: Maybe.is_none<Db.Err>(Db.key_err("")) == false
+  refl
+
+Cover.more.db_key_ok: Maybe.is_none<Db.Err>(Db.key_err("a")) == true
+  refl
+
+Cover.more.cfg_keys_empty: Sure.Cfg.keys(Sure.Cfg.empty) == []
+  refl
+
+Cover.more.cfg_file_err: Sure.Cfg.file_err(File.Err.missing) == Sure.Cfg.Err.missing
+  refl
+
+Cover.more.html_el: Html.el(Html.Tag.div, Map.new<String>, Map.new<String>, []) == DOM.node("div", Map.new<String>, Map.new<String>, [])
+  refl
+
+Cover.more.bytes_show_empty: Bytes.show([]) == "[]"
+  refl

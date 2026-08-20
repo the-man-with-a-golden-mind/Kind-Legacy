@@ -1,0 +1,2 @@
+Sure.Check.word_e: Bool
+  Word.eql<0>(Word.from_bits(0, Bits.e), Word.e)

@@ -1,0 +1,2 @@
+Sure.Doc.is_comment.no: Sure.Doc.is_comment("Foo: Nat") == false
+  refl

@@ -1,0 +1,23 @@
+Sure.Agent.names_of.go(s: String, cur: String, acc: List<String>): List<String>
+  case s {
+    nil:
+      if String.is_empty(cur) then
+        List.reverse<String>(acc)
+      else
+        List.reverse<String>(List.cons<String>(cur, acc))
+    cons:
+      if Sure.Name.is_letter(s.head) then
+        if String.is_empty(cur) then
+          if U16.btw('A', s.head, 'Z') then
+            Sure.Agent.names_of.go(s.tail, Char.to_string(s.head), acc)
+          else
+            Sure.Agent.names_of.go(s.tail, "", acc)
+        else
+          Sure.Agent.names_of.go(s.tail, cur | Char.to_string(s.head), acc)
+      else
+        let acc2 = if String.is_empty(cur) then acc else List.cons<String>(cur, acc)
+        Sure.Agent.names_of.go(s.tail, "", acc2)
+  }
+
+Sure.Agent.names_of(s: String): List<String>
+  Sure.Agent.names_of.go(s, "", [])

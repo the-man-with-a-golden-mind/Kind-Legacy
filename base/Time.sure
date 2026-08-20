@@ -1,0 +1,45 @@
+// Wall time from the Unix epoch. Year before 1970, month 0, and 32 Jan are none.
+// Division by 0 is 0 (Nat.div_mod of 0 does not terminate).
+
+Time.div(n: Nat, m: Nat): Nat
+  if Nat.is_zero(m) then 0
+  else Nat.div(n, m)
+
+Time.mod(n: Nat, m: Nat): Nat
+  if Nat.is_zero(m) then n
+  else Nat.mod(n, m)
+
+Time.ms_sec: Nat
+  1000
+
+Time.epoch_year: Nat
+  1970
+
+Time.pad2(n: Nat): String
+  String.pad_left(2, '0', Nat.show(n))
+
+Time.pad3(n: Nat): String
+  String.pad_left(3, '0', Nat.show(n))
+
+Time.pad4(n: Nat): String
+  String.pad_left(4, '0', Nat.show(n))
+
+Time.cut_suf(s: String, suf: String): Maybe<String>
+  if String.ends_with(s, suf) then
+    some(String.take(Nat.sub(String.length(s), String.length(suf)), s))
+  else none
+
+Time.expect(s: String, c: Char): Maybe<String>
+  case s {
+    nil: none
+    cons:
+      if U16.eql(s.head, c) then some(s.tail)
+      else none
+  }
+
+Time.read_width(n: Nat, s: String): Maybe<Pair<Nat, String>>
+  let head = String.take(n, s)
+  let rest = String.drop(n, s)
+  if Bool.and(Nat.eql(String.length(head), n), JSON.digits(head)) then
+    some(Pair.new<Nat, String>(Nat.read_base(10, head), rest))
+  else none

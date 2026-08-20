@@ -1,0 +1,10 @@
+F64.bits_zero(b: Bits, n: Nat): Bool
+  case n {
+    zero: true
+    succ:
+      case b {
+        e: true
+        o: F64.bits_zero(b.pred, n.pred)
+        i: false
+      }
+  }

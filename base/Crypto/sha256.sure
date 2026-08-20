@@ -1,0 +1,5 @@
+Crypto.sha256(text: String): IO<Outcome<Crypto.Err, String>>
+  IO {
+    get raw = IO.ask<String>("sha256_ex", text, (t) IO.end<String>(t))
+    return Crypto.decode(raw)
+  }

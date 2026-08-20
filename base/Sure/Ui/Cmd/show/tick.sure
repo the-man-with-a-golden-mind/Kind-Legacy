@@ -1,0 +1,2 @@
+Sure.Ui.Cmd.show.tick: Sure.Ui.Cmd.show(Sure.Ui.Cmd.tick(1, "t")) == "T\n1\nt"
+  refl

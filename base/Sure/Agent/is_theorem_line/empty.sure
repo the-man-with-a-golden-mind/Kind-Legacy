@@ -1,0 +1,2 @@
+Sure.Agent.is_theorem_line.empty: Sure.Agent.is_theorem_line("") == false
+  refl

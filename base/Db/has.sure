@@ -1,0 +1,9 @@
+Db.has(conn: Db.Conn, key: String): IO<Outcome<Db.Err, Bool>>
+  open conn
+  case Db.key_err(key) as ke {
+    some: IO.end<Outcome<Db.Err, Bool>>(Outcome.err<Db.Err, Bool>(ke.value))
+    none: IO {
+      get raw = IO.ask<String>("db_has", conn.id | "\n" | key, (t) IO.end<String>(t))
+      return Db.decode_bool(raw)
+    }
+  }

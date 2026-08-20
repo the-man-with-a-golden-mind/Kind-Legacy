@@ -1,0 +1,2 @@
+Time.read.empty: Maybe.is_none<Time.Stamp>(Time.read("")) == true
+  refl

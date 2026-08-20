@@ -1,0 +1,2 @@
+Nat.read_base.empty(base: Nat): Nat.read_base(base, "") == 0
+  refl

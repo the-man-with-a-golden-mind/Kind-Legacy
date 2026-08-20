@@ -1,0 +1,2 @@
+Path.from_string.empty: Outcome.is_ok<Path.Err, Path>(Path.from_string("")) == false
+  refl

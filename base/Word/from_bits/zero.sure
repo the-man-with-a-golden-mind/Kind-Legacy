@@ -1,0 +1,2 @@
+Word.from_bits.zero: Word.from_bits(0, Bits.e) == Word.e
+  refl

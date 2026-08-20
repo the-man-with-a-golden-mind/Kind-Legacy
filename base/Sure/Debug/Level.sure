@@ -1,0 +1,40 @@
+type Sure.Debug.Level {
+  off
+  error
+  info
+  trace
+}
+
+Sure.Debug.Level.show(l: Sure.Debug.Level): String
+  case l {
+    off: "off"
+    error: "error"
+    info: "info"
+    trace: "trace"
+  }
+
+Sure.Debug.Level.read(s: String): Maybe<Sure.Debug.Level>
+  if String.eql(s, "off") then some(Sure.Debug.Level.off)
+  else if String.eql(s, "error") then some(Sure.Debug.Level.error)
+  else if String.eql(s, "info") then some(Sure.Debug.Level.info)
+  else if String.eql(s, "trace") then some(Sure.Debug.Level.trace)
+  else if String.eql(s, "debug") then some(Sure.Debug.Level.trace)
+  else none
+
+Sure.Debug.Level.rank(l: Sure.Debug.Level): Nat
+  case l {
+    off: 0
+    error: 1
+    info: 2
+    trace: 3
+  }
+
+Sure.Debug.Level.at_least(have: Sure.Debug.Level, need: Sure.Debug.Level): Bool
+  Nat.gte(Sure.Debug.Level.rank(have), Sure.Debug.Level.rank(need))
+
+Sure.Debug.Level.pick(flag: Bool, env: String): Sure.Debug.Level
+  if flag then Sure.Debug.Level.trace
+  else case Sure.Debug.Level.read(env) as r {
+    none: Sure.Debug.Level.off
+    some: r.value
+  }

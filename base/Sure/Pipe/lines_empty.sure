@@ -1,0 +1,2 @@
+Sure.Pipe.lines_empty: Sure.Pipe.lines("") == []
+  refl

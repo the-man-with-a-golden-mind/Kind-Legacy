@@ -1,0 +1,30 @@
+Sure.Lsp.all: Unit
+  let a0 = Sure.Lsp.lang.def
+  let a1 = Sure.Lsp.sync.def
+  let e0 = Sure.Lsp.ext.empty
+  let e1 = Sure.Lsp.ext.sure
+  let e2 = Sure.Lsp.ext.kind
+  let u0 = Sure.Lsp.uri_ok.empty
+  let u1 = Sure.Lsp.uri_ok.file
+  let u2 = Sure.Lsp.uri_ok.junk
+  let u3 = Sure.Lsp.uri_ok.untitled
+  let f0 = Sure.Lsp.frame.empty
+  let f1 = Sure.Lsp.frame.obj
+  let w0 = Sure.Lsp.word.empty
+  let w1 = Sure.Lsp.word.add
+  let w2 = Sure.Lsp.word.plus
+  let o0 = Sure.Lsp.offset.empty
+  let o1 = Sure.Lsp.offset.nl
+  let o2 = Sure.Lsp.offset.past
+  let k0 = Sure.Lsp.keyword.empty
+  let k1 = Sure.Lsp.keyword.type
+  let k2 = Sure.Lsp.keyword.junk
+  let m0 = Sure.Lsp.Method.read.empty
+  let m1 = Sure.Lsp.Method.read.junk
+  let m2 = Sure.Lsp.Method.read.hover
+  let m3 = Sure.Lsp.Method.show.init
+  let s0 = Sure.Lsp.Severity.code.error
+  let s1 = Sure.Lsp.Severity.of_code.goal
+  let s2 = Sure.Lsp.Severity.of_code.empty
+  let s3 = Sure.Lsp.Severity.of_code.junk
+  unit

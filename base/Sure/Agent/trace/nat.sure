@@ -1,0 +1,2 @@
+Sure.Agent.trace.nat: Sure.Agent.trace("implement", "Nat", "") == "Goal ?implement:\nWith type: Nat\nWith context:\n"
+  refl

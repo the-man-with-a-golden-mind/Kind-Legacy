@@ -1,0 +1,11 @@
+Net.tcp.all: Unit
+  let c0 = Net.decode_conn.err
+  let c1 = Net.decode_conn.ok
+  let c2 = Net.decode_conn.empty
+  let c3 = Net.decode_conn.untagged
+  let c4 = Net.decode_conn.tls
+  let u0 = Net.decode_unit.closed
+  let u1 = Net.decode_unit.empty
+  let u2 = Net.decode_unit.ok
+  let s0 = Net.decode_str.empty_ok
+  unit

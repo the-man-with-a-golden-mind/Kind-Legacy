@@ -1,0 +1,2 @@
+Sure.Env.decode.missing: Outcome.is_ok<Sure.Env.Err, String>(Sure.Env.decode("1\nmissing")) == false
+  refl

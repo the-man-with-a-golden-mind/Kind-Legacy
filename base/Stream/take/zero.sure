@@ -1,0 +1,2 @@
+Stream.take.zero: Stream.take<Nat>(0, [1, 2]) == []
+  refl

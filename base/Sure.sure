@@ -1,0 +1,12 @@
+// This tree is Sure: a fork of Legacy Kind.
+// The checker is Sure.* (Term, Parser, Comp, api).
+// Tooling is Sure.Agent / Doc / Build / Bench.
+
+Sure.name: String
+  "Sure"
+
+Sure.version: String
+  "0.1.0"
+
+Sure.lineage: String
+  "Legacy Kind 1.0.121"

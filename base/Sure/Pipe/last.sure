@@ -1,0 +1,2 @@
+Sure.Pipe.last<A: Type>(xs: List<A>): Maybe<A>
+  List.last<A>(xs)

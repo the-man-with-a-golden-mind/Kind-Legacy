@@ -1,0 +1,2 @@
+Sure.Sheet.col_of.empty: Maybe.is_none<Nat>(Sure.Sheet.col_of("")) == true
+  refl

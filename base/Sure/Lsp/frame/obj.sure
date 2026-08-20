@@ -1,0 +1,2 @@
+Sure.Lsp.frame.obj: Sure.Lsp.frame("{}") == "Content-Length: 2\r\n\r\n{}"
+  refl

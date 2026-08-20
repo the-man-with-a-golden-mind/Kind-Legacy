@@ -1,0 +1,2 @@
+Sure.Debug.open.empty: Sure.Debug.open(Sure.Debug.Flags.read(""), Sure.Debug.Channel.host) == true
+  refl

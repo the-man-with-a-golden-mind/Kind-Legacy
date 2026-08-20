@@ -1,0 +1,13 @@
+Db.decode_keys(raw: String): Outcome<Db.Err, List<String>>
+  case IO.tagged.read(raw) as tag {
+    err: Outcome.err<Db.Err, List<String>>(Db.err_of(tag.error))
+    ok:
+      case JSON.parse(tag.value) as j {
+        none: Outcome.err<Db.Err, List<String>>(Db.Err.io("bad keys"))
+        some:
+          case JSON.dec.list<String>(JSON.dec.string, j.value) as xs {
+            none: Outcome.err<Db.Err, List<String>>(Db.Err.io("bad keys"))
+            some: Outcome.ok<Db.Err, List<String>>(xs.value)
+          }
+      }
+  }

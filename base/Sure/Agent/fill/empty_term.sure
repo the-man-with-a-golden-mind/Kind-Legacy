@@ -1,0 +1,2 @@
+Sure.Agent.fill.empty_term: Sure.Agent.fill("?implement", "") == ""
+  refl

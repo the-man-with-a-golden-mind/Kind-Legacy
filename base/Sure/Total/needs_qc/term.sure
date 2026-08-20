@@ -1,0 +1,2 @@
+Sure.Total.needs_qc.term: Sure.Total.needs_qc(false, 3) == false
+  refl

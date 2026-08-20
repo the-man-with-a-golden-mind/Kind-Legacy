@@ -1,0 +1,2 @@
+Sure.Cfg.Err.read.junk: Sure.Cfg.Err.show(Sure.Cfg.Err.read("nope")) == "junk"
+  refl

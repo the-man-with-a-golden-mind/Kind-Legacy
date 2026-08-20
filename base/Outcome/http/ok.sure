@@ -1,0 +1,2 @@
+Outcome.http.ok: Outcome.http<String, String>(Outcome.ok<String, String>("hi"), (x) x)@status == 200
+  refl

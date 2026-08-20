@@ -1,0 +1,11 @@
+Sure.Qc.Sort.show(s: Sure.Qc.Sort): String
+  case s {
+    unit: "Unit"
+    bool: "Bool"
+    nat: "Nat"
+    string: "String"
+    list: "List<" | Sure.Qc.Sort.show(s.of) | ">"
+    pair: "Pair<" | Sure.Qc.Sort.show(s.fst) | ", " | Sure.Qc.Sort.show(s.snd) | ">"
+    maybe: "Maybe<" | Sure.Qc.Sort.show(s.of) | ">"
+    either: "Either<" | Sure.Qc.Sort.show(s.left) | ", " | Sure.Qc.Sort.show(s.right) | ">"
+  }

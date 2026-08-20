@@ -1,0 +1,2 @@
+Http.post(url: String, body: String): IO<Outcome<Http.Err, Http.Response>>
+  Http.request(Http.Request.new(Http.Method.post, url, "", body))

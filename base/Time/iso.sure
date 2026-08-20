@@ -1,0 +1,2 @@
+Time.iso(t: Time.Stamp): String
+  Time.Parts.show(Time.to_parts(t))

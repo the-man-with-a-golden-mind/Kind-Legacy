@@ -1,0 +1,14 @@
+// Application log lines. Empty tag is allowed. off emits nothing.
+
+Sure.Log.want(have: Sure.Debug.Level, need: Sure.Debug.Level): Bool
+  Sure.Debug.Level.at_least(have, need)
+
+Sure.Log.format(have: Sure.Debug.Level, need: Sure.Debug.Level, tag: String, msg: String): Maybe<String>
+  if Sure.Log.want(have, need) then some(Sure.Debug.line(need, tag, msg))
+  else none
+
+Sure.Log.put(have: Sure.Debug.Level, need: Sure.Debug.Level, tag: String, msg: String): IO<Unit>
+  case Sure.Log.format(have, need, tag, msg) as line {
+    none: IO.end<Unit>(unit)
+    some: IO.print(line.value)
+  }

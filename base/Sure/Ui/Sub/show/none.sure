@@ -1,0 +1,2 @@
+Sure.Ui.Sub.show.none: Sure.Ui.Sub.show(Sure.Ui.Sub.none) == ""
+  refl

@@ -1,0 +1,2 @@
+Nat.read_base.dec0: Nat.read_base(10, "0") == 0
+  refl

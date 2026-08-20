@@ -1,0 +1,2 @@
+Sure.Pipe.map_nil: Sure.Pipe.map<Nat, Nat>(Nat.succ, []) == []
+  refl

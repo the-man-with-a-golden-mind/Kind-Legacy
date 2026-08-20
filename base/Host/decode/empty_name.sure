@@ -1,0 +1,2 @@
+Host.decode.empty_name: Host.decode("1\nempty_name") == Host.err(Host.Err.empty)
+  refl

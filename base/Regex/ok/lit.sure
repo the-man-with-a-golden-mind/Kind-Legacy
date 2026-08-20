@@ -1,0 +1,2 @@
+Regex.ok.lit: Regex.ok("a", "a") == true
+  refl

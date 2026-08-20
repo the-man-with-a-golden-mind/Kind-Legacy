@@ -1,0 +1,9 @@
+Db.Mig.all: Unit
+  let n0 = Db.Mig.ok_name.empty
+  let n1 = Db.Mig.ok_name.a
+  let s0 = Db.Mig.split.empty
+  let j0 = Db.Mig.join.empty
+  let h0 = Db.Mig.has.empty
+  let t0 = Db.Mig.step.empty
+  let l0 = Db.Mig.log_key.def
+  unit

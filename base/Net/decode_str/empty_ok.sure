@@ -1,0 +1,6 @@
+Net.decode_str.empty_ok:
+  case Net.decode_str("0\n") as o {
+    err: "x"
+    ok: o.value
+  } == ""
+  refl

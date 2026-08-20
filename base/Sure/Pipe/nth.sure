@@ -1,0 +1,2 @@
+Sure.Pipe.nth<A: Type>(i: Nat, xs: List<A>): Maybe<A>
+  List.at<A>(i, xs)

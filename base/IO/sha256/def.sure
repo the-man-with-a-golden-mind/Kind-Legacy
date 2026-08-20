@@ -1,0 +1,3 @@
+IO.sha256.def(text: String):
+  IO.sha256(text) == IO.ask<String>("sha256", text, (hash) IO.end<String>(hash))
+  refl

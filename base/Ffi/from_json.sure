@@ -1,0 +1,9 @@
+Ffi.from_json<A: Type>(dec: JSON -> Maybe<A>, o: Outcome<Ffi.Err, JSON>): Outcome<Ffi.Err, A>
+  case o {
+    err: Outcome.err<Ffi.Err, A>(o.error)
+    ok:
+      case dec(o.value) as v {
+        none: Outcome.err<Ffi.Err, A>(Ffi.Err.decode)
+        some: Outcome.ok<Ffi.Err, A>(v.value)
+      }
+  }

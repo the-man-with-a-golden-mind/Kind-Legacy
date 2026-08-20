@@ -1,0 +1,8 @@
+Time.leap(year: Nat): Bool
+  Bool.and(
+    Nat.is_zero(Time.mod(year, 4)),
+    Bool.or(
+      Bool.not(Nat.is_zero(Time.mod(year, 100))),
+      Nat.is_zero(Time.mod(year, 400))
+    )
+  )

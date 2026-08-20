@@ -1,0 +1,2 @@
+Db.Cmd.read.junk: Maybe.is_none<Db.Cmd>(Db.Cmd.read("SELECT 1")) == true
+  refl

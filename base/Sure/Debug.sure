@@ -1,0 +1,48 @@
+// Human/AI proof debug strings. Keep them short so they reduce in Equal.
+Sure.Debug.got_want(got: String, want: String): String
+  "got " | got | " want " | want
+
+Sure.Debug.sample(name: String, args: String): String
+  name | "(" | args | ")"
+
+Sure.Debug.redact(s: String): String
+  let line = String.take_while((c) Bool.not(U16.eql(c, '\n')), s)
+  if Nat.gtn(String.length(line), 80) then String.take(80, line) | "..."
+  else if Nat.ltn(String.length(line), String.length(s)) then line | "..."
+  else line
+
+Sure.Debug.host_line(query: String, param: String, reply: String): String
+  if String.is_empty(query) then
+    "host ? " | Sure.Debug.redact(param) | " -> " | Sure.Debug.redact(reply)
+  else
+    "host " | query | " " | Sure.Debug.redact(param) | " -> " | Sure.Debug.redact(reply)
+
+Sure.Debug.line(level: Sure.Debug.Level, tag: String, msg: String): String
+  if String.is_empty(tag) then
+    Sure.Debug.Level.show(level) | " " | msg
+  else
+    Sure.Debug.Level.show(level) | " " | tag | " " | msg
+
+Sure.Debug.open(flags: Sure.Debug.Flags, ch: Sure.Debug.Channel): Bool
+  if Sure.Debug.Flags.any(flags) then
+    case ch {
+      host: Sure.Debug.Flags.host(flags)
+      term: Sure.Debug.Flags.term(flags)
+      holes: Sure.Debug.Flags.holes(flags)
+      qc: Sure.Debug.Flags.qc(flags)
+    }
+  else true
+
+Sure.Debug.emit(have: Sure.Debug.Level, need: Sure.Debug.Level, flags: Sure.Debug.Flags, ch: Sure.Debug.Channel): Bool
+  Bool.and(Sure.Debug.Level.at_least(have, need), Sure.Debug.open(flags, ch))
+
+Sure.Debug.host_ask(level: Sure.Debug.Level, flags: Sure.Debug.Flags, query: String): Bool
+  if Bool.not(Sure.Debug.open(flags, Sure.Debug.Channel.host)) then false
+  else if String.eql(query, "yield") then
+    Sure.Debug.Level.at_least(level, Sure.Debug.Level.trace)
+  else
+    Bool.or(
+      Sure.Debug.Level.at_least(level, Sure.Debug.Level.info),
+      Sure.Debug.Flags.host(flags)
+    )
+

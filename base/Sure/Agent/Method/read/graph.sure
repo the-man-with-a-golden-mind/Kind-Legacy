@@ -1,0 +1,2 @@
+Sure.Agent.Method.read.graph: Sure.Agent.Method.read("sure.graph") == some(Sure.Agent.Method.graph)
+  refl

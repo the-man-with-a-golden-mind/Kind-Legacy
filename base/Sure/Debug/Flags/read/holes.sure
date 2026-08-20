@@ -1,0 +1,2 @@
+Sure.Debug.Flags.read.holes: Sure.Debug.Flags.holes(Sure.Debug.Flags.read("holes")) == true
+  refl

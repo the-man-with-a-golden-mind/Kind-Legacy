@@ -1,0 +1,2 @@
+Parse.hex.junk: Maybe.is_none<Nat>(Parse.hex("gg")) == true
+  refl

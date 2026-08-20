@@ -1,0 +1,2 @@
+Sure.Cfg.need.empty: Outcome.is_ok<Sure.Cfg.Err, JSON>(Sure.Cfg.need(Sure.Cfg.empty, "")) == false
+  refl

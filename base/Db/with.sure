@@ -1,0 +1,12 @@
+Db.with<A: Type>(url: String, k: Db.Conn -> IO<Outcome<Db.Err, A>>): IO<Outcome<Db.Err, A>>
+  IO {
+    get c = Db.connect(url)
+    case c {
+      err: IO { return Outcome.err<Db.Err, A>(c.error) }
+      ok: IO {
+        get r = k(c.value)
+        Db.close(c.value)
+        return r
+      }
+    }
+  }

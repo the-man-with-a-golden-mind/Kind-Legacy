@@ -1,0 +1,2 @@
+Sure.Bench.mean.empty: Sure.Bench.mean([]) == 0
+  refl

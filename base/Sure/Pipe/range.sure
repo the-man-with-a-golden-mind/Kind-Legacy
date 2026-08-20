@@ -1,0 +1,8 @@
+Sure.Pipe.range.go(i: Nat, n: Nat): List<Nat>
+  case n {
+    zero: []
+    succ: List.cons<Nat>(i, Sure.Pipe.range.go(Nat.succ(i), n.pred))
+  }
+
+Sure.Pipe.range(n: Nat): List<Nat>
+  Sure.Pipe.range.go(0, n)

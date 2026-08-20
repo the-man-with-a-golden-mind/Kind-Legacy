@@ -1,0 +1,2 @@
+Sure.Debug.open.qc_host: Sure.Debug.open(Sure.Debug.Flags.read("qc"), Sure.Debug.Channel.host) == false
+  refl

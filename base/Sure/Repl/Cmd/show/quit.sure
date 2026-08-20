@@ -1,0 +1,2 @@
+Sure.Repl.Cmd.show.quit: Sure.Repl.Cmd.show(Sure.Repl.Cmd.quit) == "quit"
+  refl

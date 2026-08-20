@@ -1,0 +1,2 @@
+Db.Mig.log_key.def: Db.Mig.log_key == "__sure.mig"
+  refl

@@ -1,0 +1,2 @@
+Db.decode_text.missing: Outcome.is_ok<Db.Err, String>(Db.decode_text("1\nmissing")) == false
+  refl

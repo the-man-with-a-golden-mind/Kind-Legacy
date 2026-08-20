@@ -1,0 +1,2 @@
+Sure.Pipe.reverse_nil: Sure.Pipe.reverse<Nat>([]) == []
+  refl

@@ -1,0 +1,6 @@
+Net.udp.decode.empty:
+  case Net.udp.decode("0\n") as o {
+    err: 1
+    ok: List.length<Net.Udp.Msg>(o.value)
+  } == 0
+  refl

@@ -1,0 +1,6 @@
+Http.Server.get(pattern: String, req: Http.Server.Req): Maybe<List<Pair<String, String>>>
+  open req
+  if Bool.or(String.eql(req.method, "GET"), String.eql(req.method, "get")) then
+    Http.Path.match(pattern, req.url)
+  else
+    none

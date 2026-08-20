@@ -1,0 +1,2 @@
+Sure.Pipe.concat_nil: Sure.Pipe.concat<Nat>([], []) == []
+  refl

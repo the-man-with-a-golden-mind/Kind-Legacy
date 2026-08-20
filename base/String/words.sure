@@ -1,0 +1,2 @@
+String.words(xs: String): List<String>
+  List.filter<String>(String.not_empty, String.split(xs, " "))

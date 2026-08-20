@@ -1,0 +1,2 @@
+Sure.Web.window_count.empty: Sure.Web.window_count(0, 0) == 0
+  refl

@@ -1,0 +1,2 @@
+Sure.Mod.name.ok: Sure.Mod.name("Foo") == true
+  refl

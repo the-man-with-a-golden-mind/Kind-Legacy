@@ -1,0 +1,2 @@
+Sure.Agent.fill.first.keep: Sure.Agent.fill.first("x?implementy?implementz", "0") == "x0y?implementz"
+  refl

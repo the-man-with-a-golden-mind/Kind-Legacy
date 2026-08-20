@@ -1,0 +1,2 @@
+Nat.parse_decimal.empty: Nat.parse_decimal("") == 0
+  refl

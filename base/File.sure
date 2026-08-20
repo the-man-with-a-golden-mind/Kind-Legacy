@@ -1,0 +1,17 @@
+type File.Err {
+  bad_path(err: Path.Err)
+  missing
+  io(message: String)
+}
+
+File.Err.show(e: File.Err): String
+  case e {
+    bad_path:
+      case e.err {
+        empty: "empty path"
+        nul: "NUL in path"
+        dotdot: "path contains .."
+      }
+    missing: "file not found"
+    io: e.message
+  }

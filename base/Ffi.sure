@@ -1,0 +1,28 @@
+// JS/TS FFI. Values cross as JSON. The host never injects a JS object into a Sure type.
+type Ffi.Err {
+  empty_name
+  bad_name
+  missing
+  bad_json
+  decode
+  bad_tag
+  throw(message: String)
+}
+
+Ffi.Err.show(e: Ffi.Err): String
+  case e {
+    empty_name: "empty_name"
+    bad_name: "bad_name"
+    missing: "missing"
+    bad_json: "bad_json"
+    decode: "decode"
+    bad_tag: "bad_tag"
+    throw: "throw:" | e.message
+  }
+
+Ffi.safe(name: String): Bool
+  if String.is_empty(name) then false
+  else if String.includes(name, "\n") then false
+  else if String.includes(name, "/") then false
+  else if String.includes(name, "\\") then false
+  else true

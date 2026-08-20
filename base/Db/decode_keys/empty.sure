@@ -1,0 +1,2 @@
+Db.decode_keys.empty: Db.decode_keys("0\n[]") == Outcome.ok<Db.Err, List<String>>([])
+  refl

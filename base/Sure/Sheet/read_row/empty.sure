@@ -1,0 +1,2 @@
+Sure.Sheet.read_row.empty: Maybe.is_none<Sure.Sheet.Row>(Sure.Sheet.read_row("")) == true
+  refl

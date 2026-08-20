@@ -1,0 +1,111 @@
+// Server-Sent Events. Empty bus is not a bus. Empty event is "message".
+// Newlines in the event name are junk. No clients is 0, not an error.
+
+type Sure.Sse.Err {
+  empty_bus
+  empty_id
+  missing
+  junk
+}
+
+Sure.Sse.Err.show(e: Sure.Sse.Err): String
+  case e {
+    empty_bus: "empty_bus"
+    empty_id: "empty_id"
+    missing: "missing"
+    junk: "junk"
+  }
+
+Sure.Sse.Err.read(s: String): Sure.Sse.Err
+  if String.eql(s, "empty_bus") then Sure.Sse.Err.empty_bus
+  else if String.eql(s, "empty_id") then Sure.Sse.Err.empty_id
+  else if String.eql(s, "missing") then Sure.Sse.Err.missing
+  else if String.eql(s, "junk") then Sure.Sse.Err.junk
+  else if String.is_empty(s) then Sure.Sse.Err.missing
+  else Sure.Sse.Err.junk
+
+Sure.Sse.ok_bus(s: String): Bool
+  if String.is_empty(s) then false
+  else if String.includes(s, "\n") then false
+  else if String.includes(s, String.cons(0#16, "")) then false
+  else true
+
+Sure.Sse.ok_event(s: String): Bool
+  if String.includes(s, "\n") then false
+  else if String.includes(s, "\r") then false
+  else true
+
+Sure.Sse.event_name(s: String): String
+  if String.is_empty(s) then "message"
+  else s
+
+Sure.Sse.data_block.go(xs: List<String>, acc: String): String
+  case xs {
+    nil: acc
+    cons: Sure.Sse.data_block.go(xs.tail, acc | "data:" | xs.head | "\n")
+  }
+
+Sure.Sse.data_block(data: String): String
+  if String.is_empty(data) then "data:\n"
+  else Sure.Sse.data_block.go(String.split(data, "\n"), "")
+
+Sure.Sse.frame(event: String, data: String): Maybe<String>
+  if Bool.not(Sure.Sse.ok_event(event)) then none
+  else some("event: " | Sure.Sse.event_name(event) | "\n" | Sure.Sse.data_block(data) | "\n")
+
+Sure.Sse.comment(s: String): Maybe<String>
+  if Bool.not(Sure.Sse.ok_event(s)) then none
+  else some(": " | s | "\n\n")
+
+Sure.Sse.decode_unit(raw: String): Outcome<Sure.Sse.Err, Unit>
+  case IO.tagged.read(raw) as tag {
+    err: Outcome.err<Sure.Sse.Err, Unit>(Sure.Sse.Err.read(tag.error))
+    ok: Outcome.ok<Sure.Sse.Err, Unit>(unit)
+  }
+
+Sure.Sse.decode_nat(raw: String): Outcome<Sure.Sse.Err, Nat>
+  case IO.tagged.read(raw) as tag {
+    err: Outcome.err<Sure.Sse.Err, Nat>(Sure.Sse.Err.read(tag.error))
+    ok:
+      case Parse.nat(tag.value) as n {
+        none: Outcome.err<Sure.Sse.Err, Nat>(Sure.Sse.Err.junk)
+        some: Outcome.ok<Sure.Sse.Err, Nat>(n.value)
+      }
+  }
+
+Sure.Sse.open(id: String, bus: String): IO<Outcome<Sure.Sse.Err, Unit>>
+  if String.is_empty(id) then
+    IO.end<Outcome<Sure.Sse.Err, Unit>>(Outcome.err<Sure.Sse.Err, Unit>(Sure.Sse.Err.empty_id))
+  else if Bool.not(Sure.Sse.ok_bus(bus)) then
+    IO.end<Outcome<Sure.Sse.Err, Unit>>(Outcome.err<Sure.Sse.Err, Unit>(Sure.Sse.Err.empty_bus))
+  else IO {
+    get raw = IO.ask<String>("sse_open", id | "\n" | bus, (t) IO.end<String>(t))
+    return Sure.Sse.decode_unit(raw)
+  }
+
+Sure.Sse.send(bus: String, event: String, data: String): IO<Outcome<Sure.Sse.Err, Nat>>
+  if Bool.not(Sure.Sse.ok_bus(bus)) then
+    IO.end<Outcome<Sure.Sse.Err, Nat>>(Outcome.err<Sure.Sse.Err, Nat>(Sure.Sse.Err.empty_bus))
+  else case Sure.Sse.frame(event, data) as f {
+    none: IO.end<Outcome<Sure.Sse.Err, Nat>>(Outcome.err<Sure.Sse.Err, Nat>(Sure.Sse.Err.junk))
+    some: IO {
+      get raw = IO.ask<String>("sse_send", bus | "\n" | f.value, (t) IO.end<String>(t))
+      return Sure.Sse.decode_nat(raw)
+    }
+  }
+
+Sure.Sse.close(id: String): IO<Outcome<Sure.Sse.Err, Unit>>
+  if String.is_empty(id) then
+    IO.end<Outcome<Sure.Sse.Err, Unit>>(Outcome.err<Sure.Sse.Err, Unit>(Sure.Sse.Err.empty_id))
+  else IO {
+    get raw = IO.ask<String>("sse_close", id, (t) IO.end<String>(t))
+    return Sure.Sse.decode_unit(raw)
+  }
+
+Sure.Sse.count(bus: String): IO<Outcome<Sure.Sse.Err, Nat>>
+  if Bool.not(Sure.Sse.ok_bus(bus)) then
+    IO.end<Outcome<Sure.Sse.Err, Nat>>(Outcome.err<Sure.Sse.Err, Nat>(Sure.Sse.Err.empty_bus))
+  else IO {
+    get raw = IO.ask<String>("sse_count", bus, (t) IO.end<String>(t))
+    return Sure.Sse.decode_nat(raw)
+  }

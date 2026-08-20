@@ -1,0 +1,12 @@
+Http.App.fire(routes: List<Http.App.Route>, req: Http.Server.Req): IO<Http.Response>
+  case routes {
+    nil: IO {
+      return Http.Response.new(404, "not found")
+    }
+    cons:
+      open routes.head
+      case Http.App.match(routes.head.method, routes.head.pattern, req) as m {
+        none: Http.App.fire(routes.tail, req)
+        some: routes.head.handle(req, m.value)
+      }
+  }

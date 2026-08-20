@@ -1,0 +1,4 @@
+JSON.set(j: JSON, key: String, val: JSON): JSON
+  case j {
+    object: JSON.object(Map.set<JSON>(key, val, j.value))
+  } default j

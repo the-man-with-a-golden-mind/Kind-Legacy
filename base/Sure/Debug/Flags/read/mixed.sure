@@ -1,0 +1,2 @@
+Sure.Debug.Flags.read.mixed: Sure.Debug.Flags.show(Sure.Debug.Flags.read("qc,host")) == "host qc"
+  refl

@@ -1,0 +1,2 @@
+Sure.Lsp.word.plus: Sure.Lsp.word("+", 0) == ""
+  refl

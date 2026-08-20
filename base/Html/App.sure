@@ -1,0 +1,15 @@
+type Html.App <M: Type> {
+  new(
+    init: M
+    view: (m: M) -> DOM
+    update: (msg: String) -> (ev: Html.Event.Data) -> (m: M) -> M
+  )
+}
+
+Html.App.step<M: Type>(app: Html.App<M>, msg: String, ev: Html.Event.Data, model: M): M
+  open app
+  app.update(msg, ev, model)
+
+Html.App.draw<M: Type>(app: Html.App<M>, model: M): String
+  open app
+  DOM.page("Sure", app.view(model))

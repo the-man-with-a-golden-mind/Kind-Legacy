@@ -1,0 +1,5 @@
+Sure.Agent.names_head(s: String): String
+  case Sure.Agent.names_of(s) as xs {
+    nil: ""
+    cons: xs.head
+  }

@@ -1,0 +1,14 @@
+File.read_bytes.decode(raw: String): Outcome<File.Err, Bytes>
+  case File.from_tagged(raw) as o {
+    err: Outcome.err<File.Err, Bytes>(o.error)
+    ok: Outcome.ok<File.Err, Bytes>(Bytes.from_hex(o.value))
+  }
+
+File.read_bytes(path: Path): IO<Outcome<File.Err, Bytes>>
+  IO {
+    get e = Host.perform(Host.Op.fs_read_hex(Path.text(path)))
+    return case Host.to_file(e) as o {
+      err: Outcome.err<File.Err, Bytes>(o.error)
+      ok: Outcome.ok<File.Err, Bytes>(Bytes.from_hex(o.value))
+    }
+  }

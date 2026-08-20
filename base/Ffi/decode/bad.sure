@@ -1,0 +1,2 @@
+Ffi.decode.bad: Ffi.decode("0\n{") == Outcome.err<Ffi.Err, JSON>(Ffi.Err.decode)
+  refl

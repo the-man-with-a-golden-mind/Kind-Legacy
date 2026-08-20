@@ -1,0 +1,2 @@
+Html.Event.Data.parse.empty: Html.Event.Data.parse("")@msg == ""
+  refl

@@ -1,0 +1,13 @@
+Sure.Ssr.all: Unit
+  let u0 = Sure.Ssr.ok_url.empty
+  let u1 = Sure.Ssr.ok_url.slash
+  let c0 = Sure.Ssr.ctype.html.def
+  let c1 = Sure.Ssr.ctype.json.def
+  let h0 = Sure.Ssr.hdr.html
+  let s0 = Sure.Ssr.sse_script.empty
+  let e0 = Sure.Ssr.Err.show.empty_id
+  let e1 = Sure.Ssr.Err.read.empty
+  let d0 = Sure.Sse.all
+  let d1 = Db.Dsl.all
+  let d2 = Db.Mig.all
+  unit

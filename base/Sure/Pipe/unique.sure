@@ -1,0 +1,2 @@
+Sure.Pipe.unique<A: Type>(eql: A -> A -> Bool, xs: List<A>): List<A>
+  List.unique<A>(eql, xs)

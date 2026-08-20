@@ -1,0 +1,2 @@
+Sure.Pipe.group_nil: Sure.Pipe.group<Nat>(Nat.eql, []) == []
+  refl

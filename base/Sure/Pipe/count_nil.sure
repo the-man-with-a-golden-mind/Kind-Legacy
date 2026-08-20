@@ -1,0 +1,2 @@
+Sure.Pipe.count_nil: Sure.Pipe.count<Nat>([]) == 0
+  refl

@@ -1,0 +1,2 @@
+Ffi.safe.math: Ffi.safe("Math.abs") == true
+  refl

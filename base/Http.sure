@@ -1,0 +1,74 @@
+type Http.Method {
+  get
+  post
+  put
+  delete
+  patch
+  head
+}
+
+type Http.Err {
+  bad_url
+  io(message: String)
+  decode
+}
+
+type Http.Request {
+  new(
+    method: Http.Method
+    url: String
+    headers: String
+    body: String
+  )
+}
+
+type Http.Response {
+  new(
+    status: Nat
+    body: String
+  )
+}
+
+Http.Method.show(m: Http.Method): String
+  case m {
+    get: "GET"
+    post: "POST"
+    put: "PUT"
+    delete: "DELETE"
+    patch: "PATCH"
+    head: "HEAD"
+  }
+
+Http.Err.show(e: Http.Err): String
+  case e {
+    bad_url: "bad url"
+    io: e.message
+    decode: "decode"
+  }
+
+Http.encode(req: Http.Request): String
+  open req
+  let line = Http.Method.show(req.method) | " " | req.url | "\n"
+  if String.is_empty(req.headers) then
+    line | "\n" | req.body
+  else
+    line | req.headers | "\n\n" | req.body
+
+Http.decode(raw: String): Outcome<Http.Err, Http.Response>
+  case IO.tagged.read(raw) as tag {
+    err:
+      Outcome.err<Http.Err, Http.Response>(Http.Err.io(tag.error))
+    ok:
+      Http.decode.payload(tag.value)
+  }
+
+Http.decode.payload(payload: String): Outcome<Http.Err, Http.Response>
+  let parts = String.split(payload, "\n")
+  case parts {
+    cons:
+      let status = Nat.read(parts.head)
+      let body = String.drop(Nat.succ(String.length(parts.head)), payload)
+      Outcome.ok<Http.Err, Http.Response>(Http.Response.new(status, body))
+    nil:
+      Outcome.err<Http.Err, Http.Response>(Http.Err.decode)
+  }

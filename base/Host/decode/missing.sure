@@ -1,0 +1,2 @@
+Host.decode.missing: Host.decode("1\nmissing") == Host.err(Host.Err.missing)
+  refl

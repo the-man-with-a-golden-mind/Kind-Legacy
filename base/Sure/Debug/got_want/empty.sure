@@ -1,0 +1,2 @@
+Sure.Debug.got_want.empty: Sure.Debug.got_want("", "x") == "got  want x"
+  refl

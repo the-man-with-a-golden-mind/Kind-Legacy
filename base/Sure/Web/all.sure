@@ -1,0 +1,16 @@
+Sure.Web.all: Unit
+  let a0 = Sure.Web.html_draw.zero
+  let a1 = Sure.Web.html_step.zero
+  let a2 = Sure.Web.html_step_junk.keep
+  let a3 = Sure.Web.ui_draw.zero
+  let a4 = Sure.Web.ui_step.zero
+  let a5 = Sure.Web.ssr_doc.zero
+  let a6 = Sure.Web.ssr_nf.zero
+  let a7 = Sure.Web.escape_junk.zero
+  let a8 = Sure.Web.escape_empty.zero
+  let a9 = Sure.Web.match_hit.zero
+  let b0 = Sure.Web.match_junk.zero
+  let b1 = Sure.Web.sheet_win.zero
+  let b2 = Sure.Web.window_count.empty
+  let b3 = Sure.Web.show.empty
+  unit

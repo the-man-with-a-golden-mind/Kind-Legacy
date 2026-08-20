@@ -1,0 +1,2 @@
+Html.on(ev: Html.Event, msg: String, props: Map<String>): Map<String>
+  Map.set<String>("on-" | Html.Event.show(ev), msg, props)

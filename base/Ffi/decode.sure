@@ -1,0 +1,9 @@
+Ffi.decode(raw: String): Outcome<Ffi.Err, JSON>
+  case IO.tagged.read(raw) as tag {
+    err: Outcome.err<Ffi.Err, JSON>(Ffi.err_of(tag.error))
+    ok:
+      case JSON.parse(tag.value) as j {
+        none: Outcome.err<Ffi.Err, JSON>(Ffi.Err.decode)
+        some: Outcome.ok<Ffi.Err, JSON>(j.value)
+      }
+  }

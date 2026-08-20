@@ -1,0 +1,16 @@
+Sure.Doc.all: Unit
+  let c0 = Sure.Doc.is_comment.yes
+  let c1 = Sure.Doc.is_comment.no
+  let c2 = Sure.Doc.is_comment.empty
+  let c3 = Sure.Doc.is_comment.slash
+  let b0 = Sure.Doc.body.hi
+  let b1 = Sure.Doc.body.tight
+  let b2 = Sure.Doc.body.empty
+  let b3 = Sure.Doc.body.not
+  let l0 = Sure.Doc.leading.hi
+  let l1 = Sure.Doc.leading.none
+  let l2 = Sure.Doc.leading.empty
+  let l3 = Sure.Doc.leading.two
+  let l4 = Sure.Doc.leading.after
+  let l5 = Sure.Doc.leading.blank
+  unit

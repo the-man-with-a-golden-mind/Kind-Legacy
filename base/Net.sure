@@ -1,0 +1,70 @@
+type Net.Err {
+  io(message: String)
+  closed
+}
+
+type Net.Conn {
+  new(id: String)
+}
+
+type Net.Udp.Msg {
+  new(ip: String, port: Nat, data: String)
+}
+
+Net.decode_str(raw: String): Outcome<Net.Err, String>
+  case IO.tagged.read(raw) as tag {
+    err: Outcome.err<Net.Err, String>(Net.Err.io(tag.error))
+    ok: Outcome.ok<Net.Err, String>(tag.value)
+  }
+
+Net.decode_unit(raw: String): Outcome<Net.Err, Unit>
+  case IO.tagged.read(raw) as tag {
+    err: Outcome.err<Net.Err, Unit>(Net.Err.io(tag.error))
+    ok: Outcome.ok<Net.Err, Unit>(unit)
+  }
+
+Net.decode_conn(raw: String): Outcome<Net.Err, Net.Conn>
+  case IO.tagged.read(raw) as tag {
+    err: Outcome.err<Net.Err, Net.Conn>(Net.Err.io(tag.error))
+    ok: Outcome.ok<Net.Err, Net.Conn>(Net.Conn.new(tag.value))
+  }
+
+Net.dns(host: String): IO<Outcome<Net.Err, String>>
+  IO {
+    get raw = IO.ask<String>("dns", host, (t) IO.end<String>(t))
+    return Net.decode_str(raw)
+  }
+
+Net.connect(host: String, port: Nat, tls: Bool): IO<Outcome<Net.Err, Net.Conn>>
+  IO {
+    let flag = if tls then "1" else "0"
+    get raw = IO.ask<String>("tcp_connect", host | "\n" | Nat.show(port) | "\n" | flag, (t) IO.end<String>(t))
+    return Net.decode_conn(raw)
+  }
+
+Net.send(conn: Net.Conn, data: String): IO<Outcome<Net.Err, Unit>>
+  open conn
+  IO {
+    get raw = IO.ask<String>("tcp_send", conn.id | "\n" | data, (t) IO.end<String>(t))
+    return Net.decode_unit(raw)
+  }
+
+Net.recv(conn: Net.Conn): IO<Outcome<Net.Err, String>>
+  open conn
+  IO {
+    get raw = IO.ask<String>("tcp_recv", conn.id, (t) IO.end<String>(t))
+    return Net.decode_str(raw)
+  }
+
+Net.close(conn: Net.Conn): IO<Unit>
+  open conn
+  IO {
+    IO.ask<Unit>("tcp_close", conn.id, (t) IO.end<Unit>(unit))
+    return unit
+  }
+
+Net.ws_connect(url: String): IO<Outcome<Net.Err, Net.Conn>>
+  IO {
+    get raw = IO.ask<String>("ws_connect", url, (t) IO.end<String>(t))
+    return Net.decode_conn(raw)
+  }

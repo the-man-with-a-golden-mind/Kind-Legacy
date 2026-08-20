@@ -1,0 +1,2 @@
+Ffi.decode.empty_name: Ffi.decode("1\nempty_name") == Outcome.err<Ffi.Err, JSON>(Ffi.Err.empty_name)
+  refl

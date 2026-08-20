@@ -1,0 +1,3 @@
+// Security: a true assertion is definitionally pass.
+Test.assert.true(message: String): Test.assert(true, message) == Test.Result.pass
+  refl

@@ -1,0 +1,3 @@
+// Structured goal line for people and AI. Matches Sure.Error.show_goal shape.
+Sure.Agent.trace(name: String, ty: String, ctx: String): String
+  "Goal ?" | name | ":\nWith type: " | ty | "\nWith context:\n" | ctx

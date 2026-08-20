@@ -1,0 +1,2 @@
+Sure.Gen.bool.one: Sure.Gen.bool(1) == true
+  refl

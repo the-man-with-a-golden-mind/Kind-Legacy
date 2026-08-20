@@ -1,0 +1,2 @@
+Sure.Csv.read.empty: List.length<Sure.Csv.Row>(Sure.Csv.read("")) == 0
+  refl

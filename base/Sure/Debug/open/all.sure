@@ -1,0 +1,2 @@
+Sure.Debug.open.all: Sure.Debug.open(Sure.Debug.Flags.read("all"), Sure.Debug.Channel.term) == true
+  refl

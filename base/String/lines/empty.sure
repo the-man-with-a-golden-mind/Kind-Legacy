@@ -1,0 +1,2 @@
+String.lines.empty: List.length<String>(String.lines("")) == 1
+  refl

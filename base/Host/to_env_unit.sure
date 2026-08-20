@@ -1,0 +1,6 @@
+Host.to_env_unit(e: Host.Event): Outcome<Sure.Env.Err, Unit>
+  case e {
+    ok_string: Outcome.ok<Sure.Env.Err, Unit>(unit)
+    ok_unit: Outcome.err<Sure.Env.Err, Unit>(Sure.Env.Err.junk)
+    err: Outcome.err<Sure.Env.Err, Unit>(Host.to_env_err(e.error))
+  }

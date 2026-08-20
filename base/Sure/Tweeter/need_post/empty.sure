@@ -1,0 +1,2 @@
+Sure.Tweeter.need_post.empty: Sure.Tweeter.need_post("") == false
+  refl

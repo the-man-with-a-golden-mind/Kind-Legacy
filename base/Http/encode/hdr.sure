@@ -1,0 +1,3 @@
+Http.encode.hdr:
+  Http.encode(Http.Request.new(Http.Method.get, "http://x", "Accept: text", "hi")) == "GET http://x\nAccept: text\n\nhi"
+  refl

@@ -1,0 +1,2 @@
+Sure.Mod.import_name.ok: Sure.Mod.import_name("import Nat exposing (add)") == "Nat"
+  refl

@@ -1,0 +1,3 @@
+// Security: a false assertion is definitionally fail with that message.
+Test.assert.false(message: String): Test.assert(false, message) == Test.Result.fail(message)
+  refl

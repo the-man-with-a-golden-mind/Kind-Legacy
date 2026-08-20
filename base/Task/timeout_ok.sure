@@ -1,0 +1,2 @@
+Task.timeout_ok: Outcome<Task.Err, Unit>
+  Outcome.ok<Task.Err, Unit>(unit)

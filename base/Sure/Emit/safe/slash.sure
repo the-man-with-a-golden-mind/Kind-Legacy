@@ -1,0 +1,2 @@
+Sure.Emit.safe.slash: Sure.Emit.safe("a/b") == false
+  refl

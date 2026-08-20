@@ -1,0 +1,2 @@
+Time.Parts.read.junk: Maybe.is_none<Time.Parts>(Time.Parts.read("nope")) == true
+  refl

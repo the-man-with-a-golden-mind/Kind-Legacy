@@ -1,0 +1,2 @@
+Ffi.from_json.none: Ffi.from_json<Bool>(JSON.dec.bool, Outcome.ok<Ffi.Err, JSON>(JSON.null)) == Outcome.err<Ffi.Err, Bool>(Ffi.Err.decode)
+  refl

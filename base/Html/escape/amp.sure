@@ -1,0 +1,2 @@
+Html.escape.amp: Html.escape("&") == "&amp;"
+  refl

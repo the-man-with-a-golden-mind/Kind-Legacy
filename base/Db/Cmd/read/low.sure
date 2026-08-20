@@ -1,0 +1,2 @@
+Db.Cmd.read.low: Maybe.is_none<Db.Cmd>(Db.Cmd.read("get k")) == true
+  refl

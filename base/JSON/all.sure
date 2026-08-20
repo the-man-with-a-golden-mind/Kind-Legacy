@@ -1,0 +1,34 @@
+JSON.all: Unit
+  let s0 = JSON.stringify.null
+  let s1 = JSON.stringify.true
+  let s2 = JSON.stringify.false
+  let f0 = JSON.field_string.name
+  let b0 = JSON.dec.bool.true
+  let b1 = JSON.dec.bool.null
+  let t0 = JSON.dec.string.empty
+  let n0 = JSON.dec.nat.empty
+  let n1 = JSON.dec.nat.zero
+  let l0 = JSON.dec.list.null
+  let l1 = JSON.dec.list.empty
+  let g0 = JSON.get.miss
+  let u0 = JSON.dec.unit.ok
+  let u1 = JSON.dec.unit.no
+  let m0 = JSON.dec.maybe.none
+  let e0 = JSON.enc.nat.zero
+  let e1 = JSON.enc.list.empty
+  let g1 = JSON.digits.empty
+  let g2 = JSON.digits.zero
+  let g3 = JSON.digits.junk
+  let g4 = JSON.digits.tail
+  let n2 = JSON.dec.nat.junk
+  let n3 = JSON.dec.nat.tail
+  let n4 = JSON.dec.nat.bool
+  let p0 = JSON.dec.pair.empty
+  let p1 = JSON.dec.pair.one
+  let er = JSON.dec.either.null
+  let fd = JSON.dec.field.miss
+  let br = JSON.dec.bool.round
+  let f0 = JSON.dec.f64.null
+  let p0 = JSON.path.miss
+  let p1 = JSON.path.empty
+  unit

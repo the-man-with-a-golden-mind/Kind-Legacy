@@ -1,0 +1,6 @@
+Dir.names.head_a:
+  case Dir.names("a;b") as xs {
+    nil: ""
+    cons: xs.head
+  } == "a"
+  refl

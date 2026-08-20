@@ -1,0 +1,11 @@
+DOM.prop_attr.one(p: Pair<String, String>): String
+  open p
+  if String.starts_with(p.fst, "on-") then
+    " data-sure-on-" | String.drop(3, p.fst) | "=\"" | Html.escape(p.snd) | "\""
+  else if String.starts_with(p.fst, "on") then
+    " data-sure-on-" | String.drop(2, p.fst) | "=\"" | Html.escape(p.snd) | "\""
+  else
+    " " | p.fst | "=\"" | Html.escape(p.snd) | "\""
+
+DOM.prop_attr(props: Map<String>): String
+  String.flatten(List.map<Pair<String,String>, String>(DOM.prop_attr.one, Map.to_list<String>(props)))

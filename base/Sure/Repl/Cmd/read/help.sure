@@ -1,0 +1,2 @@
+Sure.Repl.Cmd.read.help: Sure.Repl.Cmd.read("help") == some(Sure.Repl.Cmd.help)
+  refl

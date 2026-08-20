@@ -1,0 +1,2 @@
+Sure.Sse.Err.read.empty: Sure.Sse.Err.show(Sure.Sse.Err.read("")) == "missing"
+  refl

@@ -1,0 +1,18 @@
+String.ops.all: Unit
+  let r0 = String.replace.empty
+  let r1 = String.replace.miss
+  let r2 = String.replace.hit
+  let a0 = String.replace_all.empty
+  let a1 = String.replace_all.aa
+  let i0 = String.index_of.empty
+  let i1 = String.index_of.miss
+  let i2 = String.index_of.hit
+  let c0 = String.count.empty
+  let c1 = String.count.two
+  let l0 = String.lines.empty
+  let w0 = String.words.empty
+  let t0 = String.trim_left.empty
+  let t1 = String.trim_left.space
+  let s0 = Char.is_space.space
+  let s1 = Char.is_space.a
+  unit

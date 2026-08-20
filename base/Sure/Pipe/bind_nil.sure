@@ -1,0 +1,2 @@
+Sure.Pipe.bind_nil: Sure.Pipe.bind<Nat, Nat>([], Sure.Qc.List.sing) == []
+  refl

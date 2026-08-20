@@ -1,0 +1,2 @@
+Sure.Tweeter.cookie_sid.empty: Sure.Tweeter.cookie_sid("") == ""
+  refl

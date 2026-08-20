@@ -1,0 +1,6 @@
+Db.Dsl.row_key.ok:
+  case Db.Dsl.row_key("t", "i") as k {
+    none: ""
+    some: k.value
+  } == "t/i"
+  refl

@@ -1,0 +1,16 @@
+Sure.Qc.Val.show_list(xs: List<Sure.Qc.Val>): String
+  "[" | String.join(", ", List.map<Sure.Qc.Val, String>(Sure.Qc.Val.show, xs)) | "]"
+
+Sure.Qc.Val.show(v: Sure.Qc.Val): String
+  case v {
+    unit: "unit"
+    bool: case v.value { true: "true", false: "false" }
+    nat: Nat.show(v.value)
+    string: "\"" | v.value | "\""
+    list: Sure.Qc.Val.show_list(v.value)
+    pair: "Pair.new!(" | Sure.Qc.Val.show(v.fst) | ", " | Sure.Qc.Val.show(v.snd) | ")"
+    none: "none"
+    some: "some(" | Sure.Qc.Val.show(v.value) | ")"
+    left: "Either.left!(" | Sure.Qc.Val.show(v.value) | ")"
+    right: "Either.right!(" | Sure.Qc.Val.show(v.value) | ")"
+  }

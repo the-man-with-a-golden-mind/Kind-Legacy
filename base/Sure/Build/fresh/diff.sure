@@ -1,0 +1,2 @@
+Sure.Build.fresh.diff: Sure.Build.fresh("", "abc") == true
+  refl

@@ -1,0 +1,6 @@
+Task.cancel(id: Task.Id): IO<Unit>
+  open id
+  IO {
+    IO.job_cancel(id.text)
+    return unit
+  }

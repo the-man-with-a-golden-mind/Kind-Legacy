@@ -1,0 +1,13 @@
+String.index_of.go(i: Nat, match: String, xs: String): Maybe<Nat>
+  case xs {
+    nil:
+      if String.is_empty(match) then some(i)
+      else none
+    cons:
+      if String.starts_with(xs, match) then some(i)
+      else String.index_of.go(Nat.succ(i), match, xs.tail)
+  }
+
+String.index_of(xs: String, match: String): Maybe<Nat>
+  if String.is_empty(match) then some(0)
+  else String.index_of.go(0, match, xs)

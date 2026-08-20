@@ -1,0 +1,45 @@
+type Time.Stamp {
+  new(ms: Nat)
+}
+
+Time.Stamp.ms_of(t: Time.Stamp): Nat
+  open t
+  t.ms
+
+Time.Stamp.epoch: Time.Stamp
+  Time.Stamp.new(0)
+
+Time.Stamp.add(t: Time.Stamp, d: Time.Duration): Time.Stamp
+  open t
+  open d
+  Time.Stamp.new(Nat.add(t.ms, d.ms))
+
+Time.Stamp.sub(t: Time.Stamp, d: Time.Duration): Time.Stamp
+  open t
+  open d
+  Time.Stamp.new(Nat.sub(t.ms, d.ms))
+
+Time.Stamp.diff(a: Time.Stamp, b: Time.Stamp): Time.Duration
+  open a
+  open b
+  Time.Duration.new(Nat.sub(a.ms, b.ms))
+
+Time.Stamp.eql(a: Time.Stamp, b: Time.Stamp): Bool
+  open a
+  open b
+  Nat.eql(a.ms, b.ms)
+
+Time.Stamp.ltn(a: Time.Stamp, b: Time.Stamp): Bool
+  open a
+  open b
+  Nat.ltn(a.ms, b.ms)
+
+Time.Stamp.show(t: Time.Stamp): String
+  open t
+  Nat.show(t.ms)
+
+Time.Stamp.read(s: String): Maybe<Time.Stamp>
+  case Parse.nat(s) as n {
+    none: none
+    some: some(Time.Stamp.new(n.value))
+  }

@@ -1,0 +1,2 @@
+Sure.Mod.import_name.none: Sure.Mod.import_name("import Nat") == "Nat"
+  refl

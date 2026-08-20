@@ -1,0 +1,3 @@
+// A blank line ends the leading block (non-optimistic attach).
+Sure.Doc.leading.blank: Sure.Doc.leading("// a\n\nFoo") == "a"
+  refl

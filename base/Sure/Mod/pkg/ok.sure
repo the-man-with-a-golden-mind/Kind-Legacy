@@ -1,0 +1,2 @@
+Sure.Mod.pkg.ok: Sure.Mod.pkg("ada/boxes") == true
+  refl

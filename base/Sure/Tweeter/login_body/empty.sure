@@ -1,0 +1,2 @@
+Sure.Tweeter.login_body.empty: Sure.Tweeter.login_body("", "x") == "u=&p=x"
+  refl

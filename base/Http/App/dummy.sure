@@ -1,0 +1,4 @@
+Http.App.dummy(req: Http.Server.Req, binds: List<Pair<String, String>>): IO<Http.Response>
+  IO {
+    return Http.json("")
+  }

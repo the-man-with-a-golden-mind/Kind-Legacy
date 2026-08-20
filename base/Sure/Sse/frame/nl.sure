@@ -1,0 +1,2 @@
+Sure.Sse.frame.nl: Maybe.is_none<String>(Sure.Sse.frame("a\nb", "x")) == true
+  refl

@@ -1,0 +1,2 @@
+JSON.stringify.null: JSON.stringify(JSON.null) == "null"
+  refl

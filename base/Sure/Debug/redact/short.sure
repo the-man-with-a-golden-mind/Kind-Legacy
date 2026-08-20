@@ -1,0 +1,2 @@
+Sure.Debug.redact.short: Sure.Debug.redact("hi") == "hi"
+  refl

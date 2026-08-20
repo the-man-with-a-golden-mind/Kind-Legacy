@@ -1,0 +1,2 @@
+Net.udp.decode.err: Outcome.is_ok<Net.Err, List<Net.Udp.Msg>>(Net.udp.decode("1\nbad")) == false
+  refl

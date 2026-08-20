@@ -1,0 +1,2 @@
+Http.Server.parse.ping: Http.Server.parse.url("0\nabc\nGET\n/ping\n") == "/ping"
+  refl

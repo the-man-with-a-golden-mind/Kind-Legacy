@@ -1,0 +1,9 @@
+String.replace_all(xs: String, match: String, to: String): String
+  if String.is_empty(match) then xs
+  else if String.starts_with(xs, match) then
+    to | String.replace_all(String.drop(String.length(match), xs), match, to)
+  else
+    case xs {
+      nil: ""
+      cons: Char.to_string(xs.head) | String.replace_all(xs.tail, match, to)
+    }

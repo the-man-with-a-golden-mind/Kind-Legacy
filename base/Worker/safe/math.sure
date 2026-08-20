@@ -1,0 +1,2 @@
+Worker.safe.math: Worker.safe("Math.abs") == true
+  refl

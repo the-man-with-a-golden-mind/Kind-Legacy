@@ -1,0 +1,2 @@
+Sure.Agent.Method.read.gen: Sure.Agent.Method.read("sure.gen") == some(Sure.Agent.Method.gen)
+  refl

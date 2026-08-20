@@ -1,0 +1,2 @@
+Sure.Debug.Level.pick.junk: Sure.Debug.Level.pick(false, "xyz") == Sure.Debug.Level.off
+  refl

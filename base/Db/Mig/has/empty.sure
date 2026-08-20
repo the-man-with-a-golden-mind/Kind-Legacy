@@ -1,0 +1,2 @@
+Db.Mig.has.empty: Db.Mig.has("", ["a"]) == false
+  refl

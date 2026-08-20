@@ -1,0 +1,16 @@
+Html.Counter.view(n: Nat): DOM
+  Html.el(
+    Html.Tag.button,
+    Html.on(Html.Event.click, "inc", Map.new<String>),
+    Map.new<String>,
+    [DOM.text(Nat.show(n))]
+  )
+
+Html.Counter.update(msg: String, ev: Html.Event.Data, n: Nat): Nat
+  if String.eql(msg, "inc") then Nat.succ(n) else n
+
+Html.Counter: Html.App<Nat>
+  Html.App.new<Nat>(0, Html.Counter.view, Html.Counter.update)
+
+Html.Counter.client: Html.Client<Nat>
+  Html.Client.of<Nat>(Html.Counter)

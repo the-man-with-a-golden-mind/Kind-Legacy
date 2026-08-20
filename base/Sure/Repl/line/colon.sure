@@ -1,0 +1,2 @@
+Sure.Repl.line.colon: Maybe.is_none<Pair<Sure.Repl.Cmd, String>>(Sure.Repl.line(":")) == true
+  refl

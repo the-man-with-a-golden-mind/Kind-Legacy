@@ -1,0 +1,2 @@
+JSON.path.miss: Maybe.is_none<JSON>(JSON.path(JSON.null, ["x"])) == true
+  refl

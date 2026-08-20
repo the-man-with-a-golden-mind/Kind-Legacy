@@ -1,0 +1,6 @@
+Sure.Env.decode.ok:
+  case Sure.Env.decode("0\nhi") as o {
+    err: ""
+    ok: o.value
+  } == "hi"
+  refl

@@ -1,0 +1,6 @@
+Sure.Agent.deps.nat:
+  case Sure.Agent.deps("Nat.add(1, 1)") as xs {
+    nil: false
+    cons: String.eql(xs.head, "Nat.add")
+  } == true
+  refl

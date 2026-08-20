@@ -1,0 +1,2 @@
+Sure.Synth.path_env.compat: Sure.Synth.path_env.join("", "/old") == "/old"
+  refl

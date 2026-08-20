@@ -1,0 +1,2 @@
+Sure.Agent.fill.def: Sure.Agent.fill("n: Nat\n  ?implement", "0") == "n: Nat\n  0"
+  refl

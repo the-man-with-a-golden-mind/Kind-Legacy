@@ -1,0 +1,2 @@
+Sure.Agent.Method.read.impact: Sure.Agent.Method.read("sure.impact") == some(Sure.Agent.Method.impact)
+  refl

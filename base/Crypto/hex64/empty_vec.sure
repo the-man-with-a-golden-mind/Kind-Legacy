@@ -1,0 +1,2 @@
+Crypto.hex64.empty_vec: Crypto.hex64(Crypto.sha256.empty_hex) == true
+  refl

@@ -1,0 +1,2 @@
+Sure.Lsp.uri_ok.untitled: Sure.Lsp.uri_ok("untitled:Nat.sure") == true
+  refl

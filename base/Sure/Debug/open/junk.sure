@@ -1,0 +1,2 @@
+Sure.Debug.open.junk: Sure.Debug.open(Sure.Debug.Flags.read("loud"), Sure.Debug.Channel.holes) == true
+  refl

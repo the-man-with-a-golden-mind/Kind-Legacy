@@ -1,0 +1,268 @@
+// Encode of every Host.Op: empty / zero / false. Query and param.
+
+Host.encode.all.put_string: Host.encode(Host.Op.put_string("")) == Pair.new<String, String>("put_string", "")
+  refl
+
+Host.encode.all.get_line: Host.encode(Host.Op.get_line("")) == Pair.new<String, String>("get_line", "")
+  refl
+
+Host.encode.all.get_args: Host.encode(Host.Op.get_args) == Pair.new<String, String>("get_args", "")
+  refl
+
+Host.encode.all.cwd: Host.encode(Host.Op.cwd) == Pair.new<String, String>("cwd", "")
+  refl
+
+Host.encode.all.time_now: Host.encode(Host.Op.time_now) == Pair.new<String, String>("get_time", "")
+  refl
+
+Host.encode.all.sleep0: Host.encode(Host.Op.sleep(0)) == Pair.new<String, String>("sleep", "0")
+  refl
+
+Host.encode.all.yield: Host.encode(Host.Op.yield) == Pair.new<String, String>("yield", "")
+  refl
+
+Host.encode.all.exit0: Host.encode(Host.Op.exit(0)) == Pair.new<String, String>("exit", "0")
+  refl
+
+Host.encode.all.fs_read: Host.encode(Host.Op.fs_read("")) == Pair.new<String, String>("fs_read_ex", "")
+  refl
+
+Host.encode.all.fs_write: Host.encode(Host.Op.fs_write("", "")) == Pair.new<String, String>("fs_write_ex", "\n")
+  refl
+
+Host.encode.all.fs_del: Host.encode(Host.Op.fs_del("")) == Pair.new<String, String>("fs_del_ex", "")
+  refl
+
+Host.encode.all.fs_mtime: Host.encode(Host.Op.fs_mtime("")) == Pair.new<String, String>("get_file_mtime", "")
+  refl
+
+Host.encode.all.fs_dir: Host.encode(Host.Op.fs_dir("")) == Pair.new<String, String>("get_dir_ex", "")
+  refl
+
+Host.encode.all.fs_read_hex: Host.encode(Host.Op.fs_read_hex("")) == Pair.new<String, String>("fs_read_hex", "")
+  refl
+
+Host.encode.all.fs_write_hex: Host.encode(Host.Op.fs_write_hex("", "")) == Pair.new<String, String>("fs_write_hex", "\n")
+  refl
+
+Host.encode.all.file_hash: Host.encode(Host.Op.file_hash("")) == Pair.new<String, String>("file_hash", "")
+  refl
+
+Host.encode.all.env_get: Host.encode(Host.Op.env_get("")) == Pair.new<String, String>("get_env", "")
+  refl
+
+Host.encode.all.env_set: Host.encode(Host.Op.env_set("", "")) == Pair.new<String, String>("set_env", "\n")
+  refl
+
+Host.encode.all.env_del: Host.encode(Host.Op.env_del("")) == Pair.new<String, String>("del_env", "")
+  refl
+
+Host.encode.all.env_keys: Host.encode(Host.Op.env_keys) == Pair.new<String, String>("env_keys", "")
+  refl
+
+Host.encode.all.random: Host.encode(Host.Op.random) == Pair.new<String, String>("get_random", "")
+  refl
+
+Host.encode.all.sha256: Host.encode(Host.Op.sha256("")) == Pair.new<String, String>("sha256_ex", "")
+  refl
+
+Host.encode.all.hmac: Host.encode(Host.Op.hmac("", "")) == Pair.new<String, String>("hmac_sha256", "\n")
+  refl
+
+Host.encode.all.http: Host.encode(Host.Op.http("")) == Pair.new<String, String>("http", "")
+  refl
+
+Host.encode.all.http_listen: Host.encode(Host.Op.http_listen(0)) == Pair.new<String, String>("http_listen", "0")
+  refl
+
+Host.encode.all.http_recv: Host.encode(Host.Op.http_recv(0)) == Pair.new<String, String>("http_recv", "0")
+  refl
+
+Host.encode.all.http_reply: Host.encode(Host.Op.http_reply("", 0, "")) == Pair.new<String, String>("http_reply", "\n0\n")
+  refl
+
+Host.encode.all.http_reply_ex: Host.encode(Host.Op.http_reply_ex("", 0, "", "")) == Pair.new<String, String>("http_reply_ex", "\n0\n\n")
+  refl
+
+Host.encode.all.http_stop: Host.encode(Host.Op.http_stop(0)) == Pair.new<String, String>("http_stop", "0")
+  refl
+
+Host.encode.all.dns: Host.encode(Host.Op.dns("")) == Pair.new<String, String>("dns", "")
+  refl
+
+Host.encode.all.tcp_notls: Host.encode(Host.Op.tcp_connect("", 0, false)) == Pair.new<String, String>("tcp_connect", "\n0\n0")
+  refl
+
+Host.encode.all.tcp_tls: Host.encode(Host.Op.tcp_connect("h", 1, true)) == Pair.new<String, String>("tcp_connect", "h\n1\n1")
+  refl
+
+Host.encode.all.tcp_send: Host.encode(Host.Op.tcp_send("", "")) == Pair.new<String, String>("tcp_send", "\n")
+  refl
+
+Host.encode.all.tcp_recv: Host.encode(Host.Op.tcp_recv("")) == Pair.new<String, String>("tcp_recv", "")
+  refl
+
+Host.encode.all.tcp_close: Host.encode(Host.Op.tcp_close("")) == Pair.new<String, String>("tcp_close", "")
+  refl
+
+Host.encode.all.ws: Host.encode(Host.Op.ws_connect("")) == Pair.new<String, String>("ws_connect", "")
+  refl
+
+Host.encode.all.udp_bind: Host.encode(Host.Op.udp_bind(0)) == Pair.new<String, String>("udp_bind", "0")
+  refl
+
+Host.encode.all.udp_send: Host.encode(Host.Op.udp_send(0, "", 0, "")) == Pair.new<String, String>("udp_send", "0\n\n0\n")
+  refl
+
+Host.encode.all.udp_recv: Host.encode(Host.Op.udp_recv(0)) == Pair.new<String, String>("udp_recv", "0")
+  refl
+
+Host.encode.all.udp_close: Host.encode(Host.Op.udp_close(0)) == Pair.new<String, String>("udp_close", "0")
+  refl
+
+Host.encode.all.proc_exec: Host.encode(Host.Op.proc_exec("")) == Pair.new<String, String>("proc_exec", "")
+  refl
+
+Host.encode.all.proc_spawn: Host.encode(Host.Op.proc_spawn("")) == Pair.new<String, String>("proc_spawn", "")
+  refl
+
+Host.encode.all.proc_wait: Host.encode(Host.Op.proc_wait(0)) == Pair.new<String, String>("proc_wait", "0")
+  refl
+
+Host.encode.all.proc_kill: Host.encode(Host.Op.proc_kill(0, "")) == Pair.new<String, String>("proc_kill", "0\n")
+  refl
+
+Host.encode.all.job_start: Host.encode(Host.Op.job_start("")) == Pair.new<String, String>("job_start", "")
+  refl
+
+Host.encode.all.job_await: Host.encode(Host.Op.job_await("")) == Pair.new<String, String>("job_await", "")
+  refl
+
+Host.encode.all.job_cancel: Host.encode(Host.Op.job_cancel("")) == Pair.new<String, String>("job_cancel", "")
+  refl
+
+Host.encode.all.job_all: Host.encode(Host.Op.job_all("")) == Pair.new<String, String>("job_all", "")
+  refl
+
+Host.encode.all.job_race: Host.encode(Host.Op.job_race("")) == Pair.new<String, String>("job_race", "")
+  refl
+
+Host.encode.all.gzip: Host.encode(Host.Op.gzip("")) == Pair.new<String, String>("gzip", "")
+  refl
+
+Host.encode.all.gunzip: Host.encode(Host.Op.gunzip("")) == Pair.new<String, String>("gunzip", "")
+  refl
+
+Host.encode.all.state_get: Host.encode(Host.Op.state_get("")) == Pair.new<String, String>("get_state", "")
+  refl
+
+Host.encode.all.state_set: Host.encode(Host.Op.state_set("", "")) == Pair.new<String, String>("set_state", "\n")
+  refl
+
+Host.encode.all.ffi: Host.encode(Host.Op.ffi("", "")) == Pair.new<String, String>("ffi", "\n")
+  refl
+
+Host.encode.all.worker: Host.encode(Host.Op.worker_run("", "")) == Pair.new<String, String>("worker_run", "\n")
+  refl
+
+Host.encode.all.sse_open: Host.encode(Host.Op.sse_open("", "")) == Pair.new<String, String>("sse_open", "\n")
+  refl
+
+Host.encode.all.sse_send: Host.encode(Host.Op.sse_send("", "")) == Pair.new<String, String>("sse_send", "\n")
+  refl
+
+Host.encode.all.sse_close: Host.encode(Host.Op.sse_close("")) == Pair.new<String, String>("sse_close", "")
+  refl
+
+Host.encode.all.sse_count: Host.encode(Host.Op.sse_count("")) == Pair.new<String, String>("sse_count", "")
+  refl
+
+Host.encode.all.db_connect: Host.encode(Host.Op.db_connect("")) == Pair.new<String, String>("db_connect", "")
+  refl
+
+Host.encode.all.db_set: Host.encode(Host.Op.db_set("", "", "")) == Pair.new<String, String>("db_set", "\n\n")
+  refl
+
+Host.encode.all.db_del: Host.encode(Host.Op.db_del("", "")) == Pair.new<String, String>("db_del", "\n")
+  refl
+
+Host.encode.all.db_query: Host.encode(Host.Op.db_query("", "")) == Pair.new<String, String>("db_query", "\n")
+  refl
+
+Host.encode.all.db_keys: Host.encode(Host.Op.db_keys("")) == Pair.new<String, String>("db_keys", "")
+  refl
+
+Host.encode.all.db_clear: Host.encode(Host.Op.db_clear("")) == Pair.new<String, String>("db_clear", "")
+  refl
+
+Host.encode.all.db_close: Host.encode(Host.Op.db_close("")) == Pair.new<String, String>("db_close", "")
+  refl
+
+Host.encode.all: Unit
+  let a00 = Host.encode.all.put_string
+  let a01 = Host.encode.all.get_line
+  let a02 = Host.encode.all.get_args
+  let a03 = Host.encode.all.cwd
+  let a04 = Host.encode.all.time_now
+  let a05 = Host.encode.all.sleep0
+  let a06 = Host.encode.all.yield
+  let a07 = Host.encode.all.exit0
+  let a08 = Host.encode.all.fs_read
+  let a09 = Host.encode.all.fs_write
+  let a10 = Host.encode.all.fs_del
+  let a11 = Host.encode.all.fs_mtime
+  let a12 = Host.encode.all.fs_dir
+  let a13 = Host.encode.all.fs_read_hex
+  let a14 = Host.encode.all.fs_write_hex
+  let a15 = Host.encode.all.file_hash
+  let a16 = Host.encode.all.env_get
+  let a17 = Host.encode.all.env_set
+  let a18 = Host.encode.all.env_del
+  let a19 = Host.encode.all.env_keys
+  let a20 = Host.encode.all.random
+  let a21 = Host.encode.all.sha256
+  let a22 = Host.encode.all.hmac
+  let a23 = Host.encode.all.http
+  let a24 = Host.encode.all.http_listen
+  let a25 = Host.encode.all.http_recv
+  let a26 = Host.encode.all.http_reply
+  let a27 = Host.encode.all.http_reply_ex
+  let a28 = Host.encode.all.http_stop
+  let a29 = Host.encode.all.dns
+  let a30 = Host.encode.all.tcp_notls
+  let a31 = Host.encode.all.tcp_tls
+  let a32 = Host.encode.all.tcp_send
+  let a33 = Host.encode.all.tcp_recv
+  let a34 = Host.encode.all.tcp_close
+  let a35 = Host.encode.all.ws
+  let a36 = Host.encode.all.udp_bind
+  let a37 = Host.encode.all.udp_send
+  let a38 = Host.encode.all.udp_recv
+  let a39 = Host.encode.all.udp_close
+  let a40 = Host.encode.all.proc_exec
+  let a41 = Host.encode.all.proc_spawn
+  let a42 = Host.encode.all.proc_wait
+  let a43 = Host.encode.all.proc_kill
+  let a44 = Host.encode.all.job_start
+  let a45 = Host.encode.all.job_await
+  let a46 = Host.encode.all.job_cancel
+  let a47 = Host.encode.all.job_all
+  let a48 = Host.encode.all.job_race
+  let a49 = Host.encode.all.gzip
+  let a50 = Host.encode.all.gunzip
+  let a51 = Host.encode.all.state_get
+  let a52 = Host.encode.all.state_set
+  let a53 = Host.encode.all.ffi
+  let a54 = Host.encode.all.worker
+  let a55 = Host.encode.all.sse_open
+  let a56 = Host.encode.all.sse_send
+  let a57 = Host.encode.all.sse_close
+  let a58 = Host.encode.all.sse_count
+  let a59 = Host.encode.all.db_connect
+  let a60 = Host.encode.all.db_set
+  let a61 = Host.encode.all.db_del
+  let a62 = Host.encode.all.db_query
+  let a63 = Host.encode.all.db_keys
+  let a64 = Host.encode.all.db_clear
+  let a65 = Host.encode.all.db_close
+  unit

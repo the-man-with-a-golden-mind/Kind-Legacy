@@ -1,0 +1,3 @@
+// A compile-time spec line: a definition whose type is an equality.
+Sure.Agent.is_theorem_line(s: String): Bool
+  Bool.and(String.includes(s, ":"), String.includes(s, "=="))

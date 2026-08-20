@@ -1,0 +1,2 @@
+Host.decode.io: Host.decode("1\nbad") == Host.err(Host.Err.io("bad"))
+  refl

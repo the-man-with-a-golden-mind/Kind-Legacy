@@ -1,0 +1,31 @@
+Sure.Ui.all: Unit
+  let c0 = Sure.Ui.Cmd.show.none
+  let c1 = Sure.Ui.Cmd.show.http_empty
+  let c2 = Sure.Ui.Cmd.show.tick_zero
+  let c3 = Sure.Ui.Cmd.show.push
+  let c4 = Sure.Ui.Cmd.show.batch_nil
+  let c5 = Sure.Ui.Cmd.read.empty
+  let c6 = Sure.Ui.Cmd.read.junk
+  let c7 = Sure.Ui.Cmd.show.http
+  let c8 = Sure.Ui.Cmd.show.tick
+  let c9 = Sure.Ui.Cmd.show.batch_none
+  let c10 = Sure.Ui.Cmd.is_none.none
+  let c11 = Sure.Ui.Cmd.is_none.push
+  let c12 = Sure.Ui.Cmd.read.http_empty
+  let c13 = Sure.Ui.Cmd.read.tick_zero
+  let c14 = Sure.Ui.Cmd.show.post
+  let c15 = Sure.Ui.Cmd.show.post_empty
+  let c16 = Sure.Ui.Cmd.read.post_empty
+  let s0 = Sure.Ui.Sub.show.none
+  let s1 = Sure.Ui.Sub.show.every_zero
+  let s2 = Sure.Ui.Sub.show.sse_empty
+  let s3 = Sure.Ui.Sub.read.empty
+  let s4 = Sure.Ui.Sub.show.batch_nil
+  let s5 = Sure.Ui.Sub.show.batch_none
+  let s6 = Sure.Ui.Sub.read.junk
+  let s7 = Sure.Ui.Sub.is_none.none
+  let j0 = Sure.Ui.join.empty
+  let n0 = Sure.Ui.Counter.init
+  let b0 = Sure.Ui.Boot.init
+  let b1 = Sure.Ui.Boot.boot
+  unit

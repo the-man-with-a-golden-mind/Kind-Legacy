@@ -1,0 +1,5 @@
+String.has_none(s: String, xs: List<String>): Bool
+  case xs {
+    nil: true
+    cons: if String.includes(s, xs.head) then false else String.has_none(s, xs.tail)
+  }

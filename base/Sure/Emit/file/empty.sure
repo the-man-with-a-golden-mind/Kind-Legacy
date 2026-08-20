@@ -1,0 +1,2 @@
+Sure.Emit.file.empty: Sure.Emit.file("") == ""
+  refl

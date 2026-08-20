@@ -1,0 +1,34 @@
+File.bracket.err<A: Type>(e: File.Err): Outcome<File.Err, A>
+  Outcome.err<File.Err, A>(e)
+
+File.bracket.release(path: Path): IO<Unit>
+  IO {
+    return Unit.new
+  }
+
+File.bracket.go<A: Type>(
+  path: Path,
+  got: Outcome<File.Err, String>,
+  use: String -> IO<Outcome<File.Err, A>>
+): IO<Outcome<File.Err, A>>
+  case got as g {
+    err:
+      IO {
+        return File.bracket.err<A>(g.error)
+      }
+    ok:
+      IO {
+        get r = use(g.value)
+        get _ = File.bracket.release(path)
+        return r
+      }
+  }
+
+File.bracket<A: Type>(
+  path: Path,
+  use: String -> IO<Outcome<File.Err, A>>
+): IO<Outcome<File.Err, A>>
+  IO {
+    get got = File.read(path)
+    File.bracket.go<A>(path, got, use)
+  }

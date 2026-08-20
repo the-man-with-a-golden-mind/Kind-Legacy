@@ -1,0 +1,3 @@
+IO.file_hash.def(name: String):
+  IO.file_hash(name) == IO.ask<String>("file_hash", name, (hash) IO.end<String>(hash))
+  refl

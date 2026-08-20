@@ -1,0 +1,2 @@
+Sure.Sheet.first.zero: Sure.Sheet.first(0, 1) == 0
+  refl

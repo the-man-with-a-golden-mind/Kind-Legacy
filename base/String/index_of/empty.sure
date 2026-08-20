@@ -1,0 +1,2 @@
+String.index_of.empty: String.index_of("ab", "") == some(0)
+  refl

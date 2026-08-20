@@ -1,0 +1,2 @@
+Sure.Pipe.decode_junk: Sure.Pipe.decode<Nat>(Parse.nat, [""]) == []
+  refl

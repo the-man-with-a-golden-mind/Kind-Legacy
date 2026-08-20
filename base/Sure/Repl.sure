@@ -1,0 +1,76 @@
+// REPL commands. Empty and junk names are none. A leading ':' is optional.
+
+type Sure.Repl.Cmd {
+  help
+  quit
+  check
+  prove
+  typeof
+  goal
+  fill
+  impact
+  theorems
+  docs
+  debug
+  norm
+  run
+  test
+}
+
+Sure.Repl.Cmd.show(c: Sure.Repl.Cmd): String
+  case c {
+    help: "help"
+    quit: "quit"
+    check: "check"
+    prove: "prove"
+    typeof: "type"
+    goal: "goal"
+    fill: "fill"
+    impact: "impact"
+    theorems: "theorems"
+    docs: "docs"
+    debug: "debug"
+    norm: "norm"
+    run: "run"
+    test: "test"
+  }
+
+Sure.Repl.Cmd.read(s: String): Maybe<Sure.Repl.Cmd>
+  if String.eql(s, "help") then some(Sure.Repl.Cmd.help)
+  else if String.eql(s, "h") then some(Sure.Repl.Cmd.help)
+  else if String.eql(s, "?") then some(Sure.Repl.Cmd.help)
+  else if String.eql(s, "quit") then some(Sure.Repl.Cmd.quit)
+  else if String.eql(s, "q") then some(Sure.Repl.Cmd.quit)
+  else if String.eql(s, "check") then some(Sure.Repl.Cmd.check)
+  else if String.eql(s, "prove") then some(Sure.Repl.Cmd.prove)
+  else if String.eql(s, "type") then some(Sure.Repl.Cmd.typeof)
+  else if String.eql(s, "goal") then some(Sure.Repl.Cmd.goal)
+  else if String.eql(s, "fill") then some(Sure.Repl.Cmd.fill)
+  else if String.eql(s, "impact") then some(Sure.Repl.Cmd.impact)
+  else if String.eql(s, "theorems") then some(Sure.Repl.Cmd.theorems)
+  else if String.eql(s, "docs") then some(Sure.Repl.Cmd.docs)
+  else if String.eql(s, "debug") then some(Sure.Repl.Cmd.debug)
+  else if String.eql(s, "norm") then some(Sure.Repl.Cmd.norm)
+  else if String.eql(s, "run") then some(Sure.Repl.Cmd.run)
+  else if String.eql(s, "test") then some(Sure.Repl.Cmd.test)
+  else none
+
+Sure.Repl.split(s: String): Pair<String, String>
+  let t = String.trim_left(s)
+  let cmd = String.take_while((c) Bool.not(U16.eql(c, ' ')), t)
+  let arg = String.trim_left(String.drop(String.length(cmd), t))
+  Pair.new<String, String>(cmd, arg)
+
+Sure.Repl.line(s: String): Maybe<Pair<Sure.Repl.Cmd, String>>
+  let t0 = String.trim_left(s)
+  if String.is_empty(t0) then none
+  else
+    let body = if String.starts_with(t0, ":") then String.trim_left(String.drop(1, t0)) else t0
+    if String.is_empty(body) then none
+    else
+      let sp = Sure.Repl.split(body)
+      open sp
+      case Sure.Repl.Cmd.read(sp.fst) as c {
+        none: none
+        some: some(Pair.new<Sure.Repl.Cmd, String>(c.value, sp.snd))
+      }

@@ -1,0 +1,8 @@
+Proc.kill(pid: Nat, sig: Proc.Signal): IO<Outcome<Proc.Err, Unit>>
+  IO {
+    get raw = IO.ask<String>("proc_kill", Nat.show(pid) | "\n" | Proc.Signal.show(sig), (t) IO.end<String>(t))
+    return case IO.tagged.read(raw) as tag {
+      err: Outcome.err<Proc.Err, Unit>(Proc.Err.io(tag.error))
+      ok: Outcome.ok<Proc.Err, Unit>(unit)
+    }
+  }

@@ -1,0 +1,2 @@
+Http.Server.fail(msg: String): Outcome<Http.Err, Unit>
+  Outcome.err<Http.Err, Unit>(Http.Err.io(msg))

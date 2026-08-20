@@ -1,0 +1,2 @@
+Http.Method.eql.get: Http.Method.eql(Http.Method.get, Http.Method.get) == true
+  refl

@@ -1,0 +1,6 @@
+Db.Dsl.read.count:
+  case Db.Dsl.read("COUNT") as s {
+    none: ""
+    some: Db.Dsl.show(s.value)
+  } == "COUNT"
+  refl

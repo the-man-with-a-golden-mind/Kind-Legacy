@@ -1,0 +1,2 @@
+Time.from_parts.epoch: Time.from_parts(Time.Parts.new(1970, 1, 1, 0, 0, 0, 0)) == some(Time.Stamp.epoch)
+  refl

@@ -1,0 +1,29 @@
+// The prover is the type checker. Mentioning a theorem here forces it
+// to check at compile time. This is the language-level proof surface
+// people and AI re-run with `sure prove` / `kind.prove`.
+
+Sure.Prove.all: Unit
+  let e0 = Example.Spec
+  let e1 = Example.Spec.edge
+  let e2 = Email.from_string.at
+  let e3 = Http.App.hit.get_id
+  let e4 = Outcome.http.ok
+  let e5 = Sure.Agent.Method.roundtrip.prove
+  let e6 = Sure.Qc.all
+  let e7 = Sure.Agent.all
+  let e8 = Html.all
+  let e9 = Sure.Emit.all
+  let e10 = JSON.all
+  let e11 = Sure.How.all
+  let e12 = Ffi.all
+  let e13 = Sure.Total.all
+  let e14 = Sure.Mod.all
+  let e15 = Regex.all
+  let e16 = Parse.all
+  let e17 = Bytes.all
+  let e18 = F64.all
+  let e19 = String.ops.all
+  let e20 = Sure.Runtime.all
+  let e21 = Sure.Par.all
+  unit
+

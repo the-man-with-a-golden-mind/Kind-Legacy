@@ -1,0 +1,2 @@
+Regex.ok.empty_s: Regex.ok("a", "") == false
+  refl

@@ -1,0 +1,2 @@
+Html.Client.wire.inc: Html.Client.wire("click", "inc", "", "") == "click\ninc\n\n\n\n0\n0\n0\n0\n0\n0\n0\n0"
+  refl

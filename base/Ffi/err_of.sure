@@ -1,0 +1,10 @@
+Ffi.err_of(s: String): Ffi.Err
+  if String.eql(s, "empty_name") then Ffi.Err.empty_name
+  else if String.eql(s, "bad_name") then Ffi.Err.bad_name
+  else if String.eql(s, "missing") then Ffi.Err.missing
+  else if String.eql(s, "bad_json") then Ffi.Err.bad_json
+  else if String.eql(s, "decode") then Ffi.Err.decode
+  else if String.eql(s, "bad host tag") then Ffi.Err.bad_tag
+  else if String.starts_with(s, "throw\n") then Ffi.Err.throw(String.drop(6, s))
+  else if String.eql(s, "throw") then Ffi.Err.throw("")
+  else Ffi.Err.throw(s)

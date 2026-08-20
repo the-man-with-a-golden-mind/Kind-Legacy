@@ -1,0 +1,2 @@
+JSON.enc.nat.zero: JSON.enc.nat(0) == JSON.string("0")
+  refl

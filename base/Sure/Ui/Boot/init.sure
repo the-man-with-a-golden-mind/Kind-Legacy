@@ -1,0 +1,2 @@
+Sure.Ui.Boot.init: Sure.Ui.init_of<String>(Sure.Ui.Boot.client) == ""
+  refl

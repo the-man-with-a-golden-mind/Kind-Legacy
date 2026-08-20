@@ -1,0 +1,150 @@
+Sure.Term.reduce.bool(b: Bool): Sure.Term
+  if b then Sure.Term.ref("Bool.true") else Sure.Term.ref("Bool.false")
+
+Sure.Term.reduce.two(args: List<Sure.Term>, defs: Sure.Defs): Maybe<Pair<Nat, Nat>>
+  case args {
+    cons:
+      case args.tail {
+        cons:
+          case Sure.Term.reduce.nat_lit(Sure.Term.reduce(args.head, defs)) as a {
+            none: none
+            some:
+              case Sure.Term.reduce.nat_lit(Sure.Term.reduce(args.tail.head, defs)) as b {
+                none: none
+                some: some(Pair.new<Nat, Nat>(a.value, b.value))
+              }
+          }
+        nil: none
+      }
+    nil: none
+  }
+
+Sure.Term.reduce.one(args: List<Sure.Term>, defs: Sure.Defs): Maybe<Nat>
+  case args {
+    cons:
+      Sure.Term.reduce.nat_lit(Sure.Term.reduce(args.head, defs))
+    nil: none
+  }
+
+Sure.Term.reduce.rest(term: Sure.Term, args: List<Sure.Term>, n: Nat, defs: Sure.Defs): Sure.Term
+  Sure.Term.reduce.rest.go(term, List.drop<Sure.Term>(n, args), defs)
+
+Sure.Term.reduce.rest.go(term: Sure.Term, args: List<Sure.Term>, defs: Sure.Defs): Sure.Term
+  case args {
+    nil: term
+    cons: Sure.Term.reduce(Sure.Term.app(term, args.head), defs)
+  }
+
+Sure.Term.reduce.prim(head: Sure.Term, args: List<Sure.Term>, defs: Sure.Defs): Maybe<Sure.Term>
+  case head {
+    ref:
+      let n = head.name
+      if String.eql(n, "Nat.read") then
+        case args {
+          cons:
+            case Sure.Term.reduce.str_lit(args.head) as s {
+              none: none
+              some:
+                if String.is_empty(s.value) then some(Sure.Term.reduce.rest(Sure.Term.nat(0), args, 1, defs))
+                else case Parse.nat(s.value) as p {
+                  none: some(Sure.Term.reduce.rest(Sure.Term.nat(0), args, 1, defs))
+                  some: some(Sure.Term.reduce.rest(Sure.Term.nat(p.value), args, 1, defs))
+                }
+            }
+          nil: none
+        }
+      else if String.eql(n, "Nat.add") then
+        case Sure.Term.reduce.two(args, defs) as p {
+          none: none
+          some:
+            let ab = p.value
+            open ab
+            some(Sure.Term.reduce.rest(Sure.Term.nat(Nat.add(ab.fst, ab.snd)), args, 2, defs))
+        }
+      else if String.eql(n, "Nat.mul") then
+        case Sure.Term.reduce.two(args, defs) as p {
+          none: none
+          some:
+            let ab = p.value
+            open ab
+            some(Sure.Term.reduce.rest(Sure.Term.nat(Nat.mul(ab.fst, ab.snd)), args, 2, defs))
+        }
+      else if String.eql(n, "Nat.sub") then
+        case Sure.Term.reduce.two(args, defs) as p {
+          none: none
+          some:
+            let ab = p.value
+            open ab
+            some(Sure.Term.reduce.rest(Sure.Term.nat(Nat.sub(ab.fst, ab.snd)), args, 2, defs))
+        }
+      else if String.eql(n, "Nat.div") then
+        case Sure.Term.reduce.two(args, defs) as p {
+          none: none
+          some:
+            let ab = p.value
+            open ab
+            let q = if Nat.is_zero(ab.snd) then 0 else Nat.div(ab.fst, ab.snd)
+            some(Sure.Term.reduce.rest(Sure.Term.nat(q), args, 2, defs))
+        }
+      else if String.eql(n, "Nat.mod") then
+        case Sure.Term.reduce.two(args, defs) as p {
+          none: none
+          some:
+            let ab = p.value
+            open ab
+            let r = if Nat.is_zero(ab.snd) then ab.fst else Nat.mod(ab.fst, ab.snd)
+            some(Sure.Term.reduce.rest(Sure.Term.nat(r), args, 2, defs))
+        }
+      else if String.eql(n, "Nat.eql") then
+        case Sure.Term.reduce.two(args, defs) as p {
+          none: none
+          some:
+            let ab = p.value
+            open ab
+            some(Sure.Term.reduce.rest(Sure.Term.reduce.bool(Nat.eql(ab.fst, ab.snd)), args, 2, defs))
+        }
+      else if String.eql(n, "Nat.ltn") then
+        case Sure.Term.reduce.two(args, defs) as p {
+          none: none
+          some:
+            let ab = p.value
+            open ab
+            some(Sure.Term.reduce.rest(Sure.Term.reduce.bool(Nat.ltn(ab.fst, ab.snd)), args, 2, defs))
+        }
+      else if String.eql(n, "Nat.gtn") then
+        case Sure.Term.reduce.two(args, defs) as p {
+          none: none
+          some:
+            let ab = p.value
+            open ab
+            some(Sure.Term.reduce.rest(Sure.Term.reduce.bool(Nat.gtn(ab.fst, ab.snd)), args, 2, defs))
+        }
+      else if String.eql(n, "Nat.lte") then
+        case Sure.Term.reduce.two(args, defs) as p {
+          none: none
+          some:
+            let ab = p.value
+            open ab
+            some(Sure.Term.reduce.rest(Sure.Term.reduce.bool(Nat.lte(ab.fst, ab.snd)), args, 2, defs))
+        }
+      else if String.eql(n, "Nat.gte") then
+        case Sure.Term.reduce.two(args, defs) as p {
+          none: none
+          some:
+            let ab = p.value
+            open ab
+            some(Sure.Term.reduce.rest(Sure.Term.reduce.bool(Nat.gte(ab.fst, ab.snd)), args, 2, defs))
+        }
+      else if String.eql(n, "Nat.show") then
+        case Sure.Term.reduce.one(args, defs) as a {
+          none: none
+          some: some(Sure.Term.reduce.rest(Sure.Term.str(Nat.show(a.value)), args, 1, defs))
+        }
+      else if String.eql(n, "Nat.is_zero") then
+        case Sure.Term.reduce.one(args, defs) as a {
+          none: none
+          some: some(Sure.Term.reduce.rest(Sure.Term.reduce.bool(Nat.is_zero(a.value)), args, 1, defs))
+        }
+      else none
+    _: none
+  }

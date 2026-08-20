@@ -1,0 +1,2 @@
+Sure.Tweeter.qget.empty: Sure.Tweeter.qget("", "u") == ""
+  refl

@@ -1,0 +1,25 @@
+Sure.Parser.when.case: Parser(Pair<Sure.Term, Sure.Term>)
+  Parser {
+    get key = Sure.Parser.term
+    Sure.Parser.text(":")
+    get val = Sure.Parser.term
+    return {key, val}
+  }
+
+// First true predicate wins. `when { p: a  q: b } default c` is
+// `if p then a else if q then b else c`.
+Sure.Parser.when: Parser(Sure.Term)
+  Sure.Parser.block("when", Parser {
+    Sure.Parser.text("when")
+    get cses = Sure.Parser.items!("{", Sure.Parser.when.case, "}")
+    Sure.Parser.text("default")
+    get dflt = Sure.Parser.term
+    let term = List.fold!(cses)!(dflt, (cse, rest)
+      open cse
+      let term = cse.fst
+      let term = Sure.Term.app(term, Sure.Term.lam("", (x) Sure.Term.hol(Bits.e)))
+      let term = Sure.Term.app(term, cse.snd)
+      let term = Sure.Term.app(term, rest)
+      term)
+    return term
+  })

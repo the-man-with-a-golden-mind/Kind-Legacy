@@ -1,0 +1,36 @@
+// Timed web-framework bench. Run: sure Sure.Web.bench --run
+// work= is a checksum of the real draws/steps/matches, not a dummy.
+
+Sure.Web.bench: IO<Unit>
+  IO {
+    IO.print("Sure web framework bench")
+    get a = Sure.Web.sample("html.draw          n=400", Nat.read("400"), Sure.Web.html_draw)
+    Sure.Web.line(a)
+    get b = Sure.Web.sample("html.step          n=2000", Nat.read("2000"), (n) Sure.Web.html_step(n, 0))
+    Sure.Web.line(b)
+    get c = Sure.Web.sample("html.step.junk     n=2000", Nat.read("2000"), (n) Sure.Web.html_step_junk(n, 0))
+    Sure.Web.line(c)
+    get d = Sure.Web.sample("ui.draw            n=400", Nat.read("400"), Sure.Web.ui_draw)
+    Sure.Web.line(d)
+    get e = Sure.Web.sample("ui.step            n=2000", Nat.read("2000"), Sure.Web.ui_step)
+    Sure.Web.line(e)
+    get f = Sure.Web.sample("ssr.document       n=400", Nat.read("400"), Sure.Web.ssr_doc)
+    Sure.Web.line(f)
+    get g = Sure.Web.sample("ssr.not_found      n=400", Nat.read("400"), Sure.Web.ssr_nf)
+    Sure.Web.line(g)
+    get h = Sure.Web.sample("html.escape.junk   n=2000", Nat.read("2000"), Sure.Web.escape_junk)
+    Sure.Web.line(h)
+    get i = Sure.Web.sample("html.escape.empty  n=2000", Nat.read("2000"), Sure.Web.escape_empty)
+    Sure.Web.line(i)
+    get j = Sure.Web.sample("app.match.hit      n=3000", Nat.read("3000"), Sure.Web.match_hit)
+    Sure.Web.line(j)
+    get k = Sure.Web.sample("app.match.junk     n=3000", Nat.read("3000"), Sure.Web.match_junk)
+    Sure.Web.line(k)
+    get l = Sure.Web.sample("sheet.window.10k   n=2000", Nat.read("2000"), Sure.Web.sheet_win)
+    Sure.Web.line(l)
+    get m = Sure.Web.sample_io("app.fire.nil       n=200", Sure.Web.fire_nil_n(Nat.read("200")))
+    Sure.Web.line(m)
+    get o = Sure.Web.sample_io("ssr.fire.nil       n=200", Sure.Web.ssr_fire_nil_n(Nat.read("200")))
+    Sure.Web.line(o)
+    return unit
+  }

@@ -1,0 +1,2 @@
+Sure.Sheet.qget.empty: Sure.Sheet.qget("", "w") == ""
+  refl

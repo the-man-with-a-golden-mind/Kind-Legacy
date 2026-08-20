@@ -1,0 +1,3 @@
+// Finite prefix of a list. This is not an async or backpressured stream.
+Stream.take<A: Type>(n: Nat, xs: List<A>): List<A>
+  List.take<A>(n, xs)

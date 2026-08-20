@@ -1,0 +1,2 @@
+Sure.Pipe.sum_nil: Sure.Pipe.sum([]) == 0
+  refl

@@ -1,0 +1,2 @@
+Sure.Pipe.windows_nil: Sure.Pipe.windows<Nat>(2, []) == []
+  refl

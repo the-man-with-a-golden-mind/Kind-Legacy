@@ -1,0 +1,2 @@
+Sure.Lsp.Method.show.init: Sure.Lsp.Method.show(Sure.Lsp.Method.initialize) == "initialize"
+  refl

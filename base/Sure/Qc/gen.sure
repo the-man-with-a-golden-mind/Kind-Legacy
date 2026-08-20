@@ -1,0 +1,33 @@
+Sure.Qc.gen.string(i: Nat): String
+  String.take(i, "abcdefgh")
+
+Sure.Qc.gen.list(sort: Sure.Qc.Sort, i: Nat): List<Sure.Qc.Val>
+  case i {
+    zero: []
+    succ:
+      List.cons<Sure.Qc.Val>(
+        Sure.Qc.gen(sort, i.pred),
+        Sure.Qc.gen.list(sort, case i.pred { zero: 0, succ: 0 })
+      )
+  }
+
+Sure.Qc.gen(sort: Sure.Qc.Sort, i: Nat): Sure.Qc.Val
+  case sort {
+    unit: Sure.Qc.Val.unit
+    bool: Sure.Qc.Val.bool(Sure.Gen.bool(i))
+    nat: Sure.Qc.Val.nat(Sure.Gen.nat(i))
+    string: Sure.Qc.Val.string(Sure.Qc.gen.string(Sure.Gen.nat(i)))
+    list: Sure.Qc.Val.list(Sure.Qc.gen.list(sort.of, Sure.Gen.nat(i)))
+    pair: Sure.Qc.Val.pair(Sure.Qc.gen(sort.fst, i), Sure.Qc.gen(sort.snd, i))
+    maybe:
+      case Sure.Gen.bool(i) {
+        false: Sure.Qc.Val.none
+        true: Sure.Qc.Val.some(Sure.Qc.gen(sort.of, i))
+      }
+    either:
+      case Sure.Gen.bool(i) {
+        false: Sure.Qc.Val.left(Sure.Qc.gen(sort.left, i))
+        true: Sure.Qc.Val.right(Sure.Qc.gen(sort.right, i))
+      }
+  }
+

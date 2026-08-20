@@ -1,0 +1,67 @@
+// Typed UDP over the host kernel. Payload is hex (binary-safe).
+// Old IO.init_udp / send_udp / recv_udp stay; this is Outcome-tagged.
+
+Net.udp.parse_one(s: String): Maybe<Net.Udp.Msg>
+  let parts = String.split(s, ",")
+  case parts {
+    nil: none
+    cons:
+      case parts.tail {
+        nil: none
+        cons:
+          case parts.tail.tail {
+            nil: none
+            cons: some(Net.Udp.Msg.new(parts.head, Nat.read(parts.tail.head), parts.tail.tail.head))
+          }
+      }
+  }
+
+Net.udp.parse_all.go(xs: List<String>): List<Net.Udp.Msg>
+  case xs {
+    nil: []
+    cons:
+      case Net.udp.parse_one(xs.head) as got {
+        none: Net.udp.parse_all.go(xs.tail)
+        some: List.cons<Net.Udp.Msg>(got.value, Net.udp.parse_all.go(xs.tail))
+      }
+  }
+
+Net.udp.parse_all(s: String): List<Net.Udp.Msg>
+  if String.is_empty(s) then
+    []
+  else
+    Net.udp.parse_all.go(String.split(s, ";"))
+
+Net.udp.decode(raw: String): Outcome<Net.Err, List<Net.Udp.Msg>>
+  case IO.tagged.read(raw) as tag {
+    err: Outcome.err<Net.Err, List<Net.Udp.Msg>>(Net.Err.io(tag.error))
+    ok: Outcome.ok<Net.Err, List<Net.Udp.Msg>>(Net.udp.parse_all(tag.value))
+  }
+
+Net.udp.bind(port: Nat): IO<Outcome<Net.Err, Unit>>
+  IO {
+    get raw = IO.ask<String>("udp_bind", Nat.show(port), (t) IO.end<String>(t))
+    return Net.decode_unit(raw)
+  }
+
+Net.udp.send(from: Nat, ip: String, to: Nat, hex: String): IO<Outcome<Net.Err, Unit>>
+  IO {
+    let param = Nat.show(from) | "\n" | ip | "\n" | Nat.show(to) | "\n" | hex
+    get raw = IO.ask<String>("udp_send", param, (t) IO.end<String>(t))
+    return Net.decode_unit(raw)
+  }
+
+Net.udp.send_text(from: Nat, ip: String, to: Nat, text: String): IO<Outcome<Net.Err, Unit>>
+  Net.udp.send(from, ip, to, String.hex.encode.ascii(text))
+
+Net.udp.recv(port: Nat): IO<Outcome<Net.Err, List<Net.Udp.Msg>>>
+  IO {
+    get raw = IO.ask<String>("udp_recv", Nat.show(port), (t) IO.end<String>(t))
+    return Net.udp.decode(raw)
+  }
+
+Net.udp.close(port: Nat): IO<Unit>
+  IO {
+    IO.ask<Unit>("udp_close", Nat.show(port), (t) IO.end<Unit>(unit))
+    return unit
+  }

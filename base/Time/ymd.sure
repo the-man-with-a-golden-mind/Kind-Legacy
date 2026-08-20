@@ -1,0 +1,4 @@
+Time.ymd.go(year: Nat, days: Nat): Pair<Nat, Nat>
+  let yd = Time.year_days(year)
+  if Nat.ltn(days, yd) then Pair.new<Nat, Nat>(year, days)
+  else Time.ymd.go(Nat.succ(year), Nat.sub(days, yd))

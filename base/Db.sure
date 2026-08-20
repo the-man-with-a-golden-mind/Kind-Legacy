@@ -1,0 +1,73 @@
+type Db.Err {
+  io(message: String)
+  missing
+  empty_url
+  bad_url
+  empty_key
+  bad_key
+  bad_file
+  closed
+}
+
+type Db.Conn {
+  new(id: String)
+}
+
+Db.Err.show(e: Db.Err): String
+  case e {
+    io: e.message
+    missing: "missing"
+    empty_url: "empty_url"
+    bad_url: "bad_url"
+    empty_key: "empty_key"
+    bad_key: "bad_key"
+    bad_file: "bad_file"
+    closed: "closed"
+  }
+
+Db.err_of(s: String): Db.Err
+  if String.eql(s, "missing") then Db.Err.missing
+  else if String.eql(s, "empty url") then Db.Err.empty_url
+  else if String.eql(s, "bad db url") then Db.Err.bad_url
+  else if String.eql(s, "empty key") then Db.Err.empty_key
+  else if String.eql(s, "bad key") then Db.Err.bad_key
+  else if String.eql(s, "bad db file") then Db.Err.bad_file
+  else if String.eql(s, "closed") then Db.Err.closed
+  else if String.eql(s, "bad query") then Db.Err.io("bad query")
+  else Db.Err.io(s)
+
+Db.key_err(key: String): Maybe<Db.Err>
+  if String.is_empty(key) then some(Db.Err.empty_key)
+  else if String.includes(key, "\n") then some(Db.Err.bad_key)
+  else if String.includes(key, String.cons(0#16, "")) then some(Db.Err.bad_key)
+  else none
+
+Db.safe_key(key: String): Bool
+  Maybe.is_none<Db.Err>(Db.key_err(key))
+
+Db.file_path(s: String): Bool
+  if Bool.not(Path.is_safe(s)) then false
+  else if String.starts_with(s, "/") then false
+  else if String.includes(s, "\\") then false
+  else true
+
+type Db.Cmd {
+  get(key: String)
+  set(key: String, val: String)
+  del(key: String)
+  has(key: String)
+  keys
+  clear
+}
+
+Db.Cmd.show(c: Db.Cmd): String
+  case c {
+    get: "GET " | c.key
+    set:
+      if String.is_empty(c.val) then "SET " | c.key
+      else "SET " | c.key | " " | c.val
+    del: "DEL " | c.key
+    has: "HAS " | c.key
+    keys: "KEYS"
+    clear: "CLEAR"
+  }

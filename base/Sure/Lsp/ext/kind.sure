@@ -1,0 +1,2 @@
+Sure.Lsp.ext.kind: Sure.Lsp.ext("Nat.kind") == false
+  refl

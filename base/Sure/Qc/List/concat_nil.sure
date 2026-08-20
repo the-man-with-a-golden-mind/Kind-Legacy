@@ -1,0 +1,2 @@
+Sure.Qc.List.concat_nil(n: Nat): Sure.Qc.List.sing(n) == List.concat<Nat>(Sure.Qc.List.sing(n), [])
+  List.concat.nil_right<Nat>(Sure.Qc.List.sing(n))

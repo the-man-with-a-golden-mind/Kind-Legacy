@@ -1,0 +1,2 @@
+Http.App.get.is_get: Http.App.get("/x", Http.App.dummy)@method == Http.Method.get
+  refl

@@ -1,0 +1,5 @@
+Http.request(req: Http.Request): IO<Outcome<Http.Err, Http.Response>>
+  IO {
+    get raw = IO.http(Http.encode(req))
+    return Http.decode(raw)
+  }

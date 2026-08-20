@@ -1,0 +1,13 @@
+File.with_temp.go<A: Type>(path: Path, use: Path -> IO<A>): IO<A>
+  IO {
+    get r = use(path)
+    get _ = File.delete(path)
+    return r
+  }
+
+File.with_temp<A: Type>(use: Path -> IO<A>): IO<A>
+  IO {
+    get t = IO.get_time
+    let path = Path.unsafe(".cache/kind_tmp_" | Nat.show(t) | ".txt")
+    File.with_temp.go<A>(path, use)
+  }

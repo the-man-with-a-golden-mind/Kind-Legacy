@@ -1,0 +1,36 @@
+Sure.Qc.all: Unit
+  let g0 = Sure.Gen.nat.zero
+  let g1 = Sure.Gen.nat.one
+  let g2 = Sure.Gen.nat.two
+  let gb0 = Sure.Gen.bool.zero
+  let gb1 = Sure.Gen.bool.one
+  let d0 = Sure.Debug.got_want.empty
+  let d1 = Sure.Debug.got_want.hi
+  let d2 = Sure.Debug.sample.add
+  let c0 = Sure.Qc.Nat.add_comm(0, 0)
+  let c1 = Sure.Qc.Nat.add_comm(0, 1)
+  let c2 = Sure.Qc.Nat.add_comm(2, 3)
+  let z0 = Sure.Qc.Nat.add_zero(0)
+  let z1 = Sure.Qc.Nat.add_zero(4)
+  let b0 = Sure.Qc.Bool.not_true
+  let b1 = Sure.Qc.Bool.not_not_false
+  let b2 = Sure.Qc.Bool.not_not_true
+  let b3 = Sure.Qc.Bool.not_inv(true)
+  let b4 = Sure.Qc.Bool.not_inv(false)
+  let l0 = Sure.Qc.List.length_nil
+  let l1 = Sure.Qc.List.length_one(7)
+  let l2 = Sure.Qc.List.concat_nil(0)
+  let l3 = Sure.Qc.List.concat_nil(2)
+  let l4 = Sure.Qc.List.concat_length(0, 1)
+  let s0 = Sure.Qc.String.take_zero(0)
+  let s1 = Sure.Qc.String.take_zero(3)
+  let s2 = Sure.Qc.String.take_nil(0)
+  let s3 = Sure.Qc.String.take_nil(4)
+  let s4 = Sure.Qc.String.drop_zero(0)
+  let s5 = Sure.Qc.String.drop_zero(2)
+  let p0 = Sure.Pipe.all
+  let q0 = Sure.Qc.Val.show.unit
+  let q1 = Sure.Qc.Sort.show.nat
+  let q2 = Sure.Qc.gen.unit
+  let h0 = Html.all
+  unit

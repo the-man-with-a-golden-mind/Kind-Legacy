@@ -1,0 +1,2 @@
+Sure.Qc.String.take_zero(n: Nat): String.take(0, Nat.show(n)) == ""
+  String.take.zero(Nat.show(n))

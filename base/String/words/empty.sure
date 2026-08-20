@@ -1,0 +1,2 @@
+String.words.empty: List.length<String>(String.words("")) == 0
+  refl

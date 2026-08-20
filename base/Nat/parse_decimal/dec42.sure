@@ -1,0 +1,2 @@
+Nat.parse_decimal.dec42: Nat.parse_decimal("42") == 42
+  refl

@@ -1,0 +1,2 @@
+Http.json(body: String): Http.Response
+  Http.Response.new(200, body)

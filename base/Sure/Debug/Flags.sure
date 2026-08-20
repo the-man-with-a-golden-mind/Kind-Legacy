@@ -1,0 +1,58 @@
+type Sure.Debug.Flags {
+  new(host: Bool, term: Bool, holes: Bool, qc: Bool)
+}
+
+Sure.Debug.tok(xs: List<String>, t: String): Bool
+  case xs {
+    nil: false
+    cons:
+      if String.eql(xs.head, t) then true
+      else Sure.Debug.tok(xs.tail, t)
+  }
+
+Sure.Debug.Flags.read(s: String): Sure.Debug.Flags
+  let xs = String.words(String.replace_all(s, ",", " "))
+  if Sure.Debug.tok(xs, "all") then
+    Sure.Debug.Flags.new(true, true, true, true)
+  else
+    Sure.Debug.Flags.new(
+      Sure.Debug.tok(xs, "host"),
+      Sure.Debug.tok(xs, "term"),
+      Sure.Debug.tok(xs, "holes"),
+      Sure.Debug.tok(xs, "qc")
+    )
+
+Sure.Debug.Flags.host(f: Sure.Debug.Flags): Bool
+  open f
+  f.host
+
+Sure.Debug.Flags.term(f: Sure.Debug.Flags): Bool
+  open f
+  f.term
+
+Sure.Debug.Flags.holes(f: Sure.Debug.Flags): Bool
+  open f
+  f.holes
+
+Sure.Debug.Flags.qc(f: Sure.Debug.Flags): Bool
+  open f
+  f.qc
+
+Sure.Debug.Flags.any(f: Sure.Debug.Flags): Bool
+  open f
+  Bool.or(f.host, Bool.or(f.term, Bool.or(f.holes, f.qc)))
+
+Sure.Debug.Flags.bit(on: Bool, name: String, acc: String): String
+  if on then
+    if String.is_empty(acc) then name
+    else acc | " " | name
+  else acc
+
+Sure.Debug.Flags.show(f: Sure.Debug.Flags): String
+  open f
+  if Bool.and(f.host, Bool.and(f.term, Bool.and(f.holes, f.qc))) then "all"
+  else
+    Sure.Debug.Flags.bit(f.qc, "qc",
+      Sure.Debug.Flags.bit(f.holes, "holes",
+        Sure.Debug.Flags.bit(f.term, "term",
+          Sure.Debug.Flags.bit(f.host, "host", ""))))

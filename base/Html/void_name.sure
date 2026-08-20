@@ -1,0 +1,15 @@
+Html.void_name(tag: String): Bool
+  if String.eql(tag, "area") then true
+  else if String.eql(tag, "base") then true
+  else if String.eql(tag, "br") then true
+  else if String.eql(tag, "col") then true
+  else if String.eql(tag, "embed") then true
+  else if String.eql(tag, "hr") then true
+  else if String.eql(tag, "img") then true
+  else if String.eql(tag, "input") then true
+  else if String.eql(tag, "link") then true
+  else if String.eql(tag, "meta") then true
+  else if String.eql(tag, "source") then true
+  else if String.eql(tag, "track") then true
+  else if String.eql(tag, "wbr") then true
+  else false

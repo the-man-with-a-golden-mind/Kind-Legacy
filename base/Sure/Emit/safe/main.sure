@@ -1,0 +1,2 @@
+Sure.Emit.safe.main: Sure.Emit.safe("Main") == true
+  refl

@@ -1,0 +1,2 @@
+Html.void_name.empty: Html.void_name("") == false
+  refl

@@ -1,0 +1,2 @@
+String.replace.hit: String.replace("a", "a", "b") == "b"
+  refl

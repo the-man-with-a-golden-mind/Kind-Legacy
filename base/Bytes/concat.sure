@@ -1,0 +1,2 @@
+Bytes.concat(a: Bytes, b: Bytes): Bytes
+  List.concat<U8>(a, b)

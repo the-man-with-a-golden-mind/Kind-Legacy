@@ -1,0 +1,7 @@
+Task.race_sleep(a: Nat, b: Nat): IO<Nat>
+  IO {
+    get i = IO.job_start("sleep\n" | Nat.show(a))
+    get j = IO.job_start("sleep\n" | Nat.show(b))
+    get w = IO.job_race(i | "\n" | j)
+    return Nat.read(w)
+  }

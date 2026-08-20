@@ -1,0 +1,3 @@
+F64.word_bits(x: F64): Bits
+  open x
+  Word.to_bits<64>(x.word)

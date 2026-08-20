@@ -1,0 +1,2 @@
+File.from_tagged.empty: File.from_tagged("0\n") == Outcome.ok<File.Err, String>("")
+  refl

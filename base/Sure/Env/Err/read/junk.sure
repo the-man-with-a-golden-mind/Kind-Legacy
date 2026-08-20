@@ -1,0 +1,2 @@
+Sure.Env.Err.read.junk: Sure.Env.Err.show(Sure.Env.Err.read("nope")) == "junk"
+  refl

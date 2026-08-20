@@ -1,0 +1,2 @@
+String.lines(xs: String): List<String>
+  String.split(xs, "\n")

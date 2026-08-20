@@ -1,0 +1,2 @@
+Sure.Mod.name.nested: Sure.Mod.name("Foo.Bar") == true
+  refl

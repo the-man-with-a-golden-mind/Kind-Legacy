@@ -1,0 +1,158 @@
+Sure.Sheet.box(cls: String, props: Map<String>, kids: List<DOM>): DOM
+  Html.el(Html.Tag.div, Html.attr("class", cls, props), Map.from_list<String>([]), kids)
+
+Sure.Sheet.w_cls(w: Nat): String
+  "w-[" | Nat.show(w) | "px] min-w-[" | Nat.show(w) | "px] max-w-[" | Nat.show(w) | "px] shrink-0 box-border"
+
+Sure.Sheet.handle(i: Nat): DOM
+  Sure.Sheet.box(
+    "tooltip tooltip-left absolute inset-y-0 right-0 w-1.5 cursor-col-resize bg-base-300 hover:bg-primary",
+    Html.on(Html.Event.mousedown, "down-" | Nat.show(i), Html.attr("data-tip", "Resize", Map.from_list<String>([]))),
+    []
+  )
+
+Sure.Sheet.name_input(i: Nat, name: String): DOM
+  Html.el(
+    Html.Tag.input,
+    Html.on(
+      Html.Event.change,
+      "name-" | Nat.show(i),
+      Html.attr(
+        "value",
+        name,
+        Html.attr("class", "input input-ghost input-xs w-full min-h-0 h-6 px-1", Map.new<String>)
+      )
+    ),
+    Map.new<String>,
+    []
+  )
+
+Sure.Sheet.head_cell(i: Nat, w: Nat, name: String): DOM
+  Sure.Sheet.box(
+    Sure.Sheet.w_cls(w) | " relative h-6 overflow-hidden border-r border-b border-base-300 bg-base-200",
+    Map.from_list<String>([]),
+    [Sure.Sheet.name_input(i, name), Sure.Sheet.handle(i)]
+  )
+
+Sure.Sheet.head_cells.go(i: Nat, ws: List<Nat>, ns: List<String>): List<DOM>
+  case ws {
+    nil: []
+    cons:
+      let name = List.head_with_default<String>(Sure.Sheet.letter(i), ns)
+      let rest = case ns {
+        nil: []
+        cons: ns.tail
+      }
+      List.cons<DOM>(Sure.Sheet.head_cell(i, ws.head, name), Sure.Sheet.head_cells.go(Nat.succ(i), ws.tail, rest))
+  }
+
+Sure.Sheet.num_cell(txt: String): DOM
+  Sure.Sheet.box(
+    "w-12 shrink-0 h-6 overflow-hidden border-r border-b border-base-300 bg-base-200 px-1 text-xs font-semibold leading-6",
+    Map.from_list<String>([]),
+    [Html.text(txt)]
+  )
+
+Sure.Sheet.header(ws: List<Nat>, ns: List<String>): DOM
+  Sure.Sheet.box(
+    "sticky top-0 z-10 flex select-none",
+    Map.from_list<String>([]),
+    List.cons<DOM>(Sure.Sheet.num_cell("#"), Sure.Sheet.head_cells.go(0, ws, ns))
+  )
+
+Sure.Sheet.body_cells.go(ws: List<Nat>, cs: List<String>): List<DOM>
+  case ws {
+    nil: []
+    cons:
+      let txt = List.head_with_default<String>("", cs)
+      let rest = case cs {
+        nil: []
+        cons: cs.tail
+      }
+      List.cons<DOM>(
+        Sure.Sheet.box(
+          Sure.Sheet.w_cls(ws.head) | " h-6 overflow-hidden truncate border-r border-b border-base-300 bg-base-100 px-1 text-xs leading-6",
+          Map.from_list<String>([]),
+          [Html.text(txt)]
+        ),
+        Sure.Sheet.body_cells.go(ws.tail, rest)
+      )
+  }
+
+Sure.Sheet.row_view(idx: Nat, ws: List<Nat>, row: Sure.Sheet.Row): DOM
+  open row
+  let top = Nat.mul(idx, Sure.Sheet.row_h)
+  let wide = Nat.add(Sure.Sheet.num_w, Sure.Sheet.sum(ws))
+  Sure.Sheet.box(
+    "absolute left-0 flex h-6 top-[" | Nat.show(top) | "px] w-[" | Nat.show(wide) | "px]",
+    Html.attr("data-sure-row", Nat.show(idx), Map.from_list<String>([])),
+    List.cons<DOM>(Sure.Sheet.num_cell(Nat.show(row.i)), Sure.Sheet.body_cells.go(ws, row.cells))
+  )
+
+Sure.Sheet.rows_view.go(i: Nat, ws: List<Nat>, xs: List<Sure.Sheet.Row>): List<DOM>
+  case xs {
+    nil: []
+    cons: List.cons<DOM>(Sure.Sheet.row_view(i, ws, xs.head), Sure.Sheet.rows_view.go(Nat.succ(i), ws, xs.tail))
+  }
+
+Sure.Sheet.overlay_of(u: Unit): DOM
+  Sure.Sheet.box(
+    "fixed inset-0 z-50 cursor-col-resize",
+    Html.on(Html.Event.mousemove, "move", Html.on(Html.Event.mouseup, "up", Map.from_list<String>([]))),
+    []
+  )
+
+Sure.Sheet.live_badge(m: Sure.Sheet.Model): DOM
+  open m
+  if m.done then Sure.Sheet.box("badge badge-success", Map.from_list<String>([]), [Html.text("done")])
+  else Sure.Sheet.box("badge badge-accent", Map.from_list<String>([]), [Html.text("live")])
+
+Sure.Sheet.count_badge(m: Sure.Sheet.Model): DOM
+  open m
+  let tot = if Nat.is_zero(m.total) then "?" else Nat.show(m.total)
+  Sure.Sheet.box("badge badge-ghost", Map.from_list<String>([]), [Html.text(Nat.show(m.received) | " / " | tot)])
+
+Sure.Sheet.bar(m: Sure.Sheet.Model): DOM
+  Sure.Sheet.box(
+    "navbar bg-primary text-primary-content min-h-12 py-0",
+    Map.from_list<String>([]),
+    [
+      Sure.Sheet.box(
+        "navbar-start gap-2",
+        Map.from_list<String>([]),
+        [
+          Sure.Sheet.box("btn btn-ghost text-xl", Map.from_list<String>([]), [Html.text("Excel")]),
+          Sure.Sheet.count_badge(m),
+          Sure.Sheet.live_badge(m)
+        ]
+      )
+    ]
+  )
+
+Sure.Sheet.view(m: Sure.Sheet.Model): DOM
+  open m
+  let win = Sure.Sheet.window(m.scroll, m.received)
+  open win
+  let vis = Sure.Sheet.slice(win.fst, win.snd, m.rows)
+  let h = Nat.mul(m.received, Sure.Sheet.row_h)
+  let wide = Nat.add(Sure.Sheet.num_w, Sure.Sheet.sum(m.widths))
+  let space = Sure.Sheet.box(
+    "relative h-[" | Nat.show(h) | "px] w-[" | Nat.show(wide) | "px]",
+    Map.from_list<String>([]),
+    Sure.Sheet.rows_view.go(win.fst, m.widths, vis)
+  )
+  let port = Sure.Sheet.box(
+    "relative h-[480px] overflow-auto bg-base-100",
+    Html.on(Html.Event.scroll, "scroll", Html.attr("data-sure-scroll", "1", Map.from_list<String>([]))),
+    [Sure.Sheet.header(m.widths, m.names), space]
+  )
+  let card = Sure.Sheet.box(
+    "card bg-base-100 shadow-xl m-2",
+    Map.from_list<String>([]),
+    [Sure.Sheet.box("card-body p-0", Map.from_list<String>([]), [port])]
+  )
+  let kids = case m.drag {
+    none: [Sure.Sheet.bar(m), card]
+    col: [Sure.Sheet.bar(m), card, Sure.Sheet.overlay_of(unit)]
+  }
+  Sure.Sheet.box("min-h-screen bg-base-200", Map.from_list<String>([]), kids)

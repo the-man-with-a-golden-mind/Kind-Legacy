@@ -1,0 +1,2 @@
+Sure.Sse.ok_event.nl: Sure.Sse.ok_event("a\nb") == false
+  refl

@@ -1,0 +1,2 @@
+Sure.Mod.Sort.read.package: Sure.Mod.Sort.read("package") == some(Sure.Mod.Sort.package)
+  refl

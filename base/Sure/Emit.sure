@@ -1,0 +1,32 @@
+// `sure build` writes dist/<Term>.js. Compilation keeps defs reachable from
+// the entry term and host actions those defs call. Names like Main are files; ../x is not.
+Sure.Emit.dir: String
+  "dist"
+
+Sure.Emit.safe(term: String): Bool
+  if String.is_empty(term) then false
+  else if String.includes(term, "/") then false
+  else if String.includes(term, "\\") then false
+  else if String.includes(term, "..") then false
+  else true
+
+Sure.Emit.js_name(term: String): String
+  if Sure.Emit.safe(term) then term | ".js"
+  else ""
+
+Sure.Emit.file(term: String): String
+  let n = Sure.Emit.js_name(term)
+  if String.is_empty(n) then ""
+  else Sure.Emit.dir | "/" | n
+
+Sure.Emit.ready(has_js: Bool, proved: Bool): Bool
+  Bool.and(has_js, proved)
+
+Sure.Emit.html_name(term: String): String
+  if Sure.Emit.safe(term) then term | ".html"
+  else ""
+
+Sure.Emit.html_file(term: String): String
+  let n = Sure.Emit.html_name(term)
+  if String.is_empty(n) then ""
+  else Sure.Emit.dir | "/" | n

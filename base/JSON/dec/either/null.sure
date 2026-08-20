@@ -1,0 +1,2 @@
+JSON.dec.either.null: JSON.dec.either<Bool, Bool>(JSON.dec.bool, JSON.dec.bool, JSON.null) == none
+  refl

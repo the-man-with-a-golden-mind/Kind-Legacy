@@ -1,0 +1,2 @@
+Sure.Pipe.enumerate<A: Type>(xs: List<A>): List<Pair<Nat, A>>
+  List.index<A>(xs)

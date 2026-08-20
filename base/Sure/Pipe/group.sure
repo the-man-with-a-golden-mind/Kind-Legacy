@@ -1,0 +1,8 @@
+Sure.Pipe.group<A: Type>(eql: A -> A -> Bool, xs: List<A>): List<List<A>>
+  case xs {
+    nil: []
+    cons:
+      let run = List.take_while<A>(eql(xs.head), xs)
+      let rest = List.drop_while<A>(eql(xs.head), xs)
+      List.cons<List<A>>(run, Sure.Pipe.group<A>(eql, rest))
+  }

@@ -1,0 +1,2 @@
+Sure.Agent.Method.read.prove: Sure.Agent.Method.read("sure.prove") == some(Sure.Agent.Method.prove)
+  refl

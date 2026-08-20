@@ -1,0 +1,11 @@
+F64.all: Unit
+  let d0 = F64.is_dec.empty
+  let d1 = F64.is_dec.junk
+  let d2 = F64.is_dec.zero
+  let d3 = F64.is_dec.tail
+  let r0 = F64.read_dec.empty
+  let r1 = F64.read_dec.junk
+  let b0 = Bits.to_string.all
+  let h0 = String.hex.decode.utf8.all
+  unit
+

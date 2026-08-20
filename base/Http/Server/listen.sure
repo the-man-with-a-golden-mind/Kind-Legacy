@@ -1,0 +1,11 @@
+Http.Server.listen(port: Nat): IO<Outcome<Http.Err, Unit>>
+  IO {
+    get raw = IO.ask<String>("http_listen", Nat.show(port), (t) IO.end<String>(t))
+    return Http.Server.decode(raw)
+  }
+
+Http.Server.decode(raw: String): Outcome<Http.Err, Unit>
+  case IO.tagged.read(raw) as tag {
+    err: Http.Server.fail(tag.error)
+    ok: Http.Server.ok
+  }

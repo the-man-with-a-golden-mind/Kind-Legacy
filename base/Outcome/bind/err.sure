@@ -1,0 +1,3 @@
+Outcome.bind.err<E: Type, A: Type, B: Type>(e: E, f: A -> Outcome<E, B>):
+  Outcome.bind<E, A, B>(Outcome.err<E, A>(e), f) == Outcome.err<E, B>(e)
+  refl

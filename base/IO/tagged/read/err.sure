@@ -1,0 +1,2 @@
+IO.tagged.read.err: IO.tagged.read("1\nENOENT") == Outcome.err<String, String>("ENOENT")
+  refl

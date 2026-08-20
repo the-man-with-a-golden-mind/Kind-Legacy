@@ -1,0 +1,2 @@
+Sure.Pipe.from_maybe_some: Sure.Pipe.from_maybe<Nat>(some(1)) == [1]
+  refl

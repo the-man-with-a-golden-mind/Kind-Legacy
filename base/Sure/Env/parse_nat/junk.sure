@@ -1,0 +1,2 @@
+Sure.Env.parse_nat.junk: Outcome.is_ok<Sure.Env.Err, Nat>(Sure.Env.parse_nat("x")) == false
+  refl

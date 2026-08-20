@@ -1,0 +1,6 @@
+Db.decode_text.ok:
+  case Db.decode_text("0\nada") as o {
+    err: ""
+    ok: o.value
+  } == "ada"
+  refl

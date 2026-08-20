@@ -1,0 +1,6 @@
+Task.race<A: Type>(a: IO<A>, b: IO<A>): IO<A>
+  IO.race<A, A, A>(a, b, (e)
+    case e {
+      left: IO.end<A>(e.value)
+      right: IO.end<A>(e.value)
+    })

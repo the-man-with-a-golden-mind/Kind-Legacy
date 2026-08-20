@@ -1,0 +1,7 @@
+type Http.App.Route {
+  new(
+    method: Http.Method
+    pattern: String
+    handle: Http.Server.Req -> List<Pair<String, String>> -> IO<Http.Response>
+  )
+}

@@ -1,0 +1,2 @@
+Nat.parse_decimal.junk: Nat.parse_decimal("x") == 0
+  refl

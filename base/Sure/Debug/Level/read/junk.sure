@@ -1,0 +1,2 @@
+Sure.Debug.Level.read.junk: Maybe.is_none<Sure.Debug.Level>(Sure.Debug.Level.read("loud")) == true
+  refl

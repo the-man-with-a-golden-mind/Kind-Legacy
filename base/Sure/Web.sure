@@ -1,0 +1,168 @@
+// Runtime bench of the web stack. Each sample runs real draw/step/match/SSR
+// work and returns a checksum so the loop cannot be skipped. n=0 is no work.
+
+type Sure.Web.Sample {
+  new(name: String, work: Nat, ms: Nat)
+}
+
+Sure.Web.req(method: String, url: String): Http.Server.Req
+  Http.Server.Req.new("", method, url, "", "")
+
+Sure.Web.inc: String
+  Html.Client.wire("click", "inc", "", "")
+
+Sure.Web.junk: String
+  Html.Client.wire("click", "nope", "", "")
+
+Sure.Web.html_draw(n: Nat): Nat
+  case n {
+    zero: 0
+    succ:
+      Nat.add(
+        String.length(Html.Client.draw_of<Nat>(Html.Counter.client, n.pred)),
+        Sure.Web.html_draw(n.pred))
+  }
+
+Sure.Web.html_step(n: Nat, model: Nat): Nat
+  case n {
+    zero: model
+    succ: Sure.Web.html_step(n.pred, Html.Client.step_of<Nat>(Html.Counter.client, Sure.Web.inc, model))
+  }
+
+Sure.Web.html_step_junk(n: Nat, model: Nat): Nat
+  case n {
+    zero: model
+    succ: Sure.Web.html_step_junk(n.pred, Html.Client.step_of<Nat>(Html.Counter.client, Sure.Web.junk, model))
+  }
+
+Sure.Web.ui_draw(n: Nat): Nat
+  case n {
+    zero: 0
+    succ:
+      Nat.add(
+        String.length(Sure.Ui.draw_of<Nat>(Sure.Ui.Counter.client, n.pred)),
+        Sure.Web.ui_draw(n.pred))
+  }
+
+Sure.Web.ui_step(n: Nat): Nat
+  Sure.Web.ui_step.go(n, 0)
+
+Sure.Web.ui_step.go(n: Nat, model: Nat): Nat
+  case n {
+    zero: model
+    succ:
+      Sure.Web.ui_step.go(
+        n.pred,
+        Sure.Ui.step_model<Nat>(Sure.Ui.Counter.client, Sure.Ui.wire("click", "inc", "", ""), model))
+  }
+
+Sure.Web.ssr_doc(n: Nat): Nat
+  case n {
+    zero: 0
+    succ:
+      Nat.add(
+        String.length(Sure.Ssr.document("", Html.text(""))),
+        Sure.Web.ssr_doc(n.pred))
+  }
+
+Sure.Web.ssr_nf(n: Nat): Nat
+  case n {
+    zero: 0
+    succ:
+      Nat.add(
+        String.length(Sure.Ssr.html(Sure.Ssr.not_found)),
+        Sure.Web.ssr_nf(n.pred))
+  }
+
+Sure.Web.escape_junk(n: Nat): Nat
+  case n {
+    zero: 0
+    succ: Nat.add(String.length(Html.escape("<script>")), Sure.Web.escape_junk(n.pred))
+  }
+
+Sure.Web.escape_empty(n: Nat): Nat
+  case n {
+    zero: 0
+    succ: Nat.add(String.length(Html.escape("")), Sure.Web.escape_empty(n.pred))
+  }
+
+Sure.Web.match_hit(n: Nat): Nat
+  case n {
+    zero: 0
+    succ:
+      case Http.App.match(Http.Method.get, "/", Sure.Web.req("GET", "/")) {
+        none: Sure.Web.match_hit(n.pred)
+        some: Nat.succ(Sure.Web.match_hit(n.pred))
+      }
+  }
+
+Sure.Web.match_junk(n: Nat): Nat
+  case n {
+    zero: 0
+    succ:
+      case Http.App.match(Http.Method.get, "/", Sure.Web.req("NOPE", "/")) {
+        none: Sure.Web.match_junk(n.pred)
+        some: Nat.succ(Sure.Web.match_junk(n.pred))
+      }
+  }
+
+Sure.Web.window_count(scroll: Nat, received: Nat): Nat
+  let w = Sure.Sheet.window(scroll, received)
+  open w
+  w.snd
+
+Sure.Web.sheet_win(n: Nat): Nat
+  case n {
+    zero: 0
+    succ: Nat.add(Sure.Web.window_count(0, Nat.read("10000")), Sure.Web.sheet_win(n.pred))
+  }
+
+Sure.Web.fire_nil_n(n: Nat): IO<Nat>
+  Sure.Web.fire_nil_n.go(n, 0)
+
+Sure.Web.fire_nil_n.go(n: Nat, acc: Nat): IO<Nat>
+  case n {
+    zero: IO.end<Nat>(acc)
+    succ: IO {
+      get r = Http.App.fire([], Sure.Web.req("GET", "/"))
+      open r
+      Sure.Web.fire_nil_n.go(n.pred, Nat.add(acc, r.status))
+    }
+  }
+
+Sure.Web.ssr_fire_nil_n(n: Nat): IO<Nat>
+  Sure.Web.ssr_fire_nil_n.go(n, 0)
+
+Sure.Web.ssr_fire_nil_n.go(n: Nat, acc: Nat): IO<Nat>
+  case n {
+    zero: IO.end<Nat>(acc)
+    succ: IO {
+      get r = Sure.Ssr.fire([], Sure.Web.req("GET", "/"))
+      case r {
+        html: Sure.Web.ssr_fire_nil_n.go(n.pred, Nat.add(acc, r.status))
+      } default Sure.Web.ssr_fire_nil_n.go(n.pred, acc)
+    }
+  }
+
+Sure.Web.sample(name: String, n: Nat, work: Nat -> Nat): IO<Sure.Web.Sample>
+  IO {
+    get t0 = IO.get_time
+    let w = work(n)
+    get t1 = IO.get_time
+    return Sure.Web.Sample.new(name, w, Sure.Bench.delta(t0, t1))
+  }
+
+Sure.Web.sample_io(name: String, act: IO<Nat>): IO<Sure.Web.Sample>
+  IO {
+    get t0 = IO.get_time
+    get w = act
+    get t1 = IO.get_time
+    return Sure.Web.Sample.new(name, w, Sure.Bench.delta(t0, t1))
+  }
+
+Sure.Web.show(s: Sure.Web.Sample): String
+  open s
+  s.name | "  work=" | Nat.show(s.work) | "  ms=" | Nat.show(s.ms)
+
+Sure.Web.line(s: Sure.Web.Sample): IO<Unit>
+  IO.print(Sure.Web.show(s))

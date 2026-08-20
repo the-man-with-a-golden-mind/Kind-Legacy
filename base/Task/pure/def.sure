@@ -1,0 +1,2 @@
+Task.pure.def<A: Type>(x: A): Task.pure<A>(x) == IO.end<A>(x)
+  refl

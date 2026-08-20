@@ -1,0 +1,2 @@
+Nat.read_base.go_nil(base: Nat, acc: Nat): Nat.read_base.go(base, "", acc) == acc
+  refl

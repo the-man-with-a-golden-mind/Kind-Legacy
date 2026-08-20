@@ -1,0 +1,2 @@
+JSON.dec.bool.true: JSON.dec.bool(JSON.bool(true)) == some(true)
+  refl

@@ -1,0 +1,2 @@
+Crypto.hex64.empty: Crypto.hex64("") == false
+  refl

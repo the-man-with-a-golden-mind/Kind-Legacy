@@ -1,0 +1,2 @@
+Sure.Agent.Method.read.fill: Sure.Agent.Method.read("sure.fill") == some(Sure.Agent.Method.fill)
+  refl

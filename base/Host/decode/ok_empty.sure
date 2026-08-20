@@ -1,0 +1,2 @@
+Host.decode.ok_empty: Host.decode("0\n") == Host.ok_string("")
+  refl

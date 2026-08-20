@@ -1,0 +1,6 @@
+Host.as_outcome(e: Host.Event): Outcome<Host.Err, String>
+  case e {
+    ok_string: Outcome.ok<Host.Err, String>(e.value)
+    ok_unit: Outcome.ok<Host.Err, String>("")
+    err: Outcome.err<Host.Err, String>(e.error)
+  }

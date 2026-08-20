@@ -1,0 +1,3 @@
+String.slice.nil(i: Nat, j: Nat): String.slice(i, j, "") == ""
+  rewrite X in String.take(Nat.sub(j, i), X) == "" with String.drop.nil(i)
+  String.take.nil(Nat.sub(j, i))

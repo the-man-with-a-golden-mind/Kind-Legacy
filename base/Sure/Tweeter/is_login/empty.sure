@@ -1,0 +1,2 @@
+Sure.Tweeter.is_login.empty: Sure.Tweeter.is_login("") == false
+  refl

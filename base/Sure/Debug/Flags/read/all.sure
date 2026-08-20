@@ -1,0 +1,2 @@
+Sure.Debug.Flags.read.all: Sure.Debug.Flags.host(Sure.Debug.Flags.read("all")) == true
+  refl

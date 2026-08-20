@@ -1,0 +1,17 @@
+Html.escape.go(s: String, acc: String): String
+  case s {
+    nil: acc
+    cons:
+      let ch = Char.to_string(s.head)
+      let bit =
+        if U16.eql(s.head, '&') then "&amp;"
+        else if U16.eql(s.head, '<') then "&lt;"
+        else if U16.eql(s.head, '>') then "&gt;"
+        else if U16.eql(s.head, '"') then "&quot;"
+        else if U16.eql(s.head, '\'') then "&#39;"
+        else ch
+      Html.escape.go(s.tail, acc | bit)
+  }
+
+Html.escape(s: String): String
+  Html.escape.go(s, "")

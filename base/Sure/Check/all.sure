@@ -1,0 +1,21 @@
+Sure.Check.all: Unit
+  let a = Sure.Check.box_e
+  let b = Sure.Check.box_a
+  let c = Sure.Check.nat_day
+  let d = Sure.Check.nat_mul
+  let e = Sure.Check.nat_empty
+  let f = Sure.Check.nat_div0
+  let g = Sure.Check.map_nil
+  let h = Sure.Check.lit_day
+  let i = Sure.Check.word_e
+  let j = Sure.Check.map_set
+  let k = Sure.Check.json_null
+  let l = Sure.Check.json_obj
+  let m = Sure.Check.req_url
+  let n = Sure.Check.nat_junk
+  let o = Sure.Check.nat_lte
+  let p = Sure.Check.map_one
+  let q = Sure.Check.map_get
+  let r = Sure.Check.map_miss
+  let s = Sure.Check.json_one
+  unit

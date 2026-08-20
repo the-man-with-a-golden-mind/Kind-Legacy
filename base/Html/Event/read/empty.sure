@@ -1,0 +1,2 @@
+Html.Event.read.empty: Maybe.is_none<Html.Event>(Html.Event.read("")) == true
+  refl

@@ -1,0 +1,287 @@
+// Light Elm architecture in the browser.
+// sandbox has no effects. element has Cmd and Sub.
+// Empty cmd/sub text is none. Empty HTTP URL is not a request. every(0) is none.
+
+type Sure.Ui.Cmd {
+  none
+  http(url: String, msg: String)
+  post(url: String, body: String, msg: String)
+  tick(ms: Nat, msg: String)
+  push(msg: String)
+  batch(xs: List<Sure.Ui.Cmd>)
+}
+
+type Sure.Ui.Sub {
+  none
+  every(ms: Nat, msg: String)
+  sse(path: String, msg: String)
+  batch(xs: List<Sure.Ui.Sub>)
+}
+
+type Sure.Ui.App <M: Type> {
+  new(
+    init: M
+    boot: Sure.Ui.Cmd
+    view: (m: M) -> DOM
+    update: (msg: String) -> (ev: Html.Event.Data) -> (m: M) -> Pair<M, Sure.Ui.Cmd>
+    subs: (m: M) -> Sure.Ui.Sub
+  )
+}
+
+type Sure.Ui.Client <M: Type> {
+  new(
+    init: M
+    draw: (m: M) -> String
+    step: (raw: String) -> (m: M) -> Pair<M, String>
+    listen: (m: M) -> String
+    boot: String
+  )
+}
+
+Sure.Ui.join.go(xs: List<String>, acc: String): String
+  case xs {
+    nil: acc
+    cons:
+      if String.is_empty(acc) then Sure.Ui.join.go(xs.tail, xs.head)
+      else Sure.Ui.join.go(xs.tail, acc | "\n.\n" | xs.head)
+  }
+
+Sure.Ui.join(xs: List<String>): String
+  Sure.Ui.join.go(xs, "")
+
+Sure.Ui.rest(xs: List<String>, n: Nat): String
+  String.join("\n", List.drop<String>(n, xs))
+
+Sure.Ui.at(xs: List<String>, i: Nat): String
+  Html.Event.Data.at(xs, i)
+
+Sure.Ui.Cmd.atoms.go(xs: List<Sure.Ui.Cmd>, acc: List<Sure.Ui.Cmd>): List<Sure.Ui.Cmd>
+  case xs {
+    nil: acc
+    cons: Sure.Ui.Cmd.atoms.go(xs.tail, List.concat<Sure.Ui.Cmd>(acc, Sure.Ui.Cmd.atoms(xs.head)))
+  }
+
+Sure.Ui.Cmd.atoms(c: Sure.Ui.Cmd): List<Sure.Ui.Cmd>
+  case c {
+    none: []
+    http:
+      if String.is_empty(c.url) then []
+      else [c]
+    post:
+      if String.is_empty(c.url) then []
+      else [c]
+    tick:
+      if Nat.is_zero(c.ms) then []
+      else [c]
+    push: [c]
+    batch: Sure.Ui.Cmd.atoms.go(c.xs, [])
+  }
+
+Sure.Ui.Cmd.atom_show(c: Sure.Ui.Cmd): String
+  case c {
+    none: ""
+    http: "H\n" | c.url | "\n" | c.msg
+    post: "O\n" | c.url | "\n" | c.msg | "\n" | c.body
+    tick: "T\n" | Nat.show(c.ms) | "\n" | c.msg
+    push: "P\n" | c.msg
+    batch: ""
+  }
+
+Sure.Ui.Cmd.show(c: Sure.Ui.Cmd): String
+  Sure.Ui.join(List.map<Sure.Ui.Cmd, String>(Sure.Ui.Cmd.atom_show, Sure.Ui.Cmd.atoms(c)))
+
+Sure.Ui.Cmd.read_atom(s: String): Maybe<Sure.Ui.Cmd>
+  if String.is_empty(s) then none
+  else
+    let xs = String.split(s, "\n")
+    let k = Sure.Ui.at(xs, 0)
+    if String.eql(k, "H") then
+      let url = Sure.Ui.at(xs, 1)
+      if String.is_empty(url) then none
+      else some(Sure.Ui.Cmd.http(url, Sure.Ui.rest(xs, 2)))
+    else if String.eql(k, "O") then
+      let url = Sure.Ui.at(xs, 1)
+      if String.is_empty(url) then none
+      else some(Sure.Ui.Cmd.post(url, Sure.Ui.rest(xs, 3), Sure.Ui.at(xs, 2)))
+    else if String.eql(k, "T") then
+      case Parse.nat(Sure.Ui.at(xs, 1)) as n {
+        none: none
+        some:
+          if Nat.is_zero(n.value) then none
+          else some(Sure.Ui.Cmd.tick(n.value, Sure.Ui.rest(xs, 2)))
+      }
+    else if String.eql(k, "P") then some(Sure.Ui.Cmd.push(Sure.Ui.rest(xs, 1)))
+    else none
+
+Sure.Ui.Cmd.keep(xs: List<String>): List<Sure.Ui.Cmd>
+  case xs {
+    nil: []
+    cons:
+      case Sure.Ui.Cmd.read_atom(xs.head) as a {
+        none: Sure.Ui.Cmd.keep(xs.tail)
+        some: List.cons<Sure.Ui.Cmd>(a.value, Sure.Ui.Cmd.keep(xs.tail))
+      }
+  }
+
+Sure.Ui.Cmd.is_none(c: Sure.Ui.Cmd): Bool
+  case c {
+    none: true
+  } default false
+
+Sure.Ui.Cmd.read(s: String): Sure.Ui.Cmd
+  if String.is_empty(s) then Sure.Ui.Cmd.none
+  else
+    let xs = Sure.Ui.Cmd.keep(String.split(s, "\n.\n"))
+    case xs {
+      nil: Sure.Ui.Cmd.none
+      cons:
+        case xs.tail {
+          nil: xs.head
+        } default Sure.Ui.Cmd.batch(xs)
+    }
+
+Sure.Ui.Sub.atoms.go(xs: List<Sure.Ui.Sub>, acc: List<Sure.Ui.Sub>): List<Sure.Ui.Sub>
+  case xs {
+    nil: acc
+    cons: Sure.Ui.Sub.atoms.go(xs.tail, List.concat<Sure.Ui.Sub>(acc, Sure.Ui.Sub.atoms(xs.head)))
+  }
+
+Sure.Ui.Sub.atoms(s: Sure.Ui.Sub): List<Sure.Ui.Sub>
+  case s {
+    none: []
+    every:
+      if Nat.is_zero(s.ms) then []
+      else [s]
+    sse:
+      if String.is_empty(s.path) then []
+      else [s]
+    batch: Sure.Ui.Sub.atoms.go(s.xs, [])
+  }
+
+Sure.Ui.Sub.atom_show(s: Sure.Ui.Sub): String
+  case s {
+    none: ""
+    every: "E\n" | Nat.show(s.ms) | "\n" | s.msg
+    sse: "S\n" | s.path | "\n" | s.msg
+    batch: ""
+  }
+
+Sure.Ui.Sub.show(s: Sure.Ui.Sub): String
+  Sure.Ui.join(List.map<Sure.Ui.Sub, String>(Sure.Ui.Sub.atom_show, Sure.Ui.Sub.atoms(s)))
+
+Sure.Ui.Sub.read_atom(s: String): Maybe<Sure.Ui.Sub>
+  if String.is_empty(s) then none
+  else
+    let xs = String.split(s, "\n")
+    let k = Sure.Ui.at(xs, 0)
+    if String.eql(k, "E") then
+      case Parse.nat(Sure.Ui.at(xs, 1)) as n {
+        none: none
+        some:
+          if Nat.is_zero(n.value) then none
+          else some(Sure.Ui.Sub.every(n.value, Sure.Ui.rest(xs, 2)))
+      }
+    else if String.eql(k, "S") then
+      let path = Sure.Ui.at(xs, 1)
+      if String.is_empty(path) then none
+      else some(Sure.Ui.Sub.sse(path, Sure.Ui.rest(xs, 2)))
+    else none
+
+Sure.Ui.Sub.keep(xs: List<String>): List<Sure.Ui.Sub>
+  case xs {
+    nil: []
+    cons:
+      case Sure.Ui.Sub.read_atom(xs.head) as a {
+        none: Sure.Ui.Sub.keep(xs.tail)
+        some: List.cons<Sure.Ui.Sub>(a.value, Sure.Ui.Sub.keep(xs.tail))
+      }
+  }
+
+Sure.Ui.Sub.is_none(s: Sure.Ui.Sub): Bool
+  case s {
+    none: true
+  } default false
+
+Sure.Ui.Sub.read(s: String): Sure.Ui.Sub
+  if String.is_empty(s) then Sure.Ui.Sub.none
+  else
+    let xs = Sure.Ui.Sub.keep(String.split(s, "\n.\n"))
+    case xs {
+      nil: Sure.Ui.Sub.none
+      cons:
+        case xs.tail {
+          nil: xs.head
+        } default Sure.Ui.Sub.batch(xs)
+    }
+
+Sure.Ui.sandbox<M: Type>(
+  init: M,
+  view: (m: M) -> DOM,
+  update: (msg: String) -> (ev: Html.Event.Data) -> (m: M) -> M
+): Sure.Ui.App<M>
+  Sure.Ui.App.new<M>(
+    init,
+    Sure.Ui.Cmd.none,
+    view,
+    (msg) (ev) (m) Pair.new<M, Sure.Ui.Cmd>(update(msg, ev, m), Sure.Ui.Cmd.none),
+    (m) Sure.Ui.Sub.none
+  )
+
+Sure.Ui.element<M: Type>(
+  init: M,
+  boot: Sure.Ui.Cmd,
+  view: (m: M) -> DOM,
+  update: (msg: String) -> (ev: Html.Event.Data) -> (m: M) -> Pair<M, Sure.Ui.Cmd>,
+  subs: (m: M) -> Sure.Ui.Sub
+): Sure.Ui.App<M>
+  Sure.Ui.App.new<M>(init, boot, view, update, subs)
+
+Sure.Ui.of_html<M: Type>(app: Html.App<M>): Sure.Ui.App<M>
+  open app
+  Sure.Ui.sandbox<M>(app.init, app.view, app.update)
+
+Sure.Ui.pack<M: Type>(app: Sure.Ui.App<M>): Sure.Ui.Client<M>
+  open app
+  Sure.Ui.Client.new<M>(
+    app.init,
+    (m) DOM.render(app.view(m)),
+    (raw) (m)
+      let ev = Html.Event.Data.parse(raw)
+      open ev
+      let p = app.update(ev.msg, ev, m)
+      open p
+      Pair.new<M, String>(p.fst, Sure.Ui.Cmd.show(p.snd)),
+    (m) Sure.Ui.Sub.show(app.subs(m)),
+    Sure.Ui.Cmd.show(app.boot)
+  )
+
+Sure.Ui.init_of<M: Type>(c: Sure.Ui.Client<M>): M
+  open c
+  c.init
+
+Sure.Ui.draw_of<M: Type>(c: Sure.Ui.Client<M>, m: M): String
+  open c
+  c.draw(m)
+
+Sure.Ui.step_model<M: Type>(c: Sure.Ui.Client<M>, raw: String, m: M): M
+  open c
+  let p = c.step(raw, m)
+  open p
+  p.fst
+
+Sure.Ui.step_fx<M: Type>(c: Sure.Ui.Client<M>, raw: String, m: M): String
+  open c
+  let p = c.step(raw, m)
+  open p
+  p.snd
+
+Sure.Ui.listen_of<M: Type>(c: Sure.Ui.Client<M>, m: M): String
+  open c
+  c.listen(m)
+
+Sure.Ui.boot_of<M: Type>(c: Sure.Ui.Client<M>): String
+  open c
+  c.boot
+
+Sure.Ui.wire(kind: String, msg: String, target: String, value: String): String
+  Html.Client.wire(kind, msg, target, value)

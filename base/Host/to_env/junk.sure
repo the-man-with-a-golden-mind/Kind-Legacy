@@ -1,0 +1,2 @@
+Host.to_env.junk: Host.to_env(Host.decode("1\nbad")) == Outcome.err<Sure.Env.Err, String>(Sure.Env.Err.junk)
+  refl

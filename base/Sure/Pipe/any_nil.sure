@@ -1,0 +1,2 @@
+Sure.Pipe.any_nil: Sure.Pipe.any<Nat>((n) Bool.true, []) == false
+  refl

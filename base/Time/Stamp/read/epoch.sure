@@ -1,0 +1,2 @@
+Time.Stamp.read.epoch: Time.Stamp.read("0") == some(Time.Stamp.epoch)
+  refl

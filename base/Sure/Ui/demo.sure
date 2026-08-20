@@ -1,0 +1,5 @@
+Sure.Ui.demo: IO<Unit>
+  let n = Nat.show(Sure.Ui.step_model<Nat>(Sure.Ui.Counter.client, Sure.Ui.wire("click", "inc", "", ""), 0))
+  let z = if String.is_empty(Sure.Ui.Cmd.show(Sure.Ui.Cmd.none)) then "none" else "x"
+  let l = if String.is_empty(Sure.Ui.listen_of<Nat>(Sure.Ui.Counter.client, 0)) then "-" else "s"
+  IO.print(n | " " | z | " " | l)

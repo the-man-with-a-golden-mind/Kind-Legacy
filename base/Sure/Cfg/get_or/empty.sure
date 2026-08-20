@@ -1,0 +1,2 @@
+Sure.Cfg.get_or.empty: Sure.Cfg.get_or(Sure.Cfg.empty, "", "d") == "d"
+  refl

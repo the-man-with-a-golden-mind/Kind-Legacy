@@ -1,0 +1,2 @@
+Sure.Pipe.flatten_nil: Sure.Pipe.flatten<Nat>([]) == []
+  refl

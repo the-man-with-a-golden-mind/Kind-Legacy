@@ -1,0 +1,2 @@
+Db.Err.show.bad_file: Db.Err.show(Db.Err.bad_file) == "bad_file"
+  refl

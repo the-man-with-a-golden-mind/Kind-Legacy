@@ -1,0 +1,2 @@
+File.from_tagged.via: File.from_tagged("1\nENOENT") == Host.to_file(Host.decode("1\nENOENT"))
+  refl

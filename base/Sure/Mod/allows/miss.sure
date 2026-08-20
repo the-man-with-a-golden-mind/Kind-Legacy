@@ -1,0 +1,2 @@
+Sure.Mod.allows.miss: Sure.Mod.allows("Foo", Sure.Mod.Exposing.names(["bar"]), "Foo.secret") == false
+  refl

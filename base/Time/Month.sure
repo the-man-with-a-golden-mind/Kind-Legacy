@@ -1,0 +1,83 @@
+type Time.Month {
+  jan
+  feb
+  mar
+  apr
+  may
+  jun
+  jul
+  aug
+  sep
+  oct
+  nov
+  dec
+}
+
+Time.Month.nat(m: Time.Month): Nat
+  case m {
+    jan: 1
+    feb: 2
+    mar: 3
+    apr: 4
+    may: 5
+    jun: 6
+    jul: 7
+    aug: 8
+    sep: 9
+    oct: 10
+    nov: 11
+    dec: 12
+  }
+
+Time.Month.of_nat(n: Nat): Maybe<Time.Month>
+  if Nat.eql(n, 1) then some(Time.Month.jan)
+  else if Nat.eql(n, 2) then some(Time.Month.feb)
+  else if Nat.eql(n, 3) then some(Time.Month.mar)
+  else if Nat.eql(n, 4) then some(Time.Month.apr)
+  else if Nat.eql(n, 5) then some(Time.Month.may)
+  else if Nat.eql(n, 6) then some(Time.Month.jun)
+  else if Nat.eql(n, 7) then some(Time.Month.jul)
+  else if Nat.eql(n, 8) then some(Time.Month.aug)
+  else if Nat.eql(n, 9) then some(Time.Month.sep)
+  else if Nat.eql(n, 10) then some(Time.Month.oct)
+  else if Nat.eql(n, 11) then some(Time.Month.nov)
+  else if Nat.eql(n, 12) then some(Time.Month.dec)
+  else none
+
+Time.Month.show(m: Time.Month): String
+  case m {
+    jan: "Jan"
+    feb: "Feb"
+    mar: "Mar"
+    apr: "Apr"
+    may: "May"
+    jun: "Jun"
+    jul: "Jul"
+    aug: "Aug"
+    sep: "Sep"
+    oct: "Oct"
+    nov: "Nov"
+    dec: "Dec"
+  }
+
+Time.Month.iso(m: Time.Month): String
+  Time.pad2(Time.Month.nat(m))
+
+Time.Month.read(s: String): Maybe<Time.Month>
+  if String.is_empty(s) then none
+  else if String.eql(s, "Jan") then some(Time.Month.jan)
+  else if String.eql(s, "Feb") then some(Time.Month.feb)
+  else if String.eql(s, "Mar") then some(Time.Month.mar)
+  else if String.eql(s, "Apr") then some(Time.Month.apr)
+  else if String.eql(s, "May") then some(Time.Month.may)
+  else if String.eql(s, "Jun") then some(Time.Month.jun)
+  else if String.eql(s, "Jul") then some(Time.Month.jul)
+  else if String.eql(s, "Aug") then some(Time.Month.aug)
+  else if String.eql(s, "Sep") then some(Time.Month.sep)
+  else if String.eql(s, "Oct") then some(Time.Month.oct)
+  else if String.eql(s, "Nov") then some(Time.Month.nov)
+  else if String.eql(s, "Dec") then some(Time.Month.dec)
+  else case Parse.nat(s) as n {
+    none: none
+    some: Time.Month.of_nat(n.value)
+  }

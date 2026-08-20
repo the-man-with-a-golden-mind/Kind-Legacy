@@ -1,0 +1,2 @@
+File.from_tagged(raw: String): Outcome<File.Err, String>
+  Host.to_file(Host.decode(raw))

@@ -1,0 +1,8 @@
+// Tagged host replies: "0\n" + payload or "1\n" + error.
+IO.tagged.read(text: String): Outcome<String, String>
+  if String.starts_with(text, "0\n") then
+    Outcome.ok<String, String>(String.drop(2, text))
+  else if String.starts_with(text, "1\n") then
+    Outcome.err<String, String>(String.drop(2, text))
+  else
+    Outcome.err<String, String>("bad host tag")

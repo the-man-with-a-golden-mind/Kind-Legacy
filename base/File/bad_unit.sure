@@ -1,0 +1,2 @@
+File.bad_unit(e: Path.Err): Outcome<File.Err, Unit>
+  Outcome.err<File.Err, Unit>(File.Err.bad_path(e))

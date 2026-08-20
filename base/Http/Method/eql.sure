@@ -1,0 +1,9 @@
+Http.Method.eql(a: Http.Method, b: Http.Method): Bool
+  case a b {
+    get get: true
+    post post: true
+    put put: true
+    delete delete: true
+    patch patch: true
+    head head: true
+  } default false

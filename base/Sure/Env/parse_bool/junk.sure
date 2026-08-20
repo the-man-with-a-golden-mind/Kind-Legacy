@@ -1,0 +1,2 @@
+Sure.Env.parse_bool.junk: Outcome.is_ok<Sure.Env.Err, Bool>(Sure.Env.parse_bool("yes")) == false
+  refl

@@ -1,0 +1,2 @@
+Net.udp.parse_all.empty: List.length<Net.Udp.Msg>(Net.udp.parse_all("")) == 0
+  refl

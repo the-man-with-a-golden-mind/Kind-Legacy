@@ -1,0 +1,2 @@
+Html.void_name.input: Html.void_name("input") == true
+  refl

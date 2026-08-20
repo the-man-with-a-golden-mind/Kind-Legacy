@@ -1,0 +1,2 @@
+Db.Cmd.read.get_empty: Maybe.is_none<Db.Cmd>(Db.Cmd.read("GET ")) == true
+  refl

@@ -1,0 +1,2 @@
+Sure.Cfg.Err.read.empty: Sure.Cfg.Err.show(Sure.Cfg.Err.read("")) == "missing"
+  refl

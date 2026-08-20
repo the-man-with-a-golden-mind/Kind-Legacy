@@ -1,0 +1,34 @@
+// Compiler-as-tool protocol. The checker is the source of truth.
+// `?implement` is an ordinary named goal (see Sure.Parser.goal).
+// `sure.prove` type-checks a theorem (a term whose type is the proposition).
+// `sure.*` is the protocol. `kind.*` method names still parse.
+
+type Sure.Agent.Method {
+  parse,
+  check,
+  normalize,
+  infer,
+  goal,
+  holes,
+  symbols,
+  definition,
+  references,
+  dependencies,
+  patch,
+  compile,
+  diagnostics,
+  repair,
+  prove,
+  impact,
+  theorems,
+  docs,
+  graph,
+  qc,
+  fill,
+  trace,
+  gen,
+  debug,
+}
+
+Sure.Agent.implement: String
+  "implement"

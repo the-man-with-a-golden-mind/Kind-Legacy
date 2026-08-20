@@ -1,0 +1,5 @@
+Sure.Pipe.partition<A: Type>(f: A -> Bool, xs: List<A>): Pair<List<A>, List<A>>
+  Pair.new<List<A>, List<A>>(
+    Sure.Pipe.filter<A>(f, xs),
+    Sure.Pipe.filter<A>((x) Bool.not(f(x)), xs)
+  )

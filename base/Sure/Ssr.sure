@@ -1,0 +1,207 @@
+// Server-rendered HTML. Empty title is allowed. Empty id is not a reply.
+// Redirect URL must be non-empty and have no newline. SSE uses Sure.Sse.
+
+type Sure.Ssr.Page {
+  new(status: Nat, title: String, body: DOM)
+}
+
+type Sure.Ssr.Reply {
+  html(status: Nat, body: String)
+  text(status: Nat, body: String)
+  json(status: Nat, body: String)
+  redirect(url: String)
+  sse(bus: String)
+}
+
+type Sure.Ssr.Err {
+  empty_id
+  empty_bus
+  bad_url
+  missing
+  junk
+}
+
+type Sure.Ssr.Route {
+  new(
+    method: Http.Method
+    pattern: String
+    handle: Http.Server.Req -> List<Pair<String, String>> -> IO<Sure.Ssr.Reply>
+  )
+}
+
+Sure.Ssr.Err.show(e: Sure.Ssr.Err): String
+  case e {
+    empty_id: "empty_id"
+    empty_bus: "empty_bus"
+    bad_url: "bad_url"
+    missing: "missing"
+    junk: "junk"
+  }
+
+Sure.Ssr.Err.read(s: String): Sure.Ssr.Err
+  if String.eql(s, "empty_id") then Sure.Ssr.Err.empty_id
+  else if String.eql(s, "empty_bus") then Sure.Ssr.Err.empty_bus
+  else if String.eql(s, "bad_url") then Sure.Ssr.Err.bad_url
+  else if String.eql(s, "missing") then Sure.Ssr.Err.missing
+  else if String.eql(s, "junk") then Sure.Ssr.Err.junk
+  else if String.is_empty(s) then Sure.Ssr.Err.missing
+  else Sure.Ssr.Err.junk
+
+Sure.Ssr.ok_url(s: String): Bool
+  if String.is_empty(s) then false
+  else if String.includes(s, "\n") then false
+  else if String.includes(s, String.cons(0#16, "")) then false
+  else true
+
+Sure.Ssr.ctype.html: String
+  "text/html; charset=utf-8"
+
+Sure.Ssr.ctype.json: String
+  "application/json; charset=utf-8"
+
+Sure.Ssr.ctype.text: String
+  "text/plain; charset=utf-8"
+
+Sure.Ssr.hdr(ctype: String): String
+  "Content-Type: " | ctype
+
+Sure.Ssr.hdr_redirect(url: String): String
+  Sure.Ssr.hdr(Sure.Ssr.ctype.text) | "\nLocation: " | url
+
+Sure.Ssr.document(title: String, body: DOM): String
+  "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>" | Html.escape(title) | "</title></head><body>" | DOM.render(body) | "</body></html>"
+
+Sure.Ssr.sse_script(path: String): String
+  if Bool.not(Sure.Ssr.ok_url(path)) then ""
+  else "<script>new EventSource(" | Sure.Json.string(path) | ")</script>"
+
+Sure.Ssr.html(p: Sure.Ssr.Page): String
+  open p
+  Sure.Ssr.document(p.title, p.body)
+
+Sure.Ssr.page(status: Nat, title: String, body: DOM): Sure.Ssr.Page
+  Sure.Ssr.Page.new(status, title, body)
+
+Sure.Ssr.ok(title: String, body: DOM): Sure.Ssr.Page
+  Sure.Ssr.page(200, title, body)
+
+Sure.Ssr.not_found: Sure.Ssr.Page
+  Sure.Ssr.page(404, "Not found", Html.p([Html.text("Not found")]))
+
+Sure.Ssr.bad: Sure.Ssr.Page
+  Sure.Ssr.page(400, "Bad request", Html.p([Html.text("Bad request")]))
+
+Sure.Ssr.from_page(p: Sure.Ssr.Page): Sure.Ssr.Reply
+  open p
+  Sure.Ssr.Reply.html(p.status, Sure.Ssr.html(p))
+
+Sure.Ssr.get(
+  pattern: String,
+  handle: Http.Server.Req -> List<Pair<String, String>> -> IO<Sure.Ssr.Reply>
+): Sure.Ssr.Route
+  Sure.Ssr.Route.new(Http.Method.get, pattern, handle)
+
+Sure.Ssr.post(
+  pattern: String,
+  handle: Http.Server.Req -> List<Pair<String, String>> -> IO<Sure.Ssr.Reply>
+): Sure.Ssr.Route
+  Sure.Ssr.Route.new(Http.Method.post, pattern, handle)
+
+Sure.Ssr.decode_unit(raw: String): Outcome<Sure.Ssr.Err, Unit>
+  case IO.tagged.read(raw) as tag {
+    err: Outcome.err<Sure.Ssr.Err, Unit>(Sure.Ssr.Err.read(tag.error))
+    ok: Outcome.ok<Sure.Ssr.Err, Unit>(unit)
+  }
+
+Sure.Ssr.send(id: String, r: Sure.Ssr.Reply): IO<Outcome<Sure.Ssr.Err, Unit>>
+  if String.is_empty(id) then
+    IO.end<Outcome<Sure.Ssr.Err, Unit>>(Outcome.err<Sure.Ssr.Err, Unit>(Sure.Ssr.Err.empty_id))
+  else case r {
+    html: IO {
+      Http.Server.reply_hdr(id, r.status, Sure.Ssr.hdr(Sure.Ssr.ctype.html), r.body)
+      return Outcome.ok<Sure.Ssr.Err, Unit>(unit)
+    }
+    text: IO {
+      Http.Server.reply_hdr(id, r.status, Sure.Ssr.hdr(Sure.Ssr.ctype.text), r.body)
+      return Outcome.ok<Sure.Ssr.Err, Unit>(unit)
+    }
+    json: IO {
+      Http.Server.reply_hdr(id, r.status, Sure.Ssr.hdr(Sure.Ssr.ctype.json), r.body)
+      return Outcome.ok<Sure.Ssr.Err, Unit>(unit)
+    }
+    redirect:
+      if Bool.not(Sure.Ssr.ok_url(r.url)) then
+        Sure.Ssr.send(id, Sure.Ssr.from_page(Sure.Ssr.bad))
+      else IO {
+        Http.Server.reply_hdr(id, 302, Sure.Ssr.hdr_redirect(r.url), "")
+        return Outcome.ok<Sure.Ssr.Err, Unit>(unit)
+      }
+    sse: IO {
+      get o = Sure.Sse.open(id, r.bus)
+      return case o {
+        err: Outcome.err<Sure.Ssr.Err, Unit>(Sure.Ssr.Err.read(Sure.Sse.Err.show(o.error)))
+        ok: Outcome.ok<Sure.Ssr.Err, Unit>(unit)
+      }
+    }
+  }
+
+Sure.Ssr.fire(routes: List<Sure.Ssr.Route>, req: Http.Server.Req): IO<Sure.Ssr.Reply>
+  case routes {
+    nil: IO {
+      return Sure.Ssr.from_page(Sure.Ssr.not_found)
+    }
+    cons:
+      open routes.head
+      case Http.App.match(routes.head.method, routes.head.pattern, req) as m {
+        none: Sure.Ssr.fire(routes.tail, req)
+        some: routes.head.handle(req, m.value)
+      }
+  }
+
+Sure.Ssr.step(port: Nat, routes: List<Sure.Ssr.Route>): IO<Bool>
+  IO {
+    get raw = Http.Server.recv(port)
+    let parsed = Http.Server.parse(raw)
+    case parsed {
+      none: IO {
+        return false
+      }
+      some: IO {
+        get r = Sure.Ssr.fire(routes, parsed.value)
+        open parsed.value
+        Sure.Ssr.send(parsed.value.id, r)
+        return true
+      }
+    }
+  }
+
+Sure.Ssr.run.go(port: Nat, routes: List<Sure.Ssr.Route>): IO<Unit>
+  IO {
+    get again = Sure.Ssr.step(port, routes)
+    Sure.Ssr.run.go(port, routes)
+  }
+
+Sure.Ssr.run(port: Nat, routes: List<Sure.Ssr.Route>): IO<Outcome<Http.Err, Unit>>
+  IO {
+    get l = Http.Server.listen(port)
+    case l {
+      err: IO {
+        return l
+      }
+      ok: IO {
+        Sure.Ssr.run.go(port, routes)
+        return Http.Server.ok
+      }
+    }
+  }
+
+Sure.Ssr.port_of(n: Nat): Nat
+  if Nat.is_zero(n) then Nat.read("8080")
+  else if Nat.gtn(n, Nat.read("65535")) then Nat.read("8080")
+  else n
+
+Sure.Ssr.port(c: Sure.Cfg): Nat
+  case Sure.Cfg.nat(c, "port") as p {
+    none: Nat.read("8080")
+    some: Sure.Ssr.port_of(p.value)
+  }

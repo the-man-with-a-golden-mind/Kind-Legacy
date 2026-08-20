@@ -1,0 +1,2 @@
+JSON.dec.pair.empty: JSON.dec.pair<Bool, Bool>(JSON.dec.bool, JSON.dec.bool, JSON.array([])) == none
+  refl

@@ -1,0 +1,2 @@
+Ffi.safe.nl: Ffi.safe("a\nb") == false
+  refl

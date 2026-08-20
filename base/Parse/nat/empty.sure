@@ -1,0 +1,2 @@
+Parse.nat.empty: Maybe.is_none<Nat>(Parse.nat("")) == true
+  refl

@@ -1,0 +1,8 @@
+Proc.wait(pid: Nat): IO<Outcome<Proc.Err, Nat>>
+  IO {
+    get raw = IO.ask<String>("proc_wait", Nat.show(pid), (t) IO.end<String>(t))
+    return case IO.tagged.read(raw) as tag {
+      err: Outcome.err<Proc.Err, Nat>(Proc.Err.io(tag.error))
+      ok: Outcome.ok<Proc.Err, Nat>(Nat.read(tag.value))
+    }
+  }

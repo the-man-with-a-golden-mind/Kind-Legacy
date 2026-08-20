@@ -1,0 +1,2 @@
+Html.Tag.void.div: Html.Tag.void(Html.Tag.div) == false
+  refl

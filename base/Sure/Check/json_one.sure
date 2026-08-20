@@ -1,0 +1,2 @@
+Sure.Check.json_one: JSON.object(Map.from_list<JSON>([{"k", JSON.null}])) == JSON.object(Map.set<JSON>("k", JSON.null, Map.from_list<JSON>([])))
+  refl

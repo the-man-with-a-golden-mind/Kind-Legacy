@@ -1,0 +1,68 @@
+Sure.Error.to_json.origin(orig: Maybe<Pair<Nat,Nat>>): String
+  case orig {
+    none:
+      Sure.Json.null
+    some:
+      open orig.value
+      "{\"from\":" | Nat.show(orig.value.fst)
+      | ",\"upto\":" | Nat.show(orig.value.snd) | "}"
+  }
+
+Sure.Error.to_json.side(side: Either<String, Sure.Term>): String
+  case side {
+    left:
+      Sure.Json.string(side.value)
+    right:
+      Sure.Json.string(Sure.Term.show(Sure.Term.normalize(side.value, BitsMap.new!)))
+  }
+
+Sure.Error.to_json(error: Sure.Error): String
+  case error {
+    type_mismatch:
+      "{"
+      | Sure.Json.field("code", Sure.Json.string("type_mismatch")) | ","
+      | Sure.Json.field("origin", Sure.Error.to_json.origin(error.origin)) | ","
+      | Sure.Json.field("expected", Sure.Error.to_json.side(error.expected)) | ","
+      | Sure.Json.field("detected", Sure.Error.to_json.side(error.detected)) | ","
+      | Sure.Json.field("context", Sure.Json.string(Sure.Context.show(error.context)))
+      | "}"
+    show_goal:
+      let goal = case error.goal {
+        none: Sure.Json.null
+        some: Sure.Json.string(Sure.Term.show(error.goal.value))
+      }
+      "{"
+      | Sure.Json.field("code", Sure.Json.string("show_goal")) | ","
+      | Sure.Json.field("name", Sure.Json.string(Sure.Name.show(error.name))) | ","
+      | Sure.Json.field("goal", goal) | ","
+      | Sure.Json.field("context", Sure.Json.string(Sure.Context.show(error.context)))
+      | "}"
+    waiting:
+      "{"
+      | Sure.Json.field("code", Sure.Json.string("waiting")) | ","
+      | Sure.Json.field("name", Sure.Json.string(error.name))
+      | "}"
+    indirect:
+      "{"
+      | Sure.Json.field("code", Sure.Json.string("indirect")) | ","
+      | Sure.Json.field("name", Sure.Json.string(error.name))
+      | "}"
+    patch:
+      "{"
+      | Sure.Json.field("code", Sure.Json.string("patch")) | ","
+      | Sure.Json.field("term", Sure.Json.string(Sure.Term.show(error.term)))
+      | "}"
+    undefined_reference:
+      "{"
+      | Sure.Json.field("code", Sure.Json.string("undefined_reference")) | ","
+      | Sure.Json.field("origin", Sure.Error.to_json.origin(error.origin)) | ","
+      | Sure.Json.field("name", Sure.Json.string(Sure.Name.show(error.name)))
+      | "}"
+    cant_infer:
+      "{"
+      | Sure.Json.field("code", Sure.Json.string("cant_infer")) | ","
+      | Sure.Json.field("origin", Sure.Error.to_json.origin(error.origin)) | ","
+      | Sure.Json.field("term", Sure.Json.string(Sure.Term.show(error.term))) | ","
+      | Sure.Json.field("context", Sure.Json.string(Sure.Context.show(error.context)))
+      | "}"
+  }

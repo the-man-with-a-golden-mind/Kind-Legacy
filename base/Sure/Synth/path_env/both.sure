@@ -1,0 +1,2 @@
+Sure.Synth.path_env.both: Sure.Synth.path_env.join("/tmp/src", "/old") == "/tmp/src:/old"
+  refl

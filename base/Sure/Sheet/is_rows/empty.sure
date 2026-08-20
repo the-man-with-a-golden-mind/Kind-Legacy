@@ -1,0 +1,2 @@
+Sure.Sheet.is_rows.empty: Sure.Sheet.is_rows("") == false
+  refl

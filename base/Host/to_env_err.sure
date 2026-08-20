@@ -1,0 +1,7 @@
+Host.to_env_err(e: Host.Err): Sure.Env.Err
+  case e {
+    empty: Sure.Env.Err.empty_name
+    missing: Sure.Env.Err.missing
+    io: Sure.Env.Err.junk
+    bad_tag: Sure.Env.Err.junk
+  }

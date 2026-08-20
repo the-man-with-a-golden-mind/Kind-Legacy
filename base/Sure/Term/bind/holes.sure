@@ -1,0 +1,102 @@
+// Assign hole paths without resolving refs. SmartMotive.replace matches
+// refs by name inside case branches and motives; converting them to vars
+// breaks indexed cases such as Word.from_bits.
+Sure.Term.bind.holes(vars: Sure.Context, path: Sure.Path.Builder, term: Sure.Term): Sure.Term
+  case term {
+    ref: Sure.Term.ref(term.name),
+    var: Sure.Term.var(term.name, term.indx),
+    typ: Sure.Term.typ,
+    all:
+      let vlen = List.length!(vars);
+      def xtyp = Sure.Term.bind.holes(vars, Sure.Path.Builder.o(path), term.xtyp);
+      def body = (s,x) Sure.Term.bind.holes(
+        vars,
+        Sure.Path.Builder.i(path),
+        term.body(
+          Sure.Term.var(term.self, vlen),
+          Sure.Term.var(term.name, Nat.succ(vlen))));
+      Sure.Term.all(term.eras, term.self, term.name, xtyp, body),
+    lam:
+      let vlen = List.length!(vars);
+      def body = (x) Sure.Term.bind.holes(
+        vars,
+        Sure.Path.Builder.o(path),
+        term.body(Sure.Term.var(term.name, vlen)));
+      Sure.Term.lam(term.name, body),
+    app:
+      def func = Sure.Term.bind.holes(vars, Sure.Path.Builder.o(path), term.func);
+      def argm = Sure.Term.bind.holes(vars, Sure.Path.Builder.i(path), term.argm);
+      Sure.Term.app(func, argm),
+    let:
+      let vlen = List.length!(vars);
+      def expr = Sure.Term.bind.holes(vars, Sure.Path.Builder.o(path), term.expr);
+      def body = (x) Sure.Term.bind.holes(
+        vars,
+        Sure.Path.Builder.i(path),
+        term.body(Sure.Term.var(term.name, vlen)));
+      Sure.Term.let(term.name, expr, body),
+    def:
+      let vlen = List.length!(vars);
+      def expr = Sure.Term.bind.holes(vars, Sure.Path.Builder.o(path), term.expr);
+      def body = (x) Sure.Term.bind.holes(
+        vars,
+        Sure.Path.Builder.i(path),
+        term.body(Sure.Term.var(term.name, vlen)));
+      Sure.Term.def(term.name, expr, body),
+    ann:
+      def term = Sure.Term.bind.holes(vars, Sure.Path.Builder.o(path), term.term);
+      def type = Sure.Term.bind.holes(vars, Sure.Path.Builder.i(path), term.type);
+      Sure.Term.ann(term.done, term, type),
+    gol:
+      Sure.Term.gol(term.name, term.dref, term.verb),
+    hol:
+      Sure.Term.hol(Sure.Path.Builder.to_bits(path)),
+    nat:
+      Sure.Term.nat(term.natx),
+    chr:
+      Sure.Term.chr(term.chrx),
+    str:
+      Sure.Term.str(term.strx),
+    num:
+      Sure.Term.num(term.sign, term.numb, term.frac),
+    cse:
+      let expr = Sure.Term.bind.holes(vars, Sure.Path.Builder.o(path), term.expr);
+      let wyth = List.mapped!(term.with)!((with_var)
+        open with_var
+        let with_var_term = Sure.Term.bind.holes(vars, path, with_var.term)
+        let with_var_type = case with_var.type {
+          none: none
+          some: some(Sure.Term.bind.holes(vars, path, with_var.type.value))
+        }
+        Sure.Ann.new(with_var.name, with_var_term, with_var_type));
+      let cses = BitsMap.map!!((branch)
+        Sure.Term.bind.holes(vars, Sure.Path.Builder.i(Sure.Path.Builder.i(path)), branch)
+      , term.cses);
+      let moti = case term.moti {
+        none: none
+        some: some(Sure.Term.bind.holes(vars, Sure.Path.Builder.o(Sure.Path.Builder.i(path)), term.moti.value))
+      };
+      Sure.Term.cse(Sure.Path.Builder.to_bits(path), expr, term.name, wyth, cses, moti),
+    new:
+      let args = List.imapped!(term.args)!((idx,arg) Sure.Term.bind.holes(vars, Sure.Path.Builder.nat(idx, path), arg))
+      Sure.Term.new(args)
+    get:
+      let expr = Sure.Term.bind.holes(vars, Sure.Path.Builder.o(path), term.expr);
+      Sure.Term.get(expr, term.fkey)
+    set:
+      let expr = Sure.Term.bind.holes(vars, Sure.Path.Builder.o(path), term.expr);
+      let fval = Sure.Term.bind.holes(vars, Sure.Path.Builder.i(path), term.fval);
+      Sure.Term.set(expr, term.fkey, fval)
+    mut:
+      let expr = Sure.Term.bind.holes(vars, Sure.Path.Builder.o(path), term.expr);
+      let ffun = Sure.Term.bind.holes(vars, Sure.Path.Builder.i(path), term.ffun);
+      Sure.Term.mut(expr, term.fkey, ffun)
+    ope:
+      let arg0 = Sure.Term.bind.holes(vars, Sure.Path.Builder.o(path), term.arg0);
+      let arg1 = Sure.Term.bind.holes(vars, Sure.Path.Builder.i(path), term.arg1);
+      Sure.Term.ope(term.name, arg0, arg1)
+    imp:
+      Sure.Term.imp(Sure.Term.bind.holes(vars, path, term.expr)),
+    ori:
+      Sure.Term.ori(term.orig, Sure.Term.bind.holes(vars, path, term.expr)),
+  }

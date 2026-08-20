@@ -1,0 +1,6 @@
+Crypto.decode.abc:
+  case Crypto.decode("0\n" | Crypto.sha256.abc_hex) as o {
+    err: ""
+    ok: o.value
+  } == Crypto.sha256.abc_hex
+  refl

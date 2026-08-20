@@ -1,0 +1,12 @@
+type Sure.Qc.Val {
+  unit
+  bool(value: Bool)
+  nat(value: Nat)
+  string(value: String)
+  list(value: List<Sure.Qc.Val>)
+  pair(fst: Sure.Qc.Val, snd: Sure.Qc.Val)
+  none
+  some(value: Sure.Qc.Val)
+  left(value: Sure.Qc.Val)
+  right(value: Sure.Qc.Val)
+}

@@ -1,0 +1,6 @@
+Sure.Agent.Edge.all: Unit
+  let e0 = Sure.Agent.Edge.eql.same
+  let e1 = Sure.Agent.Edge.eql.diff
+  let s0 = Sure.Agent.Edge.self.yes
+  let s1 = Sure.Agent.Edge.self.no
+  unit

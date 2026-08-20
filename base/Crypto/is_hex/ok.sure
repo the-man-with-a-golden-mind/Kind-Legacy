@@ -1,0 +1,2 @@
+Crypto.is_hex.ok: Crypto.is_hex("ab") == true
+  refl

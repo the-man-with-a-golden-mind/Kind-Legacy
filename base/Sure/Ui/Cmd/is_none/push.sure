@@ -1,0 +1,2 @@
+Sure.Ui.Cmd.is_none.push: Sure.Ui.Cmd.is_none(Sure.Ui.Cmd.push("x")) == false
+  refl

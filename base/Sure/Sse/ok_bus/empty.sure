@@ -1,0 +1,2 @@
+Sure.Sse.ok_bus.empty: Sure.Sse.ok_bus("") == false
+  refl

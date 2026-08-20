@@ -1,0 +1,4 @@
+// Data-processing pipelines over finite lists.
+// Empty input stays empty. Chunk/window size 0 is no chunks.
+// Decode skips junk (none), it does not become 0.
+// Async work is IO/Task; proofs live under Sure.Pipe/.

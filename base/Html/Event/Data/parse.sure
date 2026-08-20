@@ -1,0 +1,27 @@
+Html.Event.Data.bit(s: String): Bool
+  String.eql(s, "1")
+
+Html.Event.Data.at(xs: List<String>, i: Nat): String
+  List.head_with_default<String>("", List.drop<String>(i, xs))
+
+Html.Event.Data.parse(raw: String): Html.Event.Data
+  let xs = String.split(raw, "\n")
+  let kind = case Html.Event.read(Html.Event.Data.at(xs, 0)) as k {
+    none: Html.Event.click
+    some: k.value
+  }
+  Html.Event.Data.new(
+    kind,
+    Html.Event.Data.at(xs, 1),
+    Html.Event.Data.at(xs, 2),
+    Html.Event.Data.at(xs, 3),
+    Html.Event.Data.at(xs, 4),
+    Html.Event.Data.nat(Html.Event.Data.at(xs, 5)),
+    Html.Event.Data.nat(Html.Event.Data.at(xs, 6)),
+    Html.Event.Data.nat(Html.Event.Data.at(xs, 7)),
+    Html.Event.Data.bit(Html.Event.Data.at(xs, 8)),
+    Html.Event.Data.bit(Html.Event.Data.at(xs, 9)),
+    Html.Event.Data.bit(Html.Event.Data.at(xs, 10)),
+    Html.Event.Data.bit(Html.Event.Data.at(xs, 11)),
+    Html.Event.Data.bit(Html.Event.Data.at(xs, 12))
+  )

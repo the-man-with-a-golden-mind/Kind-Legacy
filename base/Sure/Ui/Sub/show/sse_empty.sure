@@ -1,0 +1,2 @@
+Sure.Ui.Sub.show.sse_empty: Sure.Ui.Sub.show(Sure.Ui.Sub.sse("", "m")) == ""
+  refl

@@ -1,0 +1,15 @@
+Host.decode(raw: String): Host.Event
+  if String.starts_with(raw, "0\n") then
+    Host.ok_string(String.drop(2, raw))
+  else if String.starts_with(raw, "1\n") then
+    let m = String.drop(2, raw)
+    if String.is_empty(m) then Host.err(Host.Err.empty)
+    else if String.eql(m, "empty_name") then Host.err(Host.Err.empty)
+    else if String.eql(m, "missing") then Host.err(Host.Err.missing)
+    else if String.eql(m, "not found") then Host.err(Host.Err.missing)
+    else if String.eql(m, "ENOENT") then Host.err(Host.Err.missing)
+    else Host.err(Host.Err.io(m))
+  else if String.is_empty(raw) then
+    Host.ok_unit
+  else
+    Host.ok_string(raw)

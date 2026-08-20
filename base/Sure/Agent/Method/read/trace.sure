@@ -1,0 +1,2 @@
+Sure.Agent.Method.read.trace: Sure.Agent.Method.read("sure.trace") == some(Sure.Agent.Method.trace)
+  refl

@@ -1,0 +1,12 @@
+type Sure.Agent.Edge {
+  new(from: String, to: String)
+}
+
+Sure.Agent.Edge.eql(a: Sure.Agent.Edge, b: Sure.Agent.Edge): Bool
+  open a
+  open b
+  Bool.and(String.eql(a.from, b.from), String.eql(a.to, b.to))
+
+Sure.Agent.Edge.self(e: Sure.Agent.Edge): Bool
+  open e
+  String.eql(e.from, e.to)

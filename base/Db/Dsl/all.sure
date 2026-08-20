@@ -1,0 +1,11 @@
+Db.Dsl.all: Unit
+  let r0 = Db.Dsl.read.empty
+  let r1 = Db.Dsl.read.junk
+  let r2 = Db.Dsl.read.count
+  let r3 = Db.Dsl.read.prefix_empty
+  let p0 = Db.Dsl.part.empty
+  let p1 = Db.Dsl.part.slash
+  let k0 = Db.Dsl.row_key.empty
+  let k1 = Db.Dsl.row_key.ok
+  let s0 = Db.Dsl.show.count
+  unit

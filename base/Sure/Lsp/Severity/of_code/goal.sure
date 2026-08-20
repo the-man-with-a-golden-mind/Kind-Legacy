@@ -1,0 +1,2 @@
+Sure.Lsp.Severity.of_code.goal: Sure.Lsp.Severity.of_code("show_goal") == Sure.Lsp.Severity.warning
+  refl

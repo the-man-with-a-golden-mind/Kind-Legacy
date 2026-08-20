@@ -1,0 +1,15 @@
+// FNV-1a 32-bit. Empty bytes hash to the offset basis.
+Bytes.hash.offset: U32
+  U32.from_nat(2166136261)
+
+Bytes.hash.prime: U32
+  U32.from_nat(16777619)
+
+Bytes.hash.go(b: Bytes, h: U32): U32
+  case b {
+    nil: h
+    cons: Bytes.hash.go(b.tail, U32.mul(U32.xor(h, U32.from_nat(U8.to_nat(b.head))), Bytes.hash.prime))
+  }
+
+Bytes.hash(b: Bytes): U32
+  Bytes.hash.go(b, Bytes.hash.offset)

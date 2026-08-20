@@ -1,0 +1,18 @@
+// Boot runs a Cmd on mount. Empty model. Unknown messages leave the model.
+
+Sure.Ui.Boot.view(s: String): DOM
+  Html.p([Html.text(s)])
+
+Sure.Ui.Boot.update(msg: String, ev: Html.Event.Data, s: String): Pair<String, Sure.Ui.Cmd>
+  if String.eql(msg, "plus") then Pair.new<String, Sure.Ui.Cmd>(s | "+", Sure.Ui.Cmd.none)
+  else if String.eql(msg, "go") then Pair.new<String, Sure.Ui.Cmd>(s, Sure.Ui.Cmd.push("plus"))
+  else Pair.new<String, Sure.Ui.Cmd>(s, Sure.Ui.Cmd.none)
+
+Sure.Ui.Boot.subs(s: String): Sure.Ui.Sub
+  Sure.Ui.Sub.none
+
+Sure.Ui.Boot: Sure.Ui.App<String>
+  Sure.Ui.element<String>("", Sure.Ui.Cmd.batch([Sure.Ui.Cmd.push("plus"), Sure.Ui.Cmd.none, Sure.Ui.Cmd.push("plus")]), Sure.Ui.Boot.view, Sure.Ui.Boot.update, Sure.Ui.Boot.subs)
+
+Sure.Ui.Boot.client: Sure.Ui.Client<String>
+  Sure.Ui.pack<String>(Sure.Ui.Boot)

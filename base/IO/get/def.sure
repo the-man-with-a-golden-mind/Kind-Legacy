@@ -1,0 +1,3 @@
+IO.get.def(call: String, param: String):
+  IO.get(call, param) == IO.ask<String>(call, param, (answer) IO.end<String>(answer))
+  refl

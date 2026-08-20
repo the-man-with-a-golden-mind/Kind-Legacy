@@ -1,0 +1,6 @@
+Task.sleep(ms: Nat): IO<Unit>
+  IO {
+    get id = IO.job_start("sleep\n" | Nat.show(ms))
+    IO.job_await(id)
+    return unit
+  }

@@ -1,0 +1,2 @@
+Char.is_space.space: Char.is_space(' ') == true
+  refl

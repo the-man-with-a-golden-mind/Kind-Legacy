@@ -1,0 +1,2 @@
+Db.Err.show.bad_key: Db.Err.show(Db.Err.bad_key) == "bad_key"
+  refl

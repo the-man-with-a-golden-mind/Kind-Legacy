@@ -1,0 +1,5 @@
+Http.Server.parse.body(raw: String): String
+  case Http.Server.parse(raw) as got {
+    none: ""
+    some: got.value@body
+  }

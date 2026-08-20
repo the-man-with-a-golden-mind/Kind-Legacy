@@ -1,0 +1,2 @@
+Sure.Lsp.uri_ok.junk: Sure.Lsp.uri_ok("http://x") == false
+  refl

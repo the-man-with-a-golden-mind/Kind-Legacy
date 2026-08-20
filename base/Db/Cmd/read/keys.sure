@@ -1,0 +1,2 @@
+Db.Cmd.read.keys: Db.Cmd.read("KEYS") == some(Db.Cmd.keys)
+  refl

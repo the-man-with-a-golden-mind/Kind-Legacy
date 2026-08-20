@@ -1,0 +1,2 @@
+Html.Tag.read.empty: Maybe.is_none<Html.Tag>(Html.Tag.read("")) == true
+  refl

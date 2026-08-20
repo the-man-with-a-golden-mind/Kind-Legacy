@@ -1,0 +1,2 @@
+Proc.decode.err: Outcome.is_ok<Proc.Err, Proc.Out>(Proc.decode("1\nbad")) == false
+  refl

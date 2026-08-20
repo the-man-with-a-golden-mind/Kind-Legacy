@@ -1,0 +1,2 @@
+Sure.Qc.String.drop_zero(n: Nat): String.drop(0, Nat.show(n)) == Nat.show(n)
+  String.drop.zero(Nat.show(n))

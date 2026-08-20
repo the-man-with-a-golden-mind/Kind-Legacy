@@ -1,0 +1,2 @@
+Sure.Pipe.drop_while_nil: Sure.Pipe.drop_while<Nat>((n) Bool.true, []) == []
+  refl

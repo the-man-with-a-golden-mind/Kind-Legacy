@@ -1,0 +1,2 @@
+Sure.Ui.Cmd.show.push: Sure.Ui.Cmd.show(Sure.Ui.Cmd.push("x")) == "P\nx"
+  refl

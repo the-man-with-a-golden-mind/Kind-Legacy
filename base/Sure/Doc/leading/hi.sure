@@ -1,0 +1,2 @@
+Sure.Doc.leading.hi: Sure.Doc.leading("// hi\nFoo: Nat") == "hi"
+  refl

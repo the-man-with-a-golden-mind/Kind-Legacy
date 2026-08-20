@@ -1,0 +1,2 @@
+Sure.Doc.is_comment.yes: Sure.Doc.is_comment("// hi") == true
+  refl

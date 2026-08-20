@@ -1,0 +1,6 @@
+Http.App.hit(method: Http.Method, pattern: String, req_method: String, req_url: String, name: String): String
+  let req = Http.Server.Req.new("0", req_method, req_url, "", "")
+  case Http.App.match(method, pattern, req) as m {
+    none: ""
+    some: Http.Path.lookup(name, m.value)
+  }

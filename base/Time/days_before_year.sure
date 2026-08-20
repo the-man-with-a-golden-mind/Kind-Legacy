@@ -1,0 +1,7 @@
+Time.days_before_year.go(from: Nat, to: Nat, acc: Nat): Nat
+  if Nat.eql(from, to) then acc
+  else Time.days_before_year.go(Nat.succ(from), to, Nat.add(acc, Time.year_days(from)))
+
+Time.days_before_year(year: Nat): Nat
+  if Nat.ltn(year, Time.epoch_year) then 0
+  else Time.days_before_year.go(Time.epoch_year, year, 0)

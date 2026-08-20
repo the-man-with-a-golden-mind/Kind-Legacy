@@ -1,0 +1,2 @@
+Sure.Tweeter.read_tweet.empty: Maybe.is_none<Sure.Tweeter.Tweet>(Sure.Tweeter.read_tweet("")) == true
+  refl

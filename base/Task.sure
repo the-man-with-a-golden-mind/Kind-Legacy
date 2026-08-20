@@ -1,0 +1,9 @@
+type Task.Id {
+  new(text: String)
+}
+
+type Task.Err {
+  timeout
+  cancelled
+  io(message: String)
+}

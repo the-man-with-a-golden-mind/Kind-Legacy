@@ -1,0 +1,2 @@
+Sure.Lsp.Severity.of_code.empty: Sure.Lsp.Severity.of_code("") == Sure.Lsp.Severity.error
+  refl

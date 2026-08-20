@@ -1,0 +1,6 @@
+// Remaining `?implement` goals. Empty source and no-hole source are 0.
+Sure.Agent.hole_count(src: String): Nat
+  case String.split(src, "?implement") as xs {
+    nil: 0
+    cons: List.length<String>(xs.tail)
+  }

@@ -1,0 +1,2 @@
+Db.Mig.ok_name.a: Db.Mig.ok_name("a") == true
+  refl

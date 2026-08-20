@@ -1,0 +1,2 @@
+Sure.Agent.Method.roundtrip.prove: Sure.Agent.Method.read(Sure.Agent.Method.show(Sure.Agent.Method.prove)) == some(Sure.Agent.Method.prove)
+  Sure.Agent.Method.read.prove :: rewrite X in (Sure.Agent.Method.read(X) == some(Sure.Agent.Method.prove)) with Prove.sym<String, Sure.Agent.Method.show(Sure.Agent.Method.prove), "sure.prove">(Sure.Agent.Method.show.prove)

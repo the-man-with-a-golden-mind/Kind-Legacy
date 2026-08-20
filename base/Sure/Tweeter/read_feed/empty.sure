@@ -1,0 +1,2 @@
+Sure.Tweeter.read_feed.empty: List.length<Sure.Tweeter.Tweet>(Sure.Tweeter.read_feed("")) == 0
+  refl

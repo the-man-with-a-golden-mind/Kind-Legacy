@@ -1,0 +1,26 @@
+type Sure.Lsp.Severity {
+  error
+  warning
+  info
+  hint
+}
+
+Sure.Lsp.Severity.show(s: Sure.Lsp.Severity): String
+  case s {
+    error: "error"
+    warning: "warning"
+    info: "info"
+    hint: "hint"
+  }
+
+Sure.Lsp.Severity.code(s: Sure.Lsp.Severity): Nat
+  case s {
+    error: 1
+    warning: 2
+    info: 3
+    hint: 4
+  }
+
+Sure.Lsp.Severity.of_code(c: String): Sure.Lsp.Severity
+  if String.eql(c, "show_goal") then Sure.Lsp.Severity.warning
+  else Sure.Lsp.Severity.error

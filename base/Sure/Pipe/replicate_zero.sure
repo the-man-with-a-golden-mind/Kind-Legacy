@@ -1,0 +1,2 @@
+Sure.Pipe.replicate_zero: Sure.Pipe.replicate<Nat>(0, 7) == []
+  refl

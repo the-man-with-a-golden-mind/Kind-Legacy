@@ -1,0 +1,6 @@
+Sure.Pipe.chunks<A: Type>(n: Nat, xs: List<A>): List<List<A>>
+  if Nat.is_zero(n) then []
+  else case xs {
+    nil: []
+    cons: List.chunks_of<A>(n, xs)
+  }

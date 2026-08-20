@@ -1,0 +1,2 @@
+Sure.Cfg.Err.show.empty_path: Sure.Cfg.Err.show(Sure.Cfg.Err.empty_path) == "empty_path"
+  refl

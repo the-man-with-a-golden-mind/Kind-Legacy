@@ -1,0 +1,2 @@
+Sure.Bench.best.empty: Sure.Bench.best([]) == none
+  refl

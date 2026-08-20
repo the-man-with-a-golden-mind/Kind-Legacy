@@ -1,0 +1,2 @@
+Sure.Pipe.filter_nil: Sure.Pipe.filter<Nat>((n) Bool.true, []) == []
+  refl

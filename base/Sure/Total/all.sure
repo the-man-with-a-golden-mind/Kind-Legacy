@@ -1,0 +1,5 @@
+Sure.Total.all: Unit
+  let q0 = Sure.Total.needs_qc.zero
+  let q1 = Sure.Total.needs_qc.law
+  let q2 = Sure.Total.needs_qc.term
+  unit

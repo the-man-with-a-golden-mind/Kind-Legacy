@@ -1,0 +1,14 @@
+Test.finish(stats: Test.Stats): IO<Unit>
+  open stats
+  IO {
+    IO.print("passed: " | Nat.show(stats.passed) | "  failed: " | Nat.show(stats.failed))
+    case Nat.gtn(stats.failed, 0) {
+      true:
+        IO {
+          IO.print("TEST SUITE FAILED")
+          IO.exit_with(1)
+        }
+      false:
+        IO.print("All tests passed.")
+    }
+  }

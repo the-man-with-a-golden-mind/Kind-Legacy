@@ -1,0 +1,28 @@
+// The JS host is Node or Bun. Empty and junk names are not a runtime.
+type Sure.Runtime {
+  node
+  bun
+}
+
+Sure.Runtime.show(r: Sure.Runtime): String
+  case r {
+    node: "node"
+    bun: "bun"
+  }
+
+Sure.Runtime.read(s: String): Maybe<Sure.Runtime>
+  if String.eql(s, "node") then some(Sure.Runtime.node)
+  else if String.eql(s, "bun") then some(Sure.Runtime.bun)
+  else none
+
+Sure.Runtime.is_bun(r: Sure.Runtime): Bool
+  case r {
+    bun: true
+    node: false
+  }
+
+Sure.Runtime.pick(flag: Bool, env: String, native: Bool): Sure.Runtime
+  if flag then Sure.Runtime.bun
+  else if String.eql(env, "bun") then Sure.Runtime.bun
+  else if native then Sure.Runtime.bun
+  else Sure.Runtime.node

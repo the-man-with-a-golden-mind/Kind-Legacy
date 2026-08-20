@@ -1,0 +1,96 @@
+// Typed host protocol over the IO.ask string kernel.
+// encode : Op -> (query, param). decode : host reply -> Event.
+// perform is encode, ask, decode. unsafe.ask remains the string hatch.
+
+type Host.Err {
+  empty
+  missing
+  io(message: String)
+  bad_tag
+}
+
+type Host.Event {
+  ok_string(value: String)
+  ok_unit
+  err(error: Host.Err)
+}
+
+type Host.Op {
+  put_string(text: String)
+  get_line(prompt: String)
+  get_args
+  cwd
+  time_now
+  sleep(ms: Nat)
+  yield
+  exit(code: Nat)
+  fs_read(path: String)
+  fs_write(path: String, body: String)
+  fs_del(path: String)
+  fs_mtime(path: String)
+  fs_dir(path: String)
+  fs_read_hex(path: String)
+  fs_write_hex(path: String, hex: String)
+  file_hash(path: String)
+  env_get(name: String)
+  env_set(name: String, val: String)
+  env_del(name: String)
+  env_keys
+  random
+  sha256(text: String)
+  hmac(key: String, msg: String)
+  http(payload: String)
+  http_listen(port: Nat)
+  http_recv(port: Nat)
+  http_reply(id: String, status: Nat, body: String)
+  http_reply_ex(id: String, status: Nat, ctype: String, body: String)
+  http_stop(port: Nat)
+  dns(host: String)
+  tcp_connect(host: String, port: Nat, tls: Bool)
+  tcp_send(id: String, data: String)
+  tcp_recv(id: String)
+  tcp_close(id: String)
+  ws_connect(url: String)
+  udp_bind(port: Nat)
+  udp_send(from: Nat, ip: String, to: Nat, hex: String)
+  udp_recv(port: Nat)
+  udp_close(port: Nat)
+  proc_exec(cmd: String)
+  proc_spawn(cmd: String)
+  proc_wait(pid: Nat)
+  proc_kill(pid: Nat, sig: String)
+  job_start(spec: String)
+  job_await(id: String)
+  job_cancel(id: String)
+  job_all(ids: String)
+  job_race(ids: String)
+  gzip(text: String)
+  gunzip(hex: String)
+  state_get(key: String)
+  state_set(key: String, val: String)
+  ffi(name: String, json: String)
+  worker_run(name: String, json: String)
+  sse_open(id: String, bus: String)
+  sse_send(bus: String, frame: String)
+  sse_close(id: String)
+  sse_count(bus: String)
+  db_connect(url: String)
+  db_set(id: String, key: String, val: String)
+  db_del(id: String, key: String)
+  db_query(id: String, cmd: String)
+  db_keys(id: String)
+  db_clear(id: String)
+  db_close(id: String)
+}
+
+Host.ok_unit: Host.Event
+  Host.Event.ok_unit
+
+Host.ok_string(s: String): Host.Event
+  Host.Event.ok_string(s)
+
+Host.err(e: Host.Err): Host.Event
+  Host.Event.err(e)
+
+Host.unsafe.ask(query: String, param: String): IO<String>
+  IO.get(query, param)

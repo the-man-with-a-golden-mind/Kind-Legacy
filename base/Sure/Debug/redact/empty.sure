@@ -1,0 +1,2 @@
+Sure.Debug.redact.empty: Sure.Debug.redact("") == ""
+  refl

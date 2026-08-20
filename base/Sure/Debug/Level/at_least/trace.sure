@@ -1,0 +1,2 @@
+Sure.Debug.Level.at_least.trace: Sure.Debug.Level.at_least(Sure.Debug.Level.trace, Sure.Debug.Level.info) == true
+  refl

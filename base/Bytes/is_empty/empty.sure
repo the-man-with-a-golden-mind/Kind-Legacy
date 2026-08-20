@@ -1,0 +1,2 @@
+Bytes.is_empty.empty: Bytes.is_empty([]) == true
+  refl

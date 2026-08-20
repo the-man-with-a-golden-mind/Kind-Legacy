@@ -1,0 +1,2 @@
+Path.is_safe.empty: Path.is_safe("") == false
+  refl

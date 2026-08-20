@@ -1,0 +1,2 @@
+Crypto.hex64.short: Crypto.hex64("ab") == false
+  refl

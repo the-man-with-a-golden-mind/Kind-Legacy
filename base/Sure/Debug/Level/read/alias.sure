@@ -1,0 +1,2 @@
+Sure.Debug.Level.read.alias: Sure.Debug.Level.read("debug") == some(Sure.Debug.Level.trace)
+  refl

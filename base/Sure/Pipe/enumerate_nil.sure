@@ -1,0 +1,2 @@
+Sure.Pipe.enumerate_nil: List.length<Pair<Nat, Nat>>(Sure.Pipe.enumerate<Nat>([])) == 0
+  refl

@@ -1,0 +1,2 @@
+Sure.Agent.Method.read.theorems: Sure.Agent.Method.read("sure.theorems") == some(Sure.Agent.Method.theorems)
+  refl

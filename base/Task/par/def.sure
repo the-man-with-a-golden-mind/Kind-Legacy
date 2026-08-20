@@ -1,0 +1,3 @@
+Task.par.def: Task.par<Nat, Nat>(IO.end<Nat>(1), IO.end<Nat>(2)) ==
+  IO.par<Pair<Nat, Nat>, Nat, Nat>(IO.end<Nat>(1), IO.end<Nat>(2), (xy) IO.end<Pair<Nat, Nat>>(xy))
+  refl

@@ -1,0 +1,8 @@
+Sure.Repl.all: Unit
+  let e0 = Sure.Repl.line.empty
+  let e1 = Sure.Repl.line.colon
+  let e2 = Sure.Repl.line.junk
+  let r0 = Sure.Repl.Cmd.read.empty
+  let r1 = Sure.Repl.Cmd.read.help
+  let s0 = Sure.Repl.Cmd.show.quit
+  unit

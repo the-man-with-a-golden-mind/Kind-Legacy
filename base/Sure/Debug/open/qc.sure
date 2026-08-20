@@ -1,0 +1,2 @@
+Sure.Debug.open.qc: Sure.Debug.open(Sure.Debug.Flags.read("qc"), Sure.Debug.Channel.qc) == true
+  refl

@@ -1,0 +1,2 @@
+Db.Row.get.empty: Db.Row.get("", [{"name", "ada"}]) == ""
+  refl

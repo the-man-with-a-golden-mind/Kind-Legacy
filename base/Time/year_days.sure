@@ -1,0 +1,2 @@
+Time.year_days(year: Nat): Nat
+  if Time.leap(year) then 366 else 365

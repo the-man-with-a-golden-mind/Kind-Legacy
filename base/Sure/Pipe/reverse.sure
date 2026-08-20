@@ -1,0 +1,2 @@
+Sure.Pipe.reverse<A: Type>(xs: List<A>): List<A>
+  List.reverse<A>(xs)

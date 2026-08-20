@@ -1,0 +1,2 @@
+Net.decode_unit.ok: Outcome.is_ok<Net.Err, Unit>(Net.decode_unit("0\n")) == true
+  refl

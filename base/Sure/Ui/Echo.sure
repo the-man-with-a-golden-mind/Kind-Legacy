@@ -1,0 +1,5 @@
+Sure.Ui.Echo: Sure.Ui.App<String>
+  Sure.Ui.of_html<String>(Html.Echo)
+
+Sure.Ui.Echo.client: Sure.Ui.Client<String>
+  Sure.Ui.pack<String>(Sure.Ui.Echo)

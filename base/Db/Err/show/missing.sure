@@ -1,0 +1,2 @@
+Db.Err.show.missing: Db.Err.show(Db.Err.missing) == "missing"
+  refl

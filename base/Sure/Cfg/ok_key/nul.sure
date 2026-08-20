@@ -1,0 +1,2 @@
+Sure.Cfg.ok_key.nul: Sure.Cfg.ok_key(String.cons(0#16, "")) == false
+  refl

@@ -1,0 +1,2 @@
+Sure.Csv.nats.empty: Sure.Csv.nats([], 0) == []
+  refl

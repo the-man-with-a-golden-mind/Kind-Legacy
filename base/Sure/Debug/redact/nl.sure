@@ -1,0 +1,2 @@
+Sure.Debug.redact.nl: Sure.Debug.redact("hi\nthere") == "hi..."
+  refl

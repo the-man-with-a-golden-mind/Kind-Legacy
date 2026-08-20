@@ -1,0 +1,5 @@
+String.hex.decode.utf8.all: Unit
+  let e0 = String.hex.decode.utf8.empty
+  let j0 = String.hex.decode.utf8.junk
+  let a0 = String.hex.decode.utf8.A
+  unit

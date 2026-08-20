@@ -1,0 +1,2 @@
+Sure.Cfg.of.arr: Maybe.is_none<Sure.Cfg>(Sure.Cfg.of(JSON.array([]))) == true
+  refl

@@ -1,0 +1,297 @@
+// Application config. Empty/whitespace is {}. Junk, leftover, and a non-object are none.
+// Empty keys and NUL are not keys. Overlay is deep on objects (right wins).
+// Layers: file, then env, then CLI.
+
+type Sure.Cfg {
+  new(fields: Map<JSON>)
+}
+
+type Sure.Cfg.Err {
+  empty_path
+  missing
+  junk
+  bad_file
+}
+
+Sure.Cfg.Err.show(e: Sure.Cfg.Err): String
+  case e {
+    empty_path: "empty_path"
+    missing: "missing"
+    junk: "junk"
+    bad_file: "bad_file"
+  }
+
+Sure.Cfg.Err.read(s: String): Sure.Cfg.Err
+  if String.eql(s, "empty_path") then Sure.Cfg.Err.empty_path
+  else if String.eql(s, "missing") then Sure.Cfg.Err.missing
+  else if String.eql(s, "junk") then Sure.Cfg.Err.junk
+  else if String.eql(s, "bad_file") then Sure.Cfg.Err.bad_file
+  else if String.is_empty(s) then Sure.Cfg.Err.missing
+  else Sure.Cfg.Err.junk
+
+Sure.Cfg.ok_key(s: String): Bool
+  if String.is_empty(s) then false
+  else if String.includes(s, "\n") then false
+  else if String.includes(s, String.cons(0#16, "")) then false
+  else true
+
+Sure.Cfg.blank(s: String): Bool
+  String.is_empty(String.trim_right(String.trim_left(s)))
+
+Sure.Cfg.empty: Sure.Cfg
+  Sure.Cfg.new(Map.from_list<JSON>([]))
+
+Sure.Cfg.json(c: Sure.Cfg): JSON
+  open c
+  JSON.object(c.fields)
+
+Sure.Cfg.show(c: Sure.Cfg): String
+  JSON.stringify(Sure.Cfg.json(c))
+
+Sure.Cfg.count(c: Sure.Cfg): Nat
+  open c
+  List.length<String>(Map.keys<JSON>(c.fields))
+
+Sure.Cfg.keys(c: Sure.Cfg): List<String>
+  open c
+  Map.keys<JSON>(c.fields)
+
+Sure.Cfg.of(j: JSON): Maybe<Sure.Cfg>
+  case j {
+    object: some(Sure.Cfg.new(j.value))
+  } default none
+
+Sure.Cfg.pad: Parser<List<Unit>>
+  Parser.many!(Parser.choice!([
+    Parser.text(" ")
+    Parser.text("\t")
+    Parser.text("\n")
+    Parser.text("\r")
+  ]))
+
+Sure.Cfg.parser: Parser<JSON>
+  Parser {
+    get j = Parser.JSON
+    Sure.Cfg.pad
+    Parser.eof
+    return j
+  }
+
+Sure.Cfg.parse(s: String): Maybe<JSON>
+  Parser.run<JSON>(Sure.Cfg.parser, s)
+
+Sure.Cfg.read(s: String): Maybe<Sure.Cfg>
+  if Sure.Cfg.blank(s) then some(Sure.Cfg.empty)
+  else case Sure.Cfg.parse(s) as j {
+    none: none
+    some: Sure.Cfg.of(j.value)
+  }
+
+Sure.Cfg.get(c: Sure.Cfg, key: String): Maybe<JSON>
+  if Bool.not(Sure.Cfg.ok_key(key)) then none
+  else
+    open c
+    Map.get<JSON>(key, c.fields)
+
+Sure.Cfg.has(c: Sure.Cfg, key: String): Bool
+  Bool.not(Maybe.is_none<JSON>(Sure.Cfg.get(c, key)))
+
+Sure.Cfg.set(c: Sure.Cfg, key: String, val: JSON): Sure.Cfg
+  if Bool.not(Sure.Cfg.ok_key(key)) then c
+  else
+    open c
+    Sure.Cfg.new(Map.set<JSON>(key, val, c.fields))
+
+Sure.Cfg.put(c: Sure.Cfg, key: String, val: String): Sure.Cfg
+  Sure.Cfg.set(c, key, JSON.string(val))
+
+Sure.Cfg.del(c: Sure.Cfg, key: String): Sure.Cfg
+  if Bool.not(Sure.Cfg.ok_key(key)) then c
+  else
+    open c
+    Sure.Cfg.new(Map.delete<JSON>(key, c.fields))
+
+Sure.Cfg.str_of(j: JSON): String
+  case j {
+    string: j.value
+  } default JSON.stringify(j)
+
+Sure.Cfg.str(c: Sure.Cfg, key: String): Maybe<String>
+  case Sure.Cfg.get(c, key) as j {
+    none: none
+    some: some(Sure.Cfg.str_of(j.value))
+  }
+
+Sure.Cfg.get_or(c: Sure.Cfg, key: String, def: String): String
+  case Sure.Cfg.str(c, key) as v {
+    none: def
+    some: v.value
+  }
+
+Sure.Cfg.need(c: Sure.Cfg, key: String): Outcome<Sure.Cfg.Err, JSON>
+  case Sure.Cfg.get(c, key) as j {
+    none: Outcome.err<Sure.Cfg.Err, JSON>(Sure.Cfg.Err.missing)
+    some: Outcome.ok<Sure.Cfg.Err, JSON>(j.value)
+  }
+
+Sure.Cfg.nat_of(j: JSON): Maybe<Nat>
+  case JSON.dec.nat(j) as n {
+    some: some(n.value)
+    none:
+      case j {
+        string: Parse.nat(j.value)
+        number: Parse.nat(JSON.stringify(j))
+      } default none
+  }
+
+Sure.Cfg.nat(c: Sure.Cfg, key: String): Maybe<Nat>
+  case Sure.Cfg.get(c, key) as j {
+    none: none
+    some: Sure.Cfg.nat_of(j.value)
+  }
+
+Sure.Cfg.bool_of(j: JSON): Maybe<Bool>
+  case JSON.dec.bool(j) as b {
+    some: some(b.value)
+    none:
+      case JSON.dec.string(j) as s {
+        none: none
+        some:
+          if String.eql(s.value, "1") then some(true)
+          else if String.eql(s.value, "0") then some(false)
+          else Parse.bool(s.value)
+      }
+  }
+
+Sure.Cfg.bool(c: Sure.Cfg, key: String): Maybe<Bool>
+  case Sure.Cfg.get(c, key) as j {
+    none: none
+    some: Sure.Cfg.bool_of(j.value)
+  }
+
+Sure.Cfg.flag(c: Sure.Cfg, key: String): Bool
+  case Sure.Cfg.str(c, key) as v {
+    none: false
+    some: Sure.Env.is_flag(v.value)
+  }
+
+Sure.Cfg.path.go(j: JSON, keys: List<String>): Maybe<JSON>
+  case keys {
+    nil: some(j)
+    cons:
+      if Bool.not(Sure.Cfg.ok_key(keys.head)) then none
+      else case JSON.get(j, keys.head) as v {
+        none: none
+        some: Sure.Cfg.path.go(v.value, keys.tail)
+      }
+  }
+
+Sure.Cfg.path(c: Sure.Cfg, keys: List<String>): Maybe<JSON>
+  Sure.Cfg.path.go(Sure.Cfg.json(c), keys)
+
+Sure.Cfg.merge_json(base: JSON, over: JSON): JSON
+  case base over {
+    object object: JSON.object(Sure.Cfg.merge_map(base.value, over.value))
+  } default over
+
+Sure.Cfg.merge_map.go(xs: List<Pair<String, JSON>>, acc: Map<JSON>): Map<JSON>
+  case xs {
+    nil: acc
+    cons:
+      open xs.head
+      let next = case Map.get<JSON>(xs.head.fst, acc) as old {
+        none: Map.set<JSON>(xs.head.fst, xs.head.snd, acc)
+        some: Map.set<JSON>(xs.head.fst, Sure.Cfg.merge_json(old.value, xs.head.snd), acc)
+      }
+      Sure.Cfg.merge_map.go(xs.tail, next)
+  }
+
+Sure.Cfg.merge_map(base: Map<JSON>, over: Map<JSON>): Map<JSON>
+  Sure.Cfg.merge_map.go(Map.to_list<JSON>(over), base)
+
+Sure.Cfg.overlay(base: Sure.Cfg, over: Sure.Cfg): Sure.Cfg
+  case base {
+    new:
+      case over {
+        new: Sure.Cfg.new(Sure.Cfg.merge_map(base.fields, over.fields))
+      }
+  }
+
+Sure.Cfg.pick(file: Sure.Cfg, env: Sure.Cfg, cli: Sure.Cfg): Sure.Cfg
+  Sure.Cfg.overlay(Sure.Cfg.overlay(file, env), cli)
+
+Sure.Cfg.from_cli.go(xs: List<Sure.Cli.Flag>, acc: Sure.Cfg): Sure.Cfg
+  case xs {
+    nil: acc
+    cons:
+      open xs.head
+      if Bool.not(Sure.Cfg.ok_key(xs.head.name)) then Sure.Cfg.from_cli.go(xs.tail, acc)
+      else
+        let val = case xs.head.value as v {
+          none: JSON.bool(true)
+          some: JSON.string(v.value)
+        }
+        Sure.Cfg.from_cli.go(xs.tail, Sure.Cfg.set(acc, xs.head.name, val))
+  }
+
+Sure.Cfg.from_cli(c: Sure.Cli): Sure.Cfg
+  open c
+  Sure.Cfg.from_cli.go(c.flags, Sure.Cfg.empty)
+
+Sure.Cfg.from_env.go(names: List<String>, acc: Sure.Cfg): IO<Sure.Cfg>
+  case names {
+    nil: IO.end<Sure.Cfg>(acc)
+    cons:
+      if Bool.not(Sure.Cfg.ok_key(names.head)) then Sure.Cfg.from_env.go(names.tail, acc)
+      else IO {
+        get r = Sure.Env.get(names.head)
+        let next = case r {
+          err: acc
+          ok: Sure.Cfg.put(acc, names.head, r.value)
+        }
+        Sure.Cfg.from_env.go(names.tail, next)
+      }
+  }
+
+Sure.Cfg.from_env(names: List<String>): IO<Sure.Cfg>
+  Sure.Cfg.from_env.go(names, Sure.Cfg.empty)
+
+Sure.Cfg.file_err(e: File.Err): Sure.Cfg.Err
+  case e {
+    missing: Sure.Cfg.Err.missing
+    bad_path:
+      case e.err {
+        empty: Sure.Cfg.Err.empty_path
+      } default Sure.Cfg.Err.bad_file
+    io: Sure.Cfg.Err.bad_file
+  }
+
+Sure.Cfg.load(path: String): IO<Outcome<Sure.Cfg.Err, Sure.Cfg>>
+  if String.is_empty(path) then
+    IO.end<Outcome<Sure.Cfg.Err, Sure.Cfg>>(Outcome.err<Sure.Cfg.Err, Sure.Cfg>(Sure.Cfg.Err.empty_path))
+  else case Path.from_string(path) as p {
+    err: IO.end<Outcome<Sure.Cfg.Err, Sure.Cfg>>(Outcome.err<Sure.Cfg.Err, Sure.Cfg>(Sure.Cfg.file_err(File.Err.bad_path(p.error))))
+    ok: IO {
+      get r = File.read(p.value)
+      return case r {
+        err: Outcome.err<Sure.Cfg.Err, Sure.Cfg>(Sure.Cfg.file_err(r.error))
+        ok:
+          case Sure.Cfg.read(r.value) as c {
+            none: Outcome.err<Sure.Cfg.Err, Sure.Cfg>(Sure.Cfg.Err.junk)
+            some: Outcome.ok<Sure.Cfg.Err, Sure.Cfg>(c.value)
+          }
+      }
+    }
+  }
+
+Sure.Cfg.load_or_empty(path: String): IO<Outcome<Sure.Cfg.Err, Sure.Cfg>>
+  IO {
+    get r = Sure.Cfg.load(path)
+    return case r {
+      ok: r
+      err:
+        case r.error {
+          missing: Outcome.ok<Sure.Cfg.Err, Sure.Cfg>(Sure.Cfg.empty)
+        } default r
+    }
+  }

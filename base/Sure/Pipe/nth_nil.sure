@@ -1,0 +1,2 @@
+Sure.Pipe.nth_nil: Maybe.is_none<Nat>(Sure.Pipe.nth<Nat>(0, [])) == true
+  refl

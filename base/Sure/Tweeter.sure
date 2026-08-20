@@ -1,0 +1,699 @@
+// Sure.Tweeter: login, session, tweets, file upload.
+// Empty user/pass/text is rejected. Junk names are junk. Empty file is no file.
+// Sessions live in Db. Sid is hex64. Unknown messages leave the model.
+
+type Sure.Tweeter.Sess {
+  none
+  some(sid: String, user: String)
+}
+
+type Sure.Tweeter.Tweet {
+  new(user: String, text: String, file: String)
+}
+
+type Sure.Tweeter.Model {
+  new(
+    user: String
+    pass: String
+    draft: String
+    blob: String
+    file: String
+    note: String
+    sess: Sure.Tweeter.Sess
+    feed: List<Sure.Tweeter.Tweet>
+  )
+}
+
+Sure.Tweeter.max_text: Nat
+  Nat.read("140")
+
+Sure.Tweeter.max_file: Nat
+  Nat.read("4096")
+
+Sure.Tweeter.max_feed: Nat
+  Nat.read("32")
+
+Sure.Tweeter.ok_user(s: String): Bool
+  when {
+    String.is_empty(s): false
+    String.includes(s, " "): false
+    String.includes(s, "\n"): false
+    String.includes(s, "\t"): false
+    String.includes(s, "/"): false
+    String.includes(s, "&"): false
+    String.includes(s, "="): false
+    String.includes(s, "?"): false
+    String.includes(s, ";"): false
+    String.includes(s, "|"): false
+    String.includes(s, ","): false
+    String.includes(s, "~"): false
+  } default true
+
+Sure.Tweeter.ok_pass(s: String): Bool
+  when {
+    String.is_empty(s): false
+    String.includes(s, "\n"): false
+    String.includes(s, "&"): false
+    String.includes(s, "="): false
+    String.includes(s, "?"): false
+  } default true
+
+Sure.Tweeter.ok_text(s: String): Bool
+  when {
+    String.is_empty(s): false
+    String.includes(s, "\n"): false
+    String.includes(s, ";"): false
+    String.includes(s, "~"): false
+    String.includes(s, "|"): false
+    Nat.gtn(String.length(s), Sure.Tweeter.max_text): false
+  } default true
+
+Sure.Tweeter.ok_sid(s: String): Bool
+  Crypto.hex64(s)
+
+Sure.Tweeter.ok_file_id(s: String): Bool
+  if String.is_empty(s) then true
+  else Sure.Tweeter.ok_sid(s)
+
+Sure.Tweeter.ok_data(s: String): Bool
+  when {
+    String.is_empty(s): false
+    String.includes(s, "\n"): false
+    Nat.gtn(String.length(s), Nat.mul(Sure.Tweeter.max_file, 16)): false
+    String.starts_with(s, "data:image/png;base64,"): true
+    String.starts_with(s, "data:image/jpeg;base64,"): true
+    String.starts_with(s, "data:image/gif;base64,"): true
+    String.starts_with(s, "data:image/webp;base64,"): true
+  } default false
+
+Sure.Tweeter.qget.go(xs: List<String>, key: String): String
+  case xs {
+    nil: ""
+    cons:
+      let k = Sure.Ui.at(String.split(xs.head, "="), 0)
+      if String.eql(k, key) then Sure.Tweeter.rest_eq(xs.head)
+      else Sure.Tweeter.qget.go(xs.tail, key)
+  }
+
+Sure.Tweeter.rest_eq(s: String): String
+  let xs = String.split(s, "=")
+  case xs {
+    nil: ""
+    cons: String.join("=", xs.tail)
+  }
+
+Sure.Tweeter.query(url: String): String
+  Sure.Ui.at(String.split(url, "?"), 1)
+
+Sure.Tweeter.qget(q: String, key: String): String
+  if String.is_empty(key) then ""
+  else if String.is_empty(q) then ""
+  else Sure.Tweeter.qget.go(String.split(String.replace_all(q, " ", "&"), "&"), key)
+
+Sure.Tweeter.is_page(url: String): Bool
+  if String.is_empty(url) then true
+  else if String.eql(url, "/") then true
+  else if String.eql(url, "/index.html") then true
+  else if String.eql(url, "/tweeter") then true
+  else if String.eql(url, "/Sure.Tweeter.client.html") then true
+  else false
+
+Sure.Tweeter.is_post(m: String): Bool
+  if String.eql(m, "POST") then true
+  else if String.eql(m, "post") then true
+  else false
+
+Sure.Tweeter.need_post(url: String): Bool
+  if Sure.Tweeter.is_login(url) then true
+  else if Sure.Tweeter.is_register(url) then true
+  else if Sure.Tweeter.is_logout(url) then true
+  else if Sure.Tweeter.is_tweet(url) then true
+  else if Sure.Tweeter.is_upload(url) then true
+  else false
+
+Sure.Tweeter.is_login(url: String): Bool
+  String.starts_with(url, "/tweeter/login")
+
+Sure.Tweeter.is_register(url: String): Bool
+  String.starts_with(url, "/tweeter/register")
+
+Sure.Tweeter.is_logout(url: String): Bool
+  String.starts_with(url, "/tweeter/logout")
+
+Sure.Tweeter.is_me(url: String): Bool
+  String.starts_with(url, "/tweeter/me")
+
+Sure.Tweeter.is_feed(url: String): Bool
+  String.starts_with(url, "/tweeter/feed")
+
+Sure.Tweeter.is_tweet(url: String): Bool
+  String.starts_with(url, "/tweeter/tweet")
+
+Sure.Tweeter.is_upload(url: String): Bool
+  String.starts_with(url, "/tweeter/upload")
+
+Sure.Tweeter.is_file(url: String): Bool
+  String.starts_with(url, "/tweeter/file")
+
+Sure.Tweeter.show_tweet(t: Sure.Tweeter.Tweet): String
+  open t
+  t.user | "~" | t.text | "~" | t.file
+
+Sure.Tweeter.read_tweet(s: String): Maybe<Sure.Tweeter.Tweet>
+  if String.is_empty(s) then none
+  else
+    let xs = String.split(s, "~")
+    let u = Sure.Ui.at(xs, 0)
+    let t = Sure.Ui.at(xs, 1)
+    let f = Sure.Ui.at(xs, 2)
+    if Bool.not(Sure.Tweeter.ok_user(u)) then none
+    else if Bool.not(Sure.Tweeter.ok_text(t)) then none
+    else if Bool.not(Sure.Tweeter.ok_file_id(f)) then none
+    else some(Sure.Tweeter.Tweet.new(u, t, f))
+
+Sure.Tweeter.read_feed.go(xs: List<String>): List<Sure.Tweeter.Tweet>
+  case xs {
+    nil: []
+    cons:
+      case Sure.Tweeter.read_tweet(xs.head) as t {
+        none: Sure.Tweeter.read_feed.go(xs.tail)
+        some: List.cons<Sure.Tweeter.Tweet>(t.value, Sure.Tweeter.read_feed.go(xs.tail))
+      }
+  }
+
+Sure.Tweeter.read_feed(s: String): List<Sure.Tweeter.Tweet>
+  if String.is_empty(s) then []
+  else if String.eql(s, "ok") then []
+  else if String.starts_with(s, "ok ") then Sure.Tweeter.read_feed.go(String.split(String.drop(3, s), ";"))
+  else []
+
+Sure.Tweeter.show_feed.go(xs: List<Sure.Tweeter.Tweet>, acc: String): String
+  case xs {
+    nil: acc
+    cons:
+      let one = Sure.Tweeter.show_tweet(xs.head)
+      let next = if String.is_empty(acc) then one else acc | ";" | one
+      Sure.Tweeter.show_feed.go(xs.tail, next)
+  }
+
+Sure.Tweeter.show_feed(xs: List<Sure.Tweeter.Tweet>): String
+  let body = Sure.Tweeter.show_feed.go(xs, "")
+  if String.is_empty(body) then "ok"
+  else "ok " | body
+
+Sure.Tweeter.take_feed(xs: List<Sure.Tweeter.Tweet>): List<Sure.Tweeter.Tweet>
+  List.take<Sure.Tweeter.Tweet>(Sure.Tweeter.max_feed, xs)
+
+Sure.Tweeter.read_sid(s: String): Maybe<String>
+  if String.starts_with(s, "ok ") then
+    let sid = String.drop(3, s)
+    if Sure.Tweeter.ok_sid(sid) then some(sid) else none
+  else none
+
+Sure.Tweeter.read_err(s: String): String
+  if String.starts_with(s, "err ") then String.drop(4, s)
+  else if String.eql(s, "err") then "junk"
+  else if String.is_empty(s) then "empty"
+  else "junk"
+
+Sure.Tweeter.form_put(k: String, v: String): String
+  k | "=" | v
+
+Sure.Tweeter.login_body(u: String, p: String): String
+  Sure.Tweeter.form_put("u", u) | "&" | Sure.Tweeter.form_put("p", p)
+
+Sure.Tweeter.tweet_body(sid: String, text: String, file: String): String
+  Sure.Tweeter.form_put("s", sid) | "&" | Sure.Tweeter.form_put("t", text) | "&" | Sure.Tweeter.form_put("f", file)
+
+Sure.Tweeter.rest_space(s: String): String
+  let xs = String.split(s, " ")
+  case xs {
+    nil: ""
+    cons: String.join(" ", xs.tail)
+  }
+
+Sure.Tweeter.cookie_sid.go(xs: List<String>): String
+  case xs {
+    nil: ""
+    cons:
+      let p = String.trim_left(xs.head)
+      let k = Sure.Ui.at(String.split(p, "="), 0)
+      if String.eql(k, "sure_sid") then
+        let v = Sure.Tweeter.rest_eq(p)
+        if Sure.Tweeter.ok_sid(v) then v else ""
+      else Sure.Tweeter.cookie_sid.go(xs.tail)
+  }
+
+Sure.Tweeter.cookie_sid(s: String): String
+  if String.is_empty(s) then ""
+  else if Sure.Tweeter.ok_sid(s) then s
+  else Sure.Tweeter.cookie_sid.go(String.split(s, ";"))
+
+Sure.Tweeter.pick_sid(body: String, url: String, cookie: String): String
+  let a = Sure.Tweeter.qget(body, "s")
+  if Sure.Tweeter.ok_sid(a) then a
+  else
+    let b = Sure.Tweeter.qget(Sure.Tweeter.query(url), "s")
+    if Sure.Tweeter.ok_sid(b) then b
+    else Sure.Tweeter.cookie_sid(cookie)
+
+Sure.Tweeter.data_ctype(s: String): String
+  if String.starts_with(s, "data:image/png;base64,") then "image/png"
+  else if String.starts_with(s, "data:image/jpeg;base64,") then "image/jpeg"
+  else if String.starts_with(s, "data:image/gif;base64,") then "image/gif"
+  else if String.starts_with(s, "data:image/webp;base64,") then "image/webp"
+  else ""
+
+Sure.Tweeter.auth_sid(s: String): String
+  if String.starts_with(s, "ok ") then
+    let tok = Sure.Ui.at(String.split(String.drop(3, s), " "), 0)
+    if Sure.Tweeter.ok_sid(tok) then tok else ""
+  else ""
+
+Sure.Tweeter.read_me(s: String): Maybe<Pair<String, String>>
+  if String.starts_with(s, "ok ") then
+    let rest = String.drop(3, s)
+    let sid = Sure.Ui.at(String.split(rest, " "), 0)
+    let user = Sure.Tweeter.rest_space(rest)
+    if Bool.not(Sure.Tweeter.ok_sid(sid)) then none
+    else if Bool.not(Sure.Tweeter.ok_user(user)) then none
+    else some(Pair.new<String, String>(sid, user))
+  else none
+
+Sure.Tweeter.login_path: String
+  "/tweeter/login"
+
+Sure.Tweeter.register_path: String
+  "/tweeter/register"
+
+Sure.Tweeter.logout_path: String
+  "/tweeter/logout"
+
+Sure.Tweeter.me_path: String
+  "/tweeter/me"
+
+Sure.Tweeter.tweet_path: String
+  "/tweeter/tweet"
+
+Sure.Tweeter.feed_url(sid: String): String
+  "/tweeter/feed?s=" | sid
+
+Sure.Tweeter.upload_url(sid: String): String
+  "/tweeter/upload?s=" | sid
+
+Sure.Tweeter.file_url(id: String): String
+  "/tweeter/file?id=" | id
+
+Sure.Tweeter.hdr_text: String
+  "Content-Type: text/plain; charset=utf-8"
+
+Sure.Tweeter.hdr_sess(sid: String): String
+  if Bool.not(Sure.Tweeter.ok_sid(sid)) then Sure.Tweeter.hdr_text
+  else Sure.Tweeter.hdr_text | "\nSet-Cookie: sure_sid=" | sid | "; Path=/; SameSite=Lax; HttpOnly"
+
+Sure.Tweeter.hdr_clear: String
+  Sure.Tweeter.hdr_text | "\nSet-Cookie: sure_sid=; Path=/; Max-Age=0; SameSite=Lax; HttpOnly"
+
+Sure.Tweeter.db_url: String
+  "surefile:tweeter.json"
+
+Sure.Tweeter.user_key(u: String): String
+  "u/" | u
+
+Sure.Tweeter.sess_key(s: String): String
+  "s/" | s
+
+Sure.Tweeter.file_key(id: String): String
+  "f/" | id
+
+Sure.Tweeter.hash(s: String): IO<String>
+  IO {
+    get h = Crypto.sha256("tweeter|" | s)
+    case h {
+      err: IO {
+        return ""
+      }
+      ok: IO {
+        return h.value
+      }
+    }
+  }
+
+Sure.Tweeter.new_sid(user: String): IO<String>
+  IO {
+    get t = Time.now
+    Sure.Tweeter.hash("sid|" | user | "|" | Time.Stamp.show(t))
+  }
+
+Sure.Tweeter.reply_err(e: String): String
+  "err " | e
+
+Sure.Tweeter.reply_ok(s: String): String
+  if String.is_empty(s) then "ok"
+  else "ok " | s
+
+Sure.Tweeter.open_sess(c: Db.Conn, sid: String): IO<String>
+  if Bool.not(Sure.Tweeter.ok_sid(sid)) then IO.end<String>("")
+  else IO {
+    get u = Db.get(c, Sure.Tweeter.sess_key(sid))
+    case u {
+      err: IO {
+        return ""
+      }
+      ok: IO {
+        return u.value
+      }
+    }
+  }
+
+Sure.Tweeter.make_sess(c: Db.Conn, user: String): IO<String>
+  IO {
+    get sid = Sure.Tweeter.new_sid(user)
+    if String.is_empty(sid) then IO {
+      return Sure.Tweeter.reply_err("junk")
+    } else IO {
+      get s = Db.set(c, Sure.Tweeter.sess_key(sid), user)
+      case s {
+        err: IO {
+          return Sure.Tweeter.reply_err("junk")
+        }
+        ok: IO {
+          return Sure.Tweeter.reply_ok(sid)
+        }
+      }
+    }
+  }
+
+Sure.Tweeter.do_register(c: Db.Conn, user: String, pass: String): IO<String>
+  if Bool.not(Sure.Tweeter.ok_user(user)) then IO.end<String>(Sure.Tweeter.reply_err("empty_user"))
+  else if Bool.not(Sure.Tweeter.ok_pass(pass)) then IO.end<String>(Sure.Tweeter.reply_err("empty_pass"))
+  else IO {
+    get h = Db.has(c, Sure.Tweeter.user_key(user))
+    case h {
+      err: IO {
+        return Sure.Tweeter.reply_err("junk")
+      }
+      ok:
+        if h.value then IO {
+          return Sure.Tweeter.reply_err("taken")
+        } else IO {
+          get ph = Sure.Tweeter.hash(pass)
+          if String.is_empty(ph) then IO {
+            return Sure.Tweeter.reply_err("junk")
+          } else IO {
+            get w = Db.set(c, Sure.Tweeter.user_key(user), ph)
+            case w {
+              err: IO {
+                return Sure.Tweeter.reply_err("junk")
+              }
+              ok: Sure.Tweeter.make_sess(c, user)
+            }
+          }
+        }
+    }
+  }
+
+Sure.Tweeter.do_login(c: Db.Conn, user: String, pass: String): IO<String>
+  if Bool.not(Sure.Tweeter.ok_user(user)) then IO.end<String>(Sure.Tweeter.reply_err("empty_user"))
+  else if Bool.not(Sure.Tweeter.ok_pass(pass)) then IO.end<String>(Sure.Tweeter.reply_err("empty_pass"))
+  else IO {
+    get g = Db.get(c, Sure.Tweeter.user_key(user))
+    case g {
+      err: IO {
+        return Sure.Tweeter.reply_err("bad_user")
+      }
+      ok: IO {
+        get ph = Sure.Tweeter.hash(pass)
+        if String.eql(ph, g.value) then Sure.Tweeter.make_sess(c, user)
+        else IO {
+          return Sure.Tweeter.reply_err("bad_pass")
+        }
+      }
+    }
+  }
+
+Sure.Tweeter.do_logout(c: Db.Conn, sid: String): IO<String>
+  if Bool.not(Sure.Tweeter.ok_sid(sid)) then IO.end<String>(Sure.Tweeter.reply_err("no_session"))
+  else IO {
+    get u = Sure.Tweeter.open_sess(c, sid)
+    if String.is_empty(u) then IO {
+      return Sure.Tweeter.reply_err("no_session")
+    } else IO {
+      get d = Db.del(c, Sure.Tweeter.sess_key(sid))
+      case d {
+        err: IO {
+          return Sure.Tweeter.reply_err("junk")
+        }
+        ok: IO {
+          return Sure.Tweeter.reply_ok("")
+        }
+      }
+    }
+  }
+
+Sure.Tweeter.do_me(c: Db.Conn, sid: String): IO<String>
+  IO {
+    get u = Sure.Tweeter.open_sess(c, sid)
+    if String.is_empty(u) then IO {
+      return Sure.Tweeter.reply_err("no_session")
+    } else IO {
+      return Sure.Tweeter.reply_ok(sid | " " | u)
+    }
+  }
+
+Sure.Tweeter.do_feed(c: Db.Conn, sid: String): IO<String>
+  IO {
+    get u = Sure.Tweeter.open_sess(c, sid)
+    if String.is_empty(u) then IO {
+      return Sure.Tweeter.reply_err("no_session")
+    } else IO {
+      get g = Db.get(c, "feed")
+      case g {
+        err: IO {
+          return "ok"
+        }
+        ok: IO {
+          return Sure.Tweeter.show_feed(Sure.Tweeter.read_feed(g.value))
+        }
+      }
+    }
+  }
+
+Sure.Tweeter.do_tweet(c: Db.Conn, sid: String, text: String, file: String): IO<String>
+  IO {
+    get u = Sure.Tweeter.open_sess(c, sid)
+    if String.is_empty(u) then IO {
+      return Sure.Tweeter.reply_err("no_session")
+    } else if Bool.not(Sure.Tweeter.ok_text(text)) then IO {
+      return Sure.Tweeter.reply_err("empty_text")
+    } else if Bool.not(Sure.Tweeter.ok_file_id(file)) then IO {
+      return Sure.Tweeter.reply_err("bad_file")
+    } else IO {
+      get g = Db.get(c, "feed")
+      let old = case g {
+        err: []
+        ok: Sure.Tweeter.read_feed(g.value)
+      }
+      let tw = Sure.Tweeter.Tweet.new(u, text, file)
+      let xs = Sure.Tweeter.take_feed(List.cons<Sure.Tweeter.Tweet>(tw, old))
+      get w = Db.set(c, "feed", Sure.Tweeter.show_feed(xs))
+      case w {
+        err: IO {
+          return Sure.Tweeter.reply_err("junk")
+        }
+        ok: IO {
+          return "ok"
+        }
+      }
+    }
+  }
+
+Sure.Tweeter.do_upload(c: Db.Conn, sid: String, body: String): IO<String>
+  IO {
+    get u = Sure.Tweeter.open_sess(c, sid)
+    if String.is_empty(u) then IO {
+      return Sure.Tweeter.reply_err("no_session")
+    } else if String.is_empty(body) then IO {
+      return Sure.Tweeter.reply_err("empty_file")
+    } else if Bool.not(Sure.Tweeter.ok_data(body)) then IO {
+      return Sure.Tweeter.reply_err("bad_file")
+    } else IO {
+      get id = Sure.Tweeter.hash(body)
+      if String.is_empty(id) then IO {
+        return Sure.Tweeter.reply_err("junk")
+      } else IO {
+        get w = Db.set(c, Sure.Tweeter.file_key(id), body)
+        case w {
+          err: IO {
+            return Sure.Tweeter.reply_err("junk")
+          }
+          ok: IO {
+            return Sure.Tweeter.reply_ok(id)
+          }
+        }
+      }
+    }
+  }
+
+Sure.Tweeter.do_file(c: Db.Conn, id: String): IO<String>
+  if Bool.not(Sure.Tweeter.ok_sid(id)) then IO.end<String>(Sure.Tweeter.reply_err("bad_file"))
+  else IO {
+    get g = Db.get(c, Sure.Tweeter.file_key(id))
+    case g {
+      err: IO {
+        return Sure.Tweeter.reply_err("missing")
+      }
+      ok: IO {
+        return g.value
+      }
+    }
+  }
+
+Sure.Tweeter.sess_of(m: Sure.Tweeter.Model): Sure.Tweeter.Sess
+  open m
+  m.sess
+
+Sure.Tweeter.user_of(m: Sure.Tweeter.Model): String
+  open m
+  m.user
+
+Sure.Tweeter.note_of(m: Sure.Tweeter.Model): String
+  open m
+  m.note
+
+Sure.Tweeter.draft_of(m: Sure.Tweeter.Model): String
+  open m
+  m.draft
+
+Sure.Tweeter.blob_of(m: Sure.Tweeter.Model): String
+  open m
+  m.blob
+
+Sure.Tweeter.file_of(m: Sure.Tweeter.Model): String
+  open m
+  m.file
+
+Sure.Tweeter.feed_of(m: Sure.Tweeter.Model): List<Sure.Tweeter.Tweet>
+  open m
+  m.feed
+
+Sure.Tweeter.sid_of(s: Sure.Tweeter.Sess): String
+  case s {
+    none: ""
+    some: s.sid
+  }
+
+Sure.Tweeter.init: Sure.Tweeter.Model
+  Sure.Tweeter.Model.new("", "", "", "", "", "", Sure.Tweeter.Sess.none, [])
+
+Sure.Tweeter.put(
+  user: String,
+  pass: String,
+  draft: String,
+  blob: String,
+  file: String,
+  note: String,
+  sess: Sure.Tweeter.Sess,
+  feed: List<Sure.Tweeter.Tweet>
+): Sure.Tweeter.Model
+  Sure.Tweeter.Model.new(user, pass, draft, blob, file, note, sess, feed)
+
+Sure.Tweeter.update(msg: String, ev: Html.Event.Data, m: Sure.Tweeter.Model): Pair<Sure.Tweeter.Model, Sure.Ui.Cmd>
+  open m
+  open ev
+  if String.eql(msg, "user") then
+    Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(Sure.Tweeter.put(ev.value, m.pass, m.draft, m.blob, m.file, m.note, m.sess, m.feed), Sure.Ui.Cmd.none)
+  else if String.eql(msg, "pass") then
+    Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(Sure.Tweeter.put(m.user, ev.value, m.draft, m.blob, m.file, m.note, m.sess, m.feed), Sure.Ui.Cmd.none)
+  else if String.eql(msg, "draft") then
+    Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(Sure.Tweeter.put(m.user, m.pass, ev.value, m.blob, m.file, m.note, m.sess, m.feed), Sure.Ui.Cmd.none)
+  else if String.eql(msg, "file") then
+    if String.is_empty(ev.value) then
+      Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(Sure.Tweeter.put(m.user, m.pass, m.draft, "", "", "empty_file", m.sess, m.feed), Sure.Ui.Cmd.none)
+    else if Bool.not(Sure.Tweeter.ok_data(ev.value)) then
+      Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(Sure.Tweeter.put(m.user, m.pass, m.draft, "", "", "bad_file", m.sess, m.feed), Sure.Ui.Cmd.none)
+    else
+      Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(Sure.Tweeter.put(m.user, m.pass, m.draft, ev.value, "", m.note, m.sess, m.feed), Sure.Ui.Cmd.none)
+  else if String.eql(msg, "login") then
+    if Bool.not(Sure.Tweeter.ok_user(m.user)) then
+      Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(Sure.Tweeter.put(m.user, m.pass, m.draft, m.blob, m.file, "empty_user", m.sess, m.feed), Sure.Ui.Cmd.none)
+    else if Bool.not(Sure.Tweeter.ok_pass(m.pass)) then
+      Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(Sure.Tweeter.put(m.user, m.pass, m.draft, m.blob, m.file, "empty_pass", m.sess, m.feed), Sure.Ui.Cmd.none)
+    else Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(m, Sure.Ui.Cmd.post(Sure.Tweeter.login_path, Sure.Tweeter.login_body(m.user, m.pass), "authed"))
+  else if String.eql(msg, "register") then
+    if Bool.not(Sure.Tweeter.ok_user(m.user)) then
+      Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(Sure.Tweeter.put(m.user, m.pass, m.draft, m.blob, m.file, "empty_user", m.sess, m.feed), Sure.Ui.Cmd.none)
+    else if Bool.not(Sure.Tweeter.ok_pass(m.pass)) then
+      Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(Sure.Tweeter.put(m.user, m.pass, m.draft, m.blob, m.file, "empty_pass", m.sess, m.feed), Sure.Ui.Cmd.none)
+    else Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(m, Sure.Ui.Cmd.post(Sure.Tweeter.register_path, Sure.Tweeter.login_body(m.user, m.pass), "authed"))
+  else if String.eql(msg, "logout") then
+    let sid = Sure.Tweeter.sid_of(m.sess)
+    Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(
+      Sure.Tweeter.put(m.user, "", "", "", "", "", Sure.Tweeter.Sess.none, []),
+      if String.is_empty(sid) then Sure.Ui.Cmd.none else Sure.Ui.Cmd.post(Sure.Tweeter.logout_path, Sure.Tweeter.form_put("s", sid), "bye")
+    )
+  else if String.eql(msg, "bye") then
+    Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(m, Sure.Ui.Cmd.none)
+  else if String.eql(msg, "restore") then
+    case Sure.Tweeter.read_me(ev.value) as a {
+      none: Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(m, Sure.Ui.Cmd.none)
+      some:
+        let pair = a.value
+        open pair
+        let sess = Sure.Tweeter.Sess.some(pair.fst, pair.snd)
+        Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(
+          Sure.Tweeter.put(pair.snd, "", m.draft, m.blob, m.file, "", sess, []),
+          Sure.Ui.Cmd.http(Sure.Tweeter.feed_url(pair.fst), "listed")
+        )
+    }
+  else if String.eql(msg, "authed") then
+    case Sure.Tweeter.read_sid(ev.value) as s {
+      none: Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(Sure.Tweeter.put(m.user, m.pass, m.draft, m.blob, m.file, Sure.Tweeter.read_err(ev.value), Sure.Tweeter.Sess.none, []), Sure.Ui.Cmd.none)
+      some:
+        let sess = Sure.Tweeter.Sess.some(s.value, m.user)
+        Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(
+          Sure.Tweeter.put(m.user, "", m.draft, m.blob, m.file, "", sess, []),
+          Sure.Ui.Cmd.http(Sure.Tweeter.feed_url(s.value), "listed")
+        )
+    }
+  else if String.eql(msg, "listed") then
+    if String.starts_with(ev.value, "ok") then
+      Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(Sure.Tweeter.put(m.user, m.pass, m.draft, m.blob, m.file, "", m.sess, Sure.Tweeter.read_feed(ev.value)), Sure.Ui.Cmd.none)
+    else Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(Sure.Tweeter.put(m.user, m.pass, m.draft, m.blob, m.file, Sure.Tweeter.read_err(ev.value), m.sess, []), Sure.Ui.Cmd.none)
+  else if String.eql(msg, "tweet") then
+    let sid = Sure.Tweeter.sid_of(m.sess)
+    if String.is_empty(sid) then
+      Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(Sure.Tweeter.put(m.user, m.pass, m.draft, m.blob, m.file, "no_session", m.sess, m.feed), Sure.Ui.Cmd.none)
+    else if Bool.not(Sure.Tweeter.ok_text(m.draft)) then
+      Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(Sure.Tweeter.put(m.user, m.pass, m.draft, m.blob, m.file, "empty_text", m.sess, m.feed), Sure.Ui.Cmd.none)
+    else if Bool.not(String.is_empty(m.blob)) then
+      Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(m, Sure.Ui.Cmd.post(Sure.Tweeter.upload_url(sid), m.blob, "uploaded"))
+    else Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(m, Sure.Ui.Cmd.post(Sure.Tweeter.tweet_path, Sure.Tweeter.tweet_body(sid, m.draft, m.file), "posted"))
+  else if String.eql(msg, "uploaded") then
+    case Sure.Tweeter.read_sid(ev.value) as id {
+      none: Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(Sure.Tweeter.put(m.user, m.pass, m.draft, "", "", Sure.Tweeter.read_err(ev.value), m.sess, m.feed), Sure.Ui.Cmd.none)
+      some:
+        let sid = Sure.Tweeter.sid_of(m.sess)
+        Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(
+          Sure.Tweeter.put(m.user, m.pass, m.draft, m.blob, id.value, m.note, m.sess, m.feed),
+          Sure.Ui.Cmd.post(Sure.Tweeter.tweet_path, Sure.Tweeter.tweet_body(sid, m.draft, id.value), "posted")
+        )
+    }
+  else if String.eql(msg, "posted") then
+    if String.starts_with(ev.value, "ok") then
+      let sid = Sure.Tweeter.sid_of(m.sess)
+      Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(
+        Sure.Tweeter.put(m.user, m.pass, "", "", "", "", m.sess, m.feed),
+        if String.is_empty(sid) then Sure.Ui.Cmd.none else Sure.Ui.Cmd.http(Sure.Tweeter.feed_url(sid), "listed")
+      )
+    else Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(Sure.Tweeter.put(m.user, m.pass, m.draft, m.blob, m.file, Sure.Tweeter.read_err(ev.value), m.sess, m.feed), Sure.Ui.Cmd.none)
+  else Pair.new<Sure.Tweeter.Model, Sure.Ui.Cmd>(m, Sure.Ui.Cmd.none)
+
+Sure.Tweeter.subs(m: Sure.Tweeter.Model): Sure.Ui.Sub
+  Sure.Ui.Sub.none
+
+Sure.Tweeter: Sure.Ui.App<Sure.Tweeter.Model>
+  Sure.Ui.element<Sure.Tweeter.Model>(Sure.Tweeter.init, Sure.Ui.Cmd.http(Sure.Tweeter.me_path, "restore"), Sure.Tweeter.view, Sure.Tweeter.update, Sure.Tweeter.subs)
+
+Sure.Tweeter.client: Sure.Ui.Client<Sure.Tweeter.Model>
+  Sure.Ui.pack<Sure.Tweeter.Model>(Sure.Tweeter)

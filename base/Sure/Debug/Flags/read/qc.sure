@@ -1,0 +1,2 @@
+Sure.Debug.Flags.read.qc: Sure.Debug.Flags.qc(Sure.Debug.Flags.read("qc")) == true
+  refl

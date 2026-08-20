@@ -1,0 +1,19 @@
+Http.App.run.go(port: Nat, routes: List<Http.App.Route>): IO<Unit>
+  IO {
+    get again = Http.App.step(port, routes)
+    Http.App.run.go(port, routes)
+  }
+
+Http.App.run(port: Nat, routes: List<Http.App.Route>): IO<Outcome<Http.Err, Unit>>
+  IO {
+    get l = Http.Server.listen(port)
+    case l {
+      err: IO {
+        return l
+      }
+      ok: IO {
+        Http.App.run.go(port, routes)
+        return Http.Server.ok
+      }
+    }
+  }

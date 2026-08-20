@@ -1,0 +1,3 @@
+Sure.Pipe.lines(s: String): List<String>
+  if String.is_empty(s) then []
+  else String.lines(s)

@@ -1,0 +1,3 @@
+IO.fs_read_ex(name: String): IO<String>
+  IO.ask<String>("fs_read_ex", name, (text)
+  IO.end<String>(text))

@@ -1,0 +1,5 @@
+File.read(path: Path): IO<Outcome<File.Err, String>>
+  IO {
+    get e = Host.perform(Host.Op.fs_read(Path.text(path)))
+    return Host.to_file(e)
+  }

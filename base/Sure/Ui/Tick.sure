@@ -1,0 +1,15 @@
+Sure.Ui.Tick.view(n: Nat): DOM
+  Html.p([Html.text(Nat.show(n))])
+
+Sure.Ui.Tick.update(msg: String, ev: Html.Event.Data, n: Nat): Pair<Nat, Sure.Ui.Cmd>
+  if String.eql(msg, "tick") then Pair.new<Nat, Sure.Ui.Cmd>(Nat.succ(n), Sure.Ui.Cmd.none)
+  else Pair.new<Nat, Sure.Ui.Cmd>(n, Sure.Ui.Cmd.none)
+
+Sure.Ui.Tick.subs(n: Nat): Sure.Ui.Sub
+  Sure.Ui.Sub.every(Nat.read("1000"), "tick")
+
+Sure.Ui.Tick: Sure.Ui.App<Nat>
+  Sure.Ui.element<Nat>(0, Sure.Ui.Cmd.none, Sure.Ui.Tick.view, Sure.Ui.Tick.update, Sure.Ui.Tick.subs)
+
+Sure.Ui.Tick.client: Sure.Ui.Client<Nat>
+  Sure.Ui.pack<Nat>(Sure.Ui.Tick)

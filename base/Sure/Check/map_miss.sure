@@ -1,0 +1,2 @@
+Sure.Check.map_miss: Map.get<Nat>("z", Map.from_list<Nat>([])) == none
+  refl

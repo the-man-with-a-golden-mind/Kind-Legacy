@@ -1,0 +1,2 @@
+Sure.Agent.uses.empty_name: Sure.Agent.uses("Nat.add", "") == false
+  refl

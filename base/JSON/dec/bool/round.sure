@@ -1,0 +1,2 @@
+JSON.dec.bool.round: JSON.dec.bool(JSON.enc.bool(true)) == some(true)
+  refl

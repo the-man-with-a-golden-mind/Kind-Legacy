@@ -1,0 +1,30 @@
+Http.Server.parse.lines(id: String, method: String, rest: List<String>): Http.Server.Req
+  case rest {
+    nil: Http.Server.Req.new(id, method, "", "", "")
+    cons:
+      case rest.tail {
+        nil: Http.Server.Req.new(id, method, rest.head, "", "")
+        cons:
+          case rest.tail.tail {
+            nil: Http.Server.Req.new(id, method, rest.head, "", rest.tail.head)
+            cons: Http.Server.Req.new(id, method, rest.head, rest.tail.head, String.join("\n", rest.tail.tail))
+          }
+      }
+  }
+
+Http.Server.parse.payload(payload: String): Maybe<Http.Server.Req>
+  let parts = String.split(payload, "\n")
+  case parts {
+    nil: none
+    cons:
+      case parts.tail {
+        nil: none
+        cons: some(Http.Server.parse.lines(parts.head, parts.tail.head, parts.tail.tail))
+      }
+  }
+
+Http.Server.parse(raw: String): Maybe<Http.Server.Req>
+  case IO.tagged.read(raw) as tag {
+    err: none
+    ok: Http.Server.parse.payload(tag.value)
+  }

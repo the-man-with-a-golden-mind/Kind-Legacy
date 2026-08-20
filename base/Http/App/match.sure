@@ -1,0 +1,10 @@
+Http.App.match(method: Http.Method, pattern: String, req: Http.Server.Req): Maybe<List<Pair<String, String>>>
+  open req
+  case Http.Method.read(req.method) as got {
+    none: none
+    some:
+      if Http.Method.eql(method, got.value) then
+        Http.Path.match(pattern, req.url)
+      else
+        none
+  }

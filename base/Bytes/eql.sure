@@ -1,0 +1,2 @@
+Bytes.eql(a: Bytes, b: Bytes): Bool
+  List.eql<U8>(U8.eql, a, b)

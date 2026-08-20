@@ -1,0 +1,2 @@
+String.drop.zero(xs: String): String.drop(0, xs) == xs
+  refl

@@ -1,0 +1,42 @@
+// Typed host cryptography. Keccak/ECDSA stay Kind-level; SHA-256/HMAC
+// go through IO.ask. Digests are lowercase hex.
+
+type Crypto.Err {
+  io(message: String)
+  bad_digest
+}
+
+Crypto.sha256.abc_hex: String
+  "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+
+Crypto.sha256.empty_hex: String
+  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+
+Crypto.hmac.empty_hex: String
+  "b613679a0814d9ec772f95d778c35fc5ff1697c493715653c6c712144292c5ad"
+
+Crypto.hmac.jefe_hex: String
+  "5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843"
+
+Crypto.is_hex_digit(c: Char): Bool
+  Bool.or(U16.btw('0', c, '9'),
+    Bool.or(U16.btw('a', c, 'f'), U16.btw('A', c, 'F')))
+
+Crypto.is_hex(s: String): Bool
+  case s {
+    nil: true
+    cons: Bool.and(Crypto.is_hex_digit(s.head), Crypto.is_hex(s.tail))
+  }
+
+Crypto.hex64(s: String): Bool
+  Bool.and(Nat.eql(String.length(s), 64), Crypto.is_hex(s))
+
+Crypto.decode(raw: String): Outcome<Crypto.Err, String>
+  case IO.tagged.read(raw) as tag {
+    err: Outcome.err<Crypto.Err, String>(Crypto.Err.io(tag.error))
+    ok:
+      if Crypto.hex64(tag.value) then
+        Outcome.ok<Crypto.Err, String>(tag.value)
+      else
+        Outcome.err<Crypto.Err, String>(Crypto.Err.bad_digest)
+  }

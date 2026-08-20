@@ -1,0 +1,2 @@
+Sure.Mod.imports_allow.hit: Sure.Mod.imports_allow([Sure.Mod.Use.new("Nat", Sure.Mod.Exposing.names(["add"]))], "Nat.add") == true
+  refl

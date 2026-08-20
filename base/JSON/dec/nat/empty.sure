@@ -1,0 +1,2 @@
+JSON.dec.nat.empty: JSON.dec.nat(JSON.string("")) == none
+  refl

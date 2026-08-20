@@ -1,0 +1,2 @@
+String.index_of.hit: String.index_of("ab", "b") == some(1)
+  refl

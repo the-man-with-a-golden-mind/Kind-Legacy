@@ -1,0 +1,2 @@
+Sure.Tweeter.ok_text.empty: Sure.Tweeter.ok_text("") == false
+  refl

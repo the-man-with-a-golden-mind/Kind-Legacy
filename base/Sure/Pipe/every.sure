@@ -1,0 +1,2 @@
+Sure.Pipe.every<A: Type>(f: A -> Bool, xs: List<A>): Bool
+  List.all<A>(f, xs)

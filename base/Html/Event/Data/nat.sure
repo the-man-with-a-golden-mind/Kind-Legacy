@@ -1,0 +1,2 @@
+Html.Event.Data.nat(s: String): Nat
+  if JSON.digits(s) then Nat.read_base(10, s) else 0

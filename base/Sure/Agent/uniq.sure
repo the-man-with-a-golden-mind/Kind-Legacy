@@ -1,0 +1,12 @@
+Sure.Agent.uniq.go(xs: List<String>, acc: List<String>): List<String>
+  case xs {
+    nil: List.reverse<String>(acc)
+    cons:
+      if List.elem<String>(String.eql, xs.head, acc) then
+        Sure.Agent.uniq.go(xs.tail, acc)
+      else
+        Sure.Agent.uniq.go(xs.tail, List.cons<String>(xs.head, acc))
+  }
+
+Sure.Agent.uniq(xs: List<String>): List<String>
+  Sure.Agent.uniq.go(xs, [])

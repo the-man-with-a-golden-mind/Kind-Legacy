@@ -1,0 +1,2 @@
+Sure.Runtime.show.bun: Sure.Runtime.show(Sure.Runtime.bun) == "bun"
+  refl

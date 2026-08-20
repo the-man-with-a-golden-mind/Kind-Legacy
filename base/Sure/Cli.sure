@@ -1,0 +1,95 @@
+// Program flags. `--name` and `--name=value`. Empty names are not flags.
+// `--` ends flags. A token that is not a flag is rest. Next-token values are not taken.
+
+type Sure.Cli.Flag {
+  new(name: String, value: Maybe<String>)
+}
+
+type Sure.Cli {
+  new(flags: List<Sure.Cli.Flag>, rest: List<String>)
+}
+
+Sure.Cli.empty: Sure.Cli
+  Sure.Cli.new([], [])
+
+Sure.Cli.tokens(s: String): List<String>
+  if String.is_empty(s) then []
+  else case String.index_of(s, "\n") as n {
+    none: String.words(s)
+    some: String.split(s, "\n")
+  }
+
+Sure.Cli.long(body: String, tail: List<String>, flags: List<Sure.Cli.Flag>, rest: List<String>): Sure.Cli
+  if String.is_empty(body) then Sure.Cli.go(tail, flags, rest)
+  else case String.index_of(body, "=") as i {
+    none: Sure.Cli.go(tail, List.cons<Sure.Cli.Flag>(Sure.Cli.Flag.new(body, none), flags), rest)
+    some:
+      let name = String.take(i.value, body)
+      let val = String.drop(Nat.succ(i.value), body)
+      if String.is_empty(name) then Sure.Cli.go(tail, flags, rest)
+      else Sure.Cli.go(tail, List.cons<Sure.Cli.Flag>(Sure.Cli.Flag.new(name, some(val)), flags), rest)
+  }
+
+Sure.Cli.go(xs: List<String>, flags: List<Sure.Cli.Flag>, rest: List<String>): Sure.Cli
+  case xs {
+    nil: Sure.Cli.new(List.reverse<Sure.Cli.Flag>(flags), List.reverse<String>(rest))
+    cons:
+      if String.eql(xs.head, "--") then
+        Sure.Cli.new(List.reverse<Sure.Cli.Flag>(flags), List.concat<String>(List.reverse<String>(rest), xs.tail))
+      else if String.starts_with(xs.head, "--") then
+        Sure.Cli.long(String.drop(2, xs.head), xs.tail, flags, rest)
+      else if Bool.and(String.starts_with(xs.head, "-"), Nat.gtn(String.length(xs.head), 1)) then
+        Sure.Cli.long(String.drop(1, xs.head), xs.tail, flags, rest)
+      else
+        Sure.Cli.go(xs.tail, flags, List.cons<String>(xs.head, rest))
+  }
+
+Sure.Cli.parse(xs: List<String>): Sure.Cli
+  Sure.Cli.go(xs, [], [])
+
+Sure.Cli.parse_line(s: String): Sure.Cli
+  Sure.Cli.parse(Sure.Cli.tokens(s))
+
+Sure.Cli.flag.go(name: String, xs: List<Sure.Cli.Flag>): Bool
+  case xs {
+    nil: false
+    cons:
+      open xs.head
+      if String.eql(xs.head.name, name) then true
+      else Sure.Cli.flag.go(name, xs.tail)
+  }
+
+Sure.Cli.flag(c: Sure.Cli, name: String): Bool
+  if String.is_empty(name) then false
+  else
+    open c
+    Sure.Cli.flag.go(name, c.flags)
+
+Sure.Cli.get.go(name: String, xs: List<Sure.Cli.Flag>): Maybe<String>
+  case xs {
+    nil: none
+    cons:
+      open xs.head
+      if String.eql(xs.head.name, name) then xs.head.value
+      else Sure.Cli.get.go(name, xs.tail)
+  }
+
+Sure.Cli.get(c: Sure.Cli, name: String): Maybe<String>
+  if String.is_empty(name) then none
+  else
+    open c
+    Sure.Cli.get.go(name, c.flags)
+
+Sure.Cli.nth(c: Sure.Cli, i: Nat): Maybe<String>
+  open c
+  List.at<String>(i, c.rest)
+
+Sure.Cli.count(c: Sure.Cli): Nat
+  open c
+  List.length<String>(c.rest)
+
+Sure.Cli.load: IO<Sure.Cli>
+  IO {
+    get line = IO.get_args
+    IO.end<Sure.Cli>(Sure.Cli.parse_line(line))
+  }

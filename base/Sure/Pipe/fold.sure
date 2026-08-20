@@ -1,0 +1,2 @@
+Sure.Pipe.fold<A: Type, B: Type>(acc: B, f: A -> B -> B, xs: List<A>): B
+  List.foldl<A, B>(acc, f, xs)

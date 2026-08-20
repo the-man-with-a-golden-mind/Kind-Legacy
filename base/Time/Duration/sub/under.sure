@@ -1,0 +1,2 @@
+Time.Duration.sub.under: Time.Duration.eql(Time.Duration.sub(Time.Duration.zero, Time.Duration.milli(1)), Time.Duration.zero) == true
+  refl

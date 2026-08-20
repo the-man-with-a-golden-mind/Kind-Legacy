@@ -1,0 +1,2 @@
+DOM.render.text_a: DOM.render(DOM.text("a")) == "a"
+  refl

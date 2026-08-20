@@ -1,0 +1,5 @@
+Time.read(s: String): Maybe<Time.Stamp>
+  case Time.Parts.read(s) as p {
+    none: none
+    some: Time.from_parts(p.value)
+  }

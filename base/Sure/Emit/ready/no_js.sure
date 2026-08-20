@@ -1,0 +1,2 @@
+Sure.Emit.ready.no_js: Sure.Emit.ready(false, true) == false
+  refl

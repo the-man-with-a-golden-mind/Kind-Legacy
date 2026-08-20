@@ -1,0 +1,3 @@
+Http.encode.get:
+  Http.encode(Http.Request.new(Http.Method.get, "http://x", "", "")) == "GET http://x\n\n"
+  refl

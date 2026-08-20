@@ -1,0 +1,2 @@
+Html.Event.read.click: Html.Event.read("click") == some(Html.Event.click)
+  refl

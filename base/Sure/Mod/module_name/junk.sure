@@ -1,0 +1,2 @@
+Sure.Mod.module_name.junk: Sure.Mod.module_name("import Foo") == ""
+  refl

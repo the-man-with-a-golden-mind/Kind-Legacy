@@ -1,0 +1,2 @@
+Db.Row: Type
+  List<Pair<String, String>>

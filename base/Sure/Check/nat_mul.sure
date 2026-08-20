@@ -1,0 +1,2 @@
+Sure.Check.nat_mul: Nat.mul(Nat.read("86400"), Nat.read("1000")) == Nat.read("86400000")
+  refl

@@ -1,0 +1,4 @@
+Host.param(op: Host.Op): String
+  let qp = Host.encode(op)
+  open qp
+  qp.snd

@@ -1,0 +1,2 @@
+Sure.Agent.fill.first.one: Sure.Agent.fill.first("?implement", "0") == "0"
+  refl

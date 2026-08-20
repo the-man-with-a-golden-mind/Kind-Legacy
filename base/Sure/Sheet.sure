@@ -1,0 +1,456 @@
+// Excel-like grid. Backend streams rows (10000). The view is a virtual window.
+// Empty chunk is ignored. Junk lines are skipped. Empty SSE path is none.
+// Column resize: mousedown on the handle, mousemove/up on the overlay.
+// Width below min is min. Unknown messages leave the model.
+
+type Sure.Sheet.Drag {
+  none
+  col(i: Nat, x: Nat, w: Nat)
+}
+
+type Sure.Sheet.Row {
+  new(i: Nat, cells: List<String>)
+}
+
+type Sure.Sheet.Model {
+  new(
+    widths: List<Nat>
+    names: List<String>
+    rows: List<Sure.Sheet.Row>
+    received: Nat
+    total: Nat
+    scroll: Nat
+    drag: Sure.Sheet.Drag
+    done: Bool
+  )
+}
+
+Sure.Sheet.cols: Nat
+  8
+
+Sure.Sheet.is_page(url: String): Bool
+  if String.is_empty(url) then true
+  else if String.eql(url, "/") then true
+  else if String.eql(url, "/index.html") then true
+  else if String.eql(url, "/sheet") then true
+  else if String.eql(url, "/Sure.Sheet.client.html") then true
+  else false
+
+Sure.Sheet.is_rows(url: String): Bool
+  String.starts_with(url, "/sheet/rows")
+
+Sure.Sheet.is_state(url: String): Bool
+  if String.eql(url, "/sheet/state") then true
+  else String.starts_with(url, "/sheet/state?")
+
+Sure.Sheet.is_save(url: String): Bool
+  if String.eql(url, "/sheet/save") then true
+  else String.starts_with(url, "/sheet/save?")
+
+Sure.Sheet.overscan: Nat
+  5
+
+Sure.Sheet.letters: List<String>
+  ["A", "B", "C", "D", "E", "F", "G", "H"]
+
+Sure.Sheet.row_h: Nat
+  Nat.read("24")
+
+Sure.Sheet.view_h: Nat
+  Nat.read("480")
+
+Sure.Sheet.min_w: Nat
+  Nat.read("24")
+
+Sure.Sheet.num_w: Nat
+  Nat.read("48")
+
+Sure.Sheet.def_w: Nat
+  Nat.read("120")
+
+Sure.Sheet.px(n: Nat): String
+  Nat.show(n) | "px"
+
+Sure.Sheet.letter(i: Nat): String
+  case List.get<String>(i, Sure.Sheet.letters) as a {
+    none: "?"
+    some: a.value
+  }
+
+Sure.Sheet.widths_new.go(n: Nat, w: Nat, acc: List<Nat>): List<Nat>
+  case n {
+    zero: acc
+    succ: Sure.Sheet.widths_new.go(n.pred, w, List.cons<Nat>(w, acc))
+  }
+
+Sure.Sheet.widths_new(n: Nat): List<Nat>
+  Sure.Sheet.widths_new.go(n, Sure.Sheet.def_w, [])
+
+Sure.Sheet.sum(xs: List<Nat>): Nat
+  case xs {
+    nil: 0
+    cons: Nat.add(xs.head, Sure.Sheet.sum(xs.tail))
+  }
+
+Sure.Sheet.clamp_w(w: Nat): Nat
+  if Nat.lte(w, Sure.Sheet.min_w) then Sure.Sheet.min_w
+  else w
+
+Sure.Sheet.resize_w(start_w: Nat, start_x: Nat, x: Nat): Nat
+  if Nat.lte(start_x, x) then Sure.Sheet.clamp_w(Nat.add(start_w, Nat.sub(x, start_x)))
+  else
+    let d = Nat.sub(start_x, x)
+    if Nat.lte(start_w, Nat.add(d, Sure.Sheet.min_w)) then Sure.Sheet.min_w
+    else Nat.sub(start_w, d)
+
+Sure.Sheet.set_w(i: Nat, w: Nat, xs: List<Nat>): List<Nat>
+  List.set<Nat>(i, Sure.Sheet.clamp_w(w), xs)
+
+Sure.Sheet.first(scroll: Nat, h: Nat): Nat
+  if Nat.is_zero(h) then 0
+  else Nat.div(scroll, h)
+
+Sure.Sheet.need(view_h: Nat, h: Nat, over: Nat): Nat
+  if Nat.is_zero(h) then 0
+  else Nat.add(Nat.succ(Nat.div(view_h, h)), Nat.mul(2, over))
+
+Sure.Sheet.start(scroll: Nat, h: Nat, over: Nat, received: Nat): Nat
+  let raw = Sure.Sheet.first(scroll, h)
+  let s = if Nat.lte(raw, over) then 0 else Nat.sub(raw, over)
+  if Nat.lte(received, s) then received
+  else s
+
+Sure.Sheet.count(start: Nat, view_h: Nat, h: Nat, over: Nat, received: Nat): Nat
+  let n = Sure.Sheet.need(view_h, h, over)
+  let left = Nat.sub(received, start)
+  if Nat.lte(left, n) then left
+  else n
+
+Sure.Sheet.window(scroll: Nat, received: Nat): Pair<Nat, Nat>
+  let h = Sure.Sheet.row_h
+  let s = Sure.Sheet.start(scroll, h, Sure.Sheet.overscan, received)
+  Pair.new<Nat, Nat>(s, Sure.Sheet.count(s, Sure.Sheet.view_h, h, Sure.Sheet.overscan, received))
+
+Sure.Sheet.slice(start: Nat, n: Nat, xs: List<Sure.Sheet.Row>): List<Sure.Sheet.Row>
+  List.take<Sure.Sheet.Row>(n, List.drop<Sure.Sheet.Row>(start, xs))
+
+Sure.Sheet.empties.go(n: Nat, acc: List<String>): List<String>
+  case n {
+    zero: acc
+    succ: Sure.Sheet.empties.go(n.pred, List.cons<String>("", acc))
+  }
+
+Sure.Sheet.pad(n: Nat, xs: List<String>): List<String>
+  let len = List.length<String>(xs)
+  if Nat.lte(n, len) then List.take<String>(n, xs)
+  else List.concat<String>(xs, Sure.Sheet.empties.go(Nat.sub(n, len), []))
+
+Sure.Sheet.read_row(s: String): Maybe<Sure.Sheet.Row>
+  if String.is_empty(s) then none
+  else
+    let xs = String.split(s, "\t")
+    case Parse.nat(List.head_with_default<String>("", xs)) as i {
+      none: none
+      some: some(Sure.Sheet.Row.new(i.value, Sure.Sheet.pad(Sure.Sheet.cols, List.drop<String>(1, xs))))
+    }
+
+Sure.Sheet.keep_rows(xs: List<String>): List<Sure.Sheet.Row>
+  case xs {
+    nil: []
+    cons:
+      case Sure.Sheet.read_row(xs.head) as r {
+        none: Sure.Sheet.keep_rows(xs.tail)
+        some: List.cons<Sure.Sheet.Row>(r.value, Sure.Sheet.keep_rows(xs.tail))
+      }
+  }
+
+Sure.Sheet.read_chunk(s: String): List<Sure.Sheet.Row>
+  if String.is_empty(s) then []
+  else Sure.Sheet.keep_rows(String.split(String.replace_all(s, ";", "\n"), "\n"))
+
+Sure.Sheet.tag_i(tag: String, s: String): Maybe<Nat>
+  let xs = String.split(s, "-")
+  if String.eql(Sure.Ui.at(xs, 0), tag) then Parse.nat(Sure.Ui.at(xs, 1))
+  else none
+
+Sure.Sheet.col_of(s: String): Maybe<Nat>
+  Sure.Sheet.tag_i("down", s)
+
+Sure.Sheet.ok_name(s: String): Bool
+  if String.is_empty(s) then false
+  else if String.includes(s, ",") then false
+  else if String.includes(s, "&") then false
+  else if String.includes(s, "=") then false
+  else if String.includes(s, "?") then false
+  else if String.includes(s, ";") then false
+  else if String.includes(s, "\n") then false
+  else if String.includes(s, "\t") then false
+  else true
+
+Sure.Sheet.query(url: String): String
+  Sure.Ui.at(String.split(url, "?"), 1)
+
+Sure.Sheet.qget.go(xs: List<String>, key: String): String
+  case xs {
+    nil: ""
+    cons:
+      let k = Sure.Ui.at(String.split(xs.head, "="), 0)
+      if String.eql(k, key) then Sure.Sheet.rest_eq(xs.head)
+      else Sure.Sheet.qget.go(xs.tail, key)
+  }
+
+Sure.Sheet.rest_eq(s: String): String
+  let xs = String.split(s, "=")
+  case xs {
+    nil: ""
+    cons: String.join("=", xs.tail)
+  }
+
+Sure.Sheet.qget(q: String, key: String): String
+  if String.is_empty(key) then ""
+  else if String.is_empty(q) then ""
+  else Sure.Sheet.qget.go(String.split(String.replace_all(q, " ", "&"), "&"), key)
+
+Sure.Sheet.read_nats.go(xs: List<String>, acc: List<Nat>): Maybe<List<Nat>>
+  case xs {
+    nil: some(acc)
+    cons:
+      if String.is_empty(xs.head) then none
+      else case Parse.nat(xs.head) as n {
+        none: none
+        some: Sure.Sheet.read_nats.go(xs.tail, List.concat<Nat>(acc, [n.value]))
+      }
+  }
+
+Sure.Sheet.read_nats(s: String): Maybe<List<Nat>>
+  if String.is_empty(s) then none
+  else Sure.Sheet.read_nats.go(String.split(s, ","), [])
+
+Sure.Sheet.pad_names.go(i: Nat, n: Nat, xs: List<String>, acc: List<String>): List<String>
+  if Nat.eql(i, n) then acc
+  else
+    let raw = List.head_with_default<String>("", xs)
+    let rest = case xs {
+      nil: []
+      cons: xs.tail
+    }
+    let name = if Sure.Sheet.ok_name(raw) then raw else Sure.Sheet.letter(i)
+    Sure.Sheet.pad_names.go(Nat.succ(i), n, rest, List.concat<String>(acc, [name]))
+
+Sure.Sheet.pad_names(xs: List<String>): List<String>
+  Sure.Sheet.pad_names.go(0, Sure.Sheet.cols, xs, [])
+
+Sure.Sheet.encode_w(xs: List<Nat>): String
+  String.join(",", List.map<Nat, String>(Nat.show, xs))
+
+Sure.Sheet.encode_n(xs: List<String>): String
+  String.join(",", Sure.Sheet.pad_names(xs))
+
+Sure.Sheet.save_url(ws: List<Nat>, ns: List<String>): String
+  "/sheet/save?w=" | Sure.Sheet.encode_w(ws) | "&n=" | Sure.Sheet.encode_n(ns)
+
+Sure.Sheet.save_cmd(m: Sure.Sheet.Model): Sure.Ui.Cmd
+  open m
+  Sure.Ui.Cmd.http(Sure.Sheet.save_url(m.widths, m.names), "saved")
+
+Sure.Sheet.apply_w(m: Sure.Sheet.Model, s: String): Sure.Sheet.Model
+  open m
+  case Sure.Sheet.read_nats(s) as xs {
+    none: m
+    some:
+      if Nat.eql(List.length<Nat>(xs.value), Sure.Sheet.cols) then
+        Sure.Sheet.Model.new(xs.value, m.names, m.rows, m.received, m.total, m.scroll, m.drag, m.done)
+      else m
+  }
+
+Sure.Sheet.apply_n(m: Sure.Sheet.Model, s: String): Sure.Sheet.Model
+  open m
+  if String.is_empty(s) then m
+  else Sure.Sheet.Model.new(m.widths, Sure.Sheet.pad_names(String.split(s, ",")), m.rows, m.received, m.total, m.scroll, m.drag, m.done)
+
+Sure.Sheet.apply_state(m: Sure.Sheet.Model, raw: String): Sure.Sheet.Model
+  if String.is_empty(raw) then m
+  else
+    let q = String.replace_all(raw, " ", "&")
+    Sure.Sheet.apply_n(Sure.Sheet.apply_w(m, Sure.Sheet.qget(q, "w")), Sure.Sheet.qget(q, "n"))
+
+Sure.Sheet.set_name(i: Nat, s: String, xs: List<String>): List<String>
+  let name = if Sure.Sheet.ok_name(s) then s else Sure.Sheet.letter(i)
+  List.set<String>(i, name, xs)
+
+Sure.Sheet.cells.go(i: Nat, n: Nat, row: Nat, acc: List<String>): List<String>
+  if Nat.eql(i, n) then acc
+  else Sure.Sheet.cells.go(Nat.succ(i), n, row, List.concat<String>(acc, [Sure.Sheet.letter(i) | Nat.show(row)]))
+
+Sure.Sheet.cells(n: Nat, row: Nat): List<String>
+  Sure.Sheet.cells.go(0, n, row, [])
+
+Sure.Sheet.line(row: Nat): String
+  Nat.show(row) | "\t" | String.join("\t", Sure.Sheet.cells(Sure.Sheet.cols, row))
+
+Sure.Sheet.chunk.go(i: Nat, n: Nat, acc: String): String
+  if Nat.is_zero(n) then acc
+  else
+    let line = Sure.Sheet.line(i)
+    let next = if String.is_empty(acc) then line else acc | ";" | line
+    Sure.Sheet.chunk.go(Nat.succ(i), Nat.sub(n, 1), next)
+
+Sure.Sheet.chunk(from: Nat, n: Nat): String
+  if Nat.is_zero(n) then ""
+  else Sure.Sheet.chunk.go(from, n, "")
+
+Sure.Sheet.ptr(kind: String, msg: String, x: Nat): String
+  kind | "\n" | msg | "\n\n\n\n0\n" | Nat.show(x) | "\n0\n0\n0\n0\n0\n0"
+
+Sure.Sheet.received(m: Sure.Sheet.Model): Nat
+  open m
+  m.received
+
+Sure.Sheet.total_of(m: Sure.Sheet.Model): Nat
+  open m
+  m.total
+
+Sure.Sheet.scroll_of(m: Sure.Sheet.Model): Nat
+  open m
+  m.scroll
+
+Sure.Sheet.widths_of(m: Sure.Sheet.Model): List<Nat>
+  open m
+  m.widths
+
+Sure.Sheet.names_of(m: Sure.Sheet.Model): List<String>
+  open m
+  m.names
+
+Sure.Sheet.done_of(m: Sure.Sheet.Model): Bool
+  open m
+  m.done
+
+Sure.Sheet.drag_of(m: Sure.Sheet.Model): Sure.Sheet.Drag
+  open m
+  m.drag
+
+Sure.Sheet.cells_of(r: Sure.Sheet.Row): List<String>
+  open r
+  r.cells
+
+Sure.Sheet.init: Sure.Sheet.Model
+  Sure.Sheet.Model.new(
+    Sure.Sheet.widths_new(Sure.Sheet.cols),
+    Sure.Sheet.letters,
+    [],
+    0,
+    0,
+    0,
+    Sure.Sheet.Drag.none,
+    false
+  )
+
+Sure.Sheet.append(m: Sure.Sheet.Model, more: List<Sure.Sheet.Row>): Sure.Sheet.Model
+  open m
+  let k = List.length<Sure.Sheet.Row>(more)
+  if Nat.is_zero(k) then m
+  else Sure.Sheet.Model.new(
+    m.widths,
+    m.names,
+    List.concat<Sure.Sheet.Row>(m.rows, more),
+    Nat.add(m.received, k),
+    m.total,
+    m.scroll,
+    m.drag,
+    m.done
+  )
+
+Sure.Sheet.ingest(m: Sure.Sheet.Model, raw: String): Sure.Sheet.Model
+  open m
+  if String.is_empty(raw) then m
+  else if String.eql(raw, "done") then
+    Sure.Sheet.Model.new(m.widths, m.names, m.rows, m.received, m.total, m.scroll, m.drag, true)
+  else if String.starts_with(raw, "done\n") then
+    let t = case Parse.nat(String.drop(5, raw)) as n {
+      none: m.total
+      some: n.value
+    }
+    Sure.Sheet.Model.new(m.widths, m.names, m.rows, m.received, t, m.scroll, m.drag, true)
+  else if String.starts_with(raw, "done ") then
+    let t = case Parse.nat(String.drop(5, raw)) as n {
+      none: m.total
+      some: n.value
+    }
+    Sure.Sheet.Model.new(m.widths, m.names, m.rows, m.received, t, m.scroll, m.drag, true)
+  else if String.starts_with(raw, "meta\n") then
+    let t = case Parse.nat(String.drop(5, raw)) as n {
+      none: m.total
+      some: n.value
+    }
+    Sure.Sheet.Model.new(m.widths, m.names, m.rows, m.received, t, m.scroll, m.drag, m.done)
+  else if String.starts_with(raw, "meta ") then
+    let t = case Parse.nat(String.drop(5, raw)) as n {
+      none: m.total
+      some: n.value
+    }
+    Sure.Sheet.Model.new(m.widths, m.names, m.rows, m.received, t, m.scroll, m.drag, m.done)
+  else if String.starts_with(raw, "rows\n") then Sure.Sheet.append(m, Sure.Sheet.read_chunk(String.drop(5, raw)))
+  else if String.starts_with(raw, "rows;") then Sure.Sheet.append(m, Sure.Sheet.read_chunk(String.drop(5, raw)))
+  else Sure.Sheet.append(m, Sure.Sheet.read_chunk(raw))
+
+Sure.Sheet.update(msg: String, ev: Html.Event.Data, m: Sure.Sheet.Model): Pair<Sure.Sheet.Model, Sure.Ui.Cmd>
+  open m
+  open ev
+  if String.eql(msg, "scroll") then
+    let n = case Parse.nat(ev.value) as v {
+      none: 0
+      some: v.value
+    }
+    Pair.new<Sure.Sheet.Model, Sure.Ui.Cmd>(
+      Sure.Sheet.Model.new(m.widths, m.names, m.rows, m.received, m.total, n, m.drag, m.done),
+      Sure.Ui.Cmd.none
+    )
+  else if String.eql(msg, "chunk") then
+    Pair.new<Sure.Sheet.Model, Sure.Ui.Cmd>(Sure.Sheet.ingest(m, ev.value), Sure.Ui.Cmd.none)
+  else if String.eql(msg, "load") then
+    Pair.new<Sure.Sheet.Model, Sure.Ui.Cmd>(Sure.Sheet.apply_state(m, ev.value), Sure.Ui.Cmd.none)
+  else if String.eql(msg, "saved") then
+    Pair.new<Sure.Sheet.Model, Sure.Ui.Cmd>(m, Sure.Ui.Cmd.none)
+  else if String.eql(msg, "move") then
+    case m.drag {
+      none: Pair.new<Sure.Sheet.Model, Sure.Ui.Cmd>(m, Sure.Ui.Cmd.none)
+      col:
+        let w = Sure.Sheet.resize_w(m.drag.w, m.drag.x, ev.x)
+        Pair.new<Sure.Sheet.Model, Sure.Ui.Cmd>(
+          Sure.Sheet.Model.new(Sure.Sheet.set_w(m.drag.i, w, m.widths), m.names, m.rows, m.received, m.total, m.scroll, Sure.Sheet.Drag.col(m.drag.i, m.drag.x, m.drag.w), m.done),
+          Sure.Ui.Cmd.none
+        )
+    }
+  else if String.eql(msg, "up") then
+    let next = Sure.Sheet.Model.new(m.widths, m.names, m.rows, m.received, m.total, m.scroll, Sure.Sheet.Drag.none, m.done)
+    Pair.new<Sure.Sheet.Model, Sure.Ui.Cmd>(next, Sure.Sheet.save_cmd(next))
+  else
+    case Sure.Sheet.tag_i("name", msg) as c {
+      none:
+        case Sure.Sheet.col_of(msg) as d {
+          none: Pair.new<Sure.Sheet.Model, Sure.Ui.Cmd>(m, Sure.Ui.Cmd.none)
+          some:
+            case List.get<Nat>(d.value, m.widths) as w {
+              none: Pair.new<Sure.Sheet.Model, Sure.Ui.Cmd>(m, Sure.Ui.Cmd.none)
+              some: Pair.new<Sure.Sheet.Model, Sure.Ui.Cmd>(
+                Sure.Sheet.Model.new(m.widths, m.names, m.rows, m.received, m.total, m.scroll, Sure.Sheet.Drag.col(d.value, ev.x, w.value), m.done),
+                Sure.Ui.Cmd.none
+              )
+            }
+        }
+      some:
+        let next = Sure.Sheet.Model.new(m.widths, Sure.Sheet.set_name(c.value, ev.value, m.names), m.rows, m.received, m.total, m.scroll, m.drag, m.done)
+        Pair.new<Sure.Sheet.Model, Sure.Ui.Cmd>(next, Sure.Sheet.save_cmd(next))
+    }
+
+Sure.Sheet.subs(m: Sure.Sheet.Model): Sure.Ui.Sub
+  open m
+  if m.done then Sure.Ui.Sub.none
+  else Sure.Ui.Sub.sse("/sheet/rows", "chunk")
+
+Sure.Sheet: Sure.Ui.App<Sure.Sheet.Model>
+  Sure.Ui.element<Sure.Sheet.Model>(Sure.Sheet.init, Sure.Ui.Cmd.http("/sheet/state", "load"), Sure.Sheet.view, Sure.Sheet.update, Sure.Sheet.subs)
+
+Sure.Sheet.client: Sure.Ui.Client<Sure.Sheet.Model>
+  Sure.Ui.pack<Sure.Sheet.Model>(Sure.Sheet)

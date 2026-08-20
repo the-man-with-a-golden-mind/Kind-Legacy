@@ -1,0 +1,2 @@
+Host.encode.sleep0: Host.encode(Host.Op.sleep(0)) == Pair.new<String, String>("sleep", "0")
+  refl

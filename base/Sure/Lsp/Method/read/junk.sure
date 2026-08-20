@@ -1,0 +1,2 @@
+Sure.Lsp.Method.read.junk: Maybe.is_none<Sure.Lsp.Method>(Sure.Lsp.Method.read("hover")) == true
+  refl

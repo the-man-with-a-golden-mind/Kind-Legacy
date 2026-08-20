@@ -1,0 +1,2 @@
+JSON.dec.nat.junk: JSON.dec.nat(JSON.string("abc")) == none
+  refl

@@ -1,0 +1,2 @@
+Http.Method.read.bad: Http.Method.read("FOO") == none
+  refl

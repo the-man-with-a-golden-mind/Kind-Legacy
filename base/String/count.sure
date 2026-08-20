@@ -1,0 +1,12 @@
+String.count.go(n: Nat, match: String, xs: String): Nat
+  if String.is_empty(match) then n
+  else if String.starts_with(xs, match) then
+    String.count.go(Nat.succ(n), match, String.drop(String.length(match), xs))
+  else
+    case xs {
+      nil: n
+      cons: String.count.go(n, match, xs.tail)
+    }
+
+String.count(xs: String, match: String): Nat
+  String.count.go(0, match, xs)

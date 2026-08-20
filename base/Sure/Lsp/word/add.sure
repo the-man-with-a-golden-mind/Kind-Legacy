@@ -1,0 +1,2 @@
+Sure.Lsp.word.add: Sure.Lsp.word("Nat.add", 0) == "Nat.add"
+  refl

@@ -1,0 +1,2 @@
+Sure.Doc.leading.empty: Sure.Doc.leading("") == ""
+  refl

@@ -1,0 +1,2 @@
+Host.to_env_unit.ok: Host.to_env_unit(Host.decode("0\n")) == Outcome.ok<Sure.Env.Err, Unit>(unit)
+  refl

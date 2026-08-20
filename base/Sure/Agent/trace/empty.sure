@@ -1,0 +1,2 @@
+Sure.Agent.trace.empty: Sure.Agent.trace("", "", "") == "Goal ?:\nWith type: \nWith context:\n"
+  refl

@@ -1,0 +1,8 @@
+Sure.Agent.deps.all: Unit
+  let u0 = Sure.Agent.uniq.empty
+  let d0 = Sure.Agent.deps.empty
+  let d1 = Sure.Agent.deps.none
+  let d2 = Sure.Agent.deps.nat
+  let d3 = Sure.Agent.deps.dup
+  let d4 = Sure.Agent.deps.without
+  unit

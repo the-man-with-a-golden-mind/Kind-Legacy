@@ -1,0 +1,10 @@
+F64.bits_ones(b: Bits, n: Nat): Bool
+  case n {
+    zero: true
+    succ:
+      case b {
+        e: false
+        o: false
+        i: F64.bits_ones(b.pred, n.pred)
+      }
+  }

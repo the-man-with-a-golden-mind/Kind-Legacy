@@ -1,0 +1,5 @@
+Compress.gzip(text: String): IO<Outcome<Compress.Err, String>>
+  IO {
+    get raw = IO.ask<String>("gzip", text, (t) IO.end<String>(t))
+    return Compress.decode(raw)
+  }

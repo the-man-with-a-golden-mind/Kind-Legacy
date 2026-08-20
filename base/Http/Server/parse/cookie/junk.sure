@@ -1,0 +1,2 @@
+Http.Server.parse.cookie.junk: Http.Server.parse.cookie("0\nabc\nGET\n/ping\nsure_sid=nope\n") == "sure_sid=nope"
+  refl

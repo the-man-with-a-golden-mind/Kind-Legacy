@@ -1,0 +1,12 @@
+Sure.Csv.all: Unit
+  let n0 = Sure.Csv.need_quote.empty
+  let n1 = Sure.Csv.need_quote.comma
+  let r0 = Sure.Csv.read.empty
+  let s0 = Sure.Csv.show.empty
+  let g0 = Sure.Csv.get.empty
+  let c0 = Sure.Csv.col.empty
+  let h0 = Sure.Csv.header.empty
+  let b0 = Sure.Csv.body.empty
+  let t0 = Sure.Csv.nats.empty
+  let f0 = Sure.Csv.field.plain
+  unit

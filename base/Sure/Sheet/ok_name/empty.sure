@@ -1,0 +1,2 @@
+Sure.Sheet.ok_name.empty: Sure.Sheet.ok_name("") == false
+  refl

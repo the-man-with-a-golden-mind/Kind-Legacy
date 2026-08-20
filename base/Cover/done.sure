@@ -1,0 +1,47 @@
+// Remaining public names: definitional empty/junk/border lemmas.
+// Http.App.match / Server.get / Server.post do not reduce; Test.suite covers them.
+
+Cover.done.dsl_run_keys: Db.Dsl.run(Db.Conn.new(""), Db.Dsl.keys) == IO {
+    get r = Db.keys(Db.Conn.new(""))
+    return case r {
+      err: Outcome.err<Db.Err, Db.Dsl.Out>(r.error)
+      ok: Outcome.ok<Db.Err, Db.Dsl.Out>(Db.Dsl.Out.list(r.value))
+    }
+  }
+  refl
+
+Cover.done.dsl_run_get_empty: Db.Dsl.run(Db.Conn.new(""), Db.Dsl.get("")) == IO {
+    get r = Db.get(Db.Conn.new(""), "")
+    return case r {
+      err: Outcome.err<Db.Err, Db.Dsl.Out>(r.error)
+      ok: Outcome.ok<Db.Err, Db.Dsl.Out>(Db.Dsl.Out.text(r.value))
+    }
+  }
+  refl
+
+Cover.done.mig_load: Db.Mig.load(Db.Conn.new("")) == IO {
+    get r = Db.get(Db.Conn.new(""), Db.Mig.log_key)
+    return case r {
+      ok: Outcome.ok<Db.Err, List<String>>(Db.Mig.split(r.value))
+      err:
+        case r.error {
+          missing: Outcome.ok<Db.Err, List<String>>([])
+        } default Outcome.err<Db.Err, List<String>>(r.error)
+    }
+  }
+  refl
+
+Cover.done.mig_save_nil: Db.Mig.save(Db.Conn.new(""), []) == Db.set(Db.Conn.new(""), Db.Mig.log_key, Db.Mig.join([]))
+  refl
+
+Cover.done.timeout_sleep_00: Task.timeout_sleep(0, 0) == IO {
+    get done = Task.race_sleep(0, 0)
+    return Task.timeout_pick(done)
+  }
+  refl
+
+Cover.done.string_concats: String.concats == Variadic.foldr!!(String.concat, String.nil)
+  refl
+
+Cover.done.nat_random_range(min: Nat, max: Nat, seed: Nat): Nat.random_range(min, max, seed) == (Nat.random(seed) % max) + min
+  refl

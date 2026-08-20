@@ -1,0 +1,17 @@
+Http.App.step(port: Nat, routes: List<Http.App.Route>): IO<Bool>
+  IO {
+    get raw = Http.Server.recv(port)
+    let parsed = Http.Server.parse(raw)
+    case parsed {
+      none: IO {
+        return false
+      }
+      some: IO {
+        get res = Http.App.fire(routes, parsed.value)
+        open parsed.value
+        open res
+        Http.Server.reply(parsed.value.id, res.status, res.body)
+        return true
+      }
+    }
+  }

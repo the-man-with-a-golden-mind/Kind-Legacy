@@ -1,0 +1,2 @@
+Sure.Ssr.sse_script.empty: Sure.Ssr.sse_script("") == ""
+  refl

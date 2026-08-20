@@ -1,0 +1,2 @@
+Sure.Check.nat_day: Nat.read("86400000") == Nat.read("86400000")
+  refl

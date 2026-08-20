@@ -1,0 +1,2 @@
+JSON.stringify.false: JSON.stringify(JSON.bool(false)) == "false"
+  refl

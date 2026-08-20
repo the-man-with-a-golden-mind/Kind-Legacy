@@ -1,0 +1,2 @@
+Sure.Ui.Cmd.show.post: Sure.Ui.Cmd.show(Sure.Ui.Cmd.post("/u", "b", "ok")) == "O\n/u\nok\nb"
+  refl

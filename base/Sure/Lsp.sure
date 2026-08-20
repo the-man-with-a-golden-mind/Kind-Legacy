@@ -1,0 +1,83 @@
+// Language Server protocol. Empty names, junk methods, and empty URIs are none.
+
+Sure.Lsp.lang: String
+  "sure"
+
+Sure.Lsp.sync: Nat
+  1
+
+Sure.Lsp.crlf: String
+  "\r\n"
+
+Sure.Lsp.ext(path: String): Bool
+  String.ends_with(path, ".sure")
+
+Sure.Lsp.uri_ok(s: String): Bool
+  if String.is_empty(s) then false
+  else if String.starts_with(s, "file:") then true
+  else if String.starts_with(s, "untitled:") then true
+  else false
+
+Sure.Lsp.frame(body: String): String
+  "Content-Length: " | Nat.show(String.length(body)) | "\r\n\r\n" | body
+
+Sure.Lsp.is_letter(c: Char): Bool
+  Bool.or(
+    Bool.and(U16.gte(c, 'A'), U16.lte(c, 'Z')),
+    Bool.and(U16.gte(c, 'a'), U16.lte(c, 'z'))
+  )
+
+Sure.Lsp.is_ident(c: Char): Bool
+  Bool.or(
+    Sure.Lsp.is_letter(c),
+    Bool.or(Char.is_digit(c), Bool.or(U16.eql(c, '_'), U16.eql(c, '.')))
+  )
+
+Sure.Lsp.take_ident(s: String): String
+  case s {
+    nil: ""
+    cons:
+      if Sure.Lsp.is_ident(s.head) then String.cons(s.head, Sure.Lsp.take_ident(s.tail))
+      else ""
+  }
+
+Sure.Lsp.word_left(pre: String): String
+  String.reverse(Sure.Lsp.take_ident(String.reverse(pre)))
+
+Sure.Lsp.word(text: String, offset: Nat): String
+  Sure.Lsp.word_left(String.take(offset, text)) | Sure.Lsp.take_ident(String.drop(offset, text))
+
+Sure.Lsp.offset.go(text: String, line: Nat, character: Nat, acc: Nat): Nat
+  case line {
+    zero: Nat.add(acc, Nat.min(character, String.length(text)))
+    succ:
+      case text {
+        nil: acc
+        cons:
+          if U16.eql(text.head, '\n') then
+            Sure.Lsp.offset.go(text.tail, line.pred, character, Nat.succ(acc))
+          else
+            Sure.Lsp.offset.go(text.tail, line, character, Nat.succ(acc))
+      }
+  }
+
+Sure.Lsp.offset(text: String, line: Nat, character: Nat): Nat
+  Sure.Lsp.offset.go(text, line, character, 0)
+
+Sure.Lsp.keyword(s: String): Bool
+  if String.eql(s, "type") then true
+  else if String.eql(s, "case") then true
+  else if String.eql(s, "let") then true
+  else if String.eql(s, "open") then true
+  else if String.eql(s, "as") then true
+  else if String.eql(s, "if") then true
+  else if String.eql(s, "then") then true
+  else if String.eql(s, "else") then true
+  else if String.eql(s, "some") then true
+  else if String.eql(s, "none") then true
+  else if String.eql(s, "true") then true
+  else if String.eql(s, "false") then true
+  else if String.eql(s, "refl") then true
+  else if String.eql(s, "unit") then true
+  else if String.eql(s, "with") then true
+  else false

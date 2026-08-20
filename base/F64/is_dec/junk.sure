@@ -1,0 +1,2 @@
+F64.is_dec.junk: F64.is_dec("abc") == false
+  refl

@@ -1,0 +1,2 @@
+Sure.Tweeter.show_feed.nil: Sure.Tweeter.show_feed([]) == "ok"
+  refl

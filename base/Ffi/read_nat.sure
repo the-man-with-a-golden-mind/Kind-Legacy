@@ -1,0 +1,6 @@
+// JS numbers come back as JSON.number; Kind nats also as digit strings.
+Ffi.read_nat(j: JSON): Maybe<Nat>
+  case j {
+    string: JSON.dec.nat(j)
+    number: some(F64.to_nat(j.value))
+  } default none

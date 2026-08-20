@@ -1,0 +1,25 @@
+// Goal traces and hole fill. Mentioning a theorem here forces it to check.
+Sure.Agent.all: Unit
+  let f0 = Sure.Agent.fill.def
+  let f1 = Sure.Agent.fill.two
+  let f2 = Sure.Agent.fill.empty_term
+  let f3 = Sure.Agent.fill.first.one
+  let f4 = Sure.Agent.fill.first.keep
+  let f5 = Sure.Agent.fill.first.none
+  let f6 = Sure.Agent.fill.first.empty
+  let h0 = Sure.Agent.hole_count.zero
+  let h1 = Sure.Agent.hole_count.empty
+  let h2 = Sure.Agent.hole_count.one
+  let h3 = Sure.Agent.hole_count.two
+  let t0 = Sure.Agent.trace.empty
+  let t1 = Sure.Agent.trace.nat
+  let m0 = Sure.Agent.Method.show.fill
+  let m1 = Sure.Agent.Method.read.fill
+  let m2 = Sure.Agent.Method.show.trace
+  let m3 = Sure.Agent.Method.read.trace
+  let m4 = Sure.Agent.Method.show.gen
+  let m5 = Sure.Agent.Method.read.gen
+  let m6 = Sure.Agent.Method.show.debug
+  let m7 = Sure.Agent.Method.read.debug
+  unit
+

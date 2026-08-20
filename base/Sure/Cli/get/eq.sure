@@ -1,0 +1,2 @@
+Sure.Cli.get.eq: Sure.Cli.get(Sure.Cli.parse(["--x=y"]), "x") == some("y")
+  refl

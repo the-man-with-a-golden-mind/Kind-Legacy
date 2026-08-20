@@ -1,0 +1,14 @@
+Ffi.all: Unit
+  let s0 = Ffi.safe.empty
+  let s1 = Ffi.safe.math
+  let s2 = Ffi.safe.nl
+  let s3 = Ffi.safe.slash
+  let e0 = Ffi.Err.show.missing
+  let d0 = Ffi.decode.missing
+  let d1 = Ffi.decode.empty_name
+  let d2 = Ffi.decode.tag
+  let d3 = Ffi.decode.null
+  let d4 = Ffi.decode.bad
+  let f0 = Ffi.from_json.none
+  let t0 = Ffi.err_of.throw
+  unit

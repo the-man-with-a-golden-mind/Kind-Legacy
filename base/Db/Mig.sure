@@ -1,0 +1,172 @@
+// Forward migrations on a Db store. Empty names are not steps.
+// A missing log is no applied steps. Re-run applies 0. Empty down is a no-op.
+
+type Db.Mig {
+  new(name: String, up: List<Db.Dsl>, down: List<Db.Dsl>)
+}
+
+Db.Mig.log_key: String
+  "__sure.mig"
+
+Db.Mig.ok_name(s: String): Bool
+  Db.safe_key(s)
+
+Db.Mig.step(name: String, up: List<Db.Dsl>, down: List<Db.Dsl>): Maybe<Db.Mig>
+  if Bool.not(Db.Mig.ok_name(name)) then none
+  else some(Db.Mig.new(name, up, down))
+
+Db.Mig.split(s: String): List<String>
+  if String.is_empty(s) then []
+  else List.filter<String>((x) Bool.not(String.is_empty(x)), String.split(s, "\n"))
+
+Db.Mig.join.go(xs: List<String>, acc: String): String
+  case xs {
+    nil: acc
+    cons:
+      if String.is_empty(acc) then Db.Mig.join.go(xs.tail, xs.head)
+      else Db.Mig.join.go(xs.tail, acc | "\n" | xs.head)
+  }
+
+Db.Mig.join(xs: List<String>): String
+  Db.Mig.join.go(xs, "")
+
+Db.Mig.has.go(name: String, xs: List<String>): Bool
+  case xs {
+    nil: false
+    cons:
+      if String.eql(xs.head, name) then true
+      else Db.Mig.has.go(name, xs.tail)
+  }
+
+Db.Mig.has(name: String, xs: List<String>): Bool
+  if String.is_empty(name) then false
+  else Db.Mig.has.go(name, xs)
+
+Db.Mig.drop_last(xs: List<String>): List<String>
+  case List.reverse<String>(xs) as ys {
+    nil: []
+    cons: List.reverse<String>(ys.tail)
+  }
+
+Db.Mig.last(xs: List<String>): Maybe<String>
+  case List.reverse<String>(xs) as ys {
+    nil: none
+    cons: some(ys.head)
+  }
+
+Db.Mig.find(name: String, xs: List<Db.Mig>): Maybe<Db.Mig>
+  case xs {
+    nil: none
+    cons:
+      open xs.head
+      if String.eql(xs.head.name, name) then some(xs.head)
+      else Db.Mig.find(name, xs.tail)
+  }
+
+Db.Mig.load(conn: Db.Conn): IO<Outcome<Db.Err, List<String>>>
+  IO {
+    get r = Db.get(conn, Db.Mig.log_key)
+    return case r {
+      ok: Outcome.ok<Db.Err, List<String>>(Db.Mig.split(r.value))
+      err:
+        case r.error {
+          missing: Outcome.ok<Db.Err, List<String>>([])
+        } default Outcome.err<Db.Err, List<String>>(r.error)
+    }
+  }
+
+Db.Mig.save(conn: Db.Conn, xs: List<String>): IO<Outcome<Db.Err, Unit>>
+  Db.set(conn, Db.Mig.log_key, Db.Mig.join(xs))
+
+Db.Mig.run_list(conn: Db.Conn, xs: List<Db.Dsl>): IO<Outcome<Db.Err, Unit>>
+  case xs {
+    nil: IO.end<Outcome<Db.Err, Unit>>(Outcome.ok<Db.Err, Unit>(unit))
+    cons: IO {
+      get r = Db.Dsl.run(conn, xs.head)
+      case r {
+        err: IO {
+          return Outcome.err<Db.Err, Unit>(r.error)
+        }
+        ok: Db.Mig.run_list(conn, xs.tail)
+      }
+    }
+  }
+
+Db.Mig.up.go(conn: Db.Conn, steps: List<Db.Mig>, applied: List<String>, n: Nat): IO<Outcome<Db.Err, Nat>>
+  case steps {
+    nil: IO.end<Outcome<Db.Err, Nat>>(Outcome.ok<Db.Err, Nat>(n))
+    cons:
+      open steps.head
+      if Bool.not(Db.Mig.ok_name(steps.head.name)) then
+        IO.end<Outcome<Db.Err, Nat>>(Outcome.err<Db.Err, Nat>(Db.Err.empty_key))
+      else if Db.Mig.has(steps.head.name, applied) then
+        Db.Mig.up.go(conn, steps.tail, applied, n)
+      else IO {
+        get r = Db.Mig.run_list(conn, steps.head.up)
+        case r {
+          err: IO {
+            return Outcome.err<Db.Err, Nat>(r.error)
+          }
+          ok: IO {
+            let next = List.concat<String>(applied, [steps.head.name])
+            get s = Db.Mig.save(conn, next)
+            case s {
+              err: IO {
+                return Outcome.err<Db.Err, Nat>(s.error)
+              }
+              ok: Db.Mig.up.go(conn, steps.tail, next, Nat.succ(n))
+            }
+          }
+        }
+      }
+  }
+
+Db.Mig.up(conn: Db.Conn, steps: List<Db.Mig>): IO<Outcome<Db.Err, Nat>>
+  IO {
+    get log = Db.Mig.load(conn)
+    case log {
+      err: IO {
+        return Outcome.err<Db.Err, Nat>(log.error)
+      }
+      ok: Db.Mig.up.go(conn, steps, log.value, 0)
+    }
+  }
+
+Db.Mig.down.go(conn: Db.Conn, applied: List<String>, steps: List<Db.Mig>, n: Nat): IO<Outcome<Db.Err, Nat>>
+  case Db.Mig.last(applied) as last {
+    none: IO.end<Outcome<Db.Err, Nat>>(Outcome.ok<Db.Err, Nat>(n))
+    some:
+      case Db.Mig.find(last.value, steps) as st {
+        none: IO.end<Outcome<Db.Err, Nat>>(Outcome.err<Db.Err, Nat>(Db.Err.io("unknown mig")))
+        some: IO {
+          open st.value
+          get r = Db.Mig.run_list(conn, st.value.down)
+          case r {
+            err: IO {
+              return Outcome.err<Db.Err, Nat>(r.error)
+            }
+            ok: IO {
+              let next = Db.Mig.drop_last(applied)
+              get s = Db.Mig.save(conn, next)
+              case s {
+                err: IO {
+                  return Outcome.err<Db.Err, Nat>(s.error)
+                }
+                ok: Db.Mig.down.go(conn, next, steps, Nat.succ(n))
+              }
+            }
+          }
+        }
+      }
+  }
+
+Db.Mig.down(conn: Db.Conn, steps: List<Db.Mig>): IO<Outcome<Db.Err, Nat>>
+  IO {
+    get log = Db.Mig.load(conn)
+    case log {
+      err: IO {
+        return Outcome.err<Db.Err, Nat>(log.error)
+      }
+      ok: Db.Mig.down.go(conn, log.value, steps, 0)
+    }
+  }

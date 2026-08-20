@@ -1,0 +1,7 @@
+Host.Err.show(e: Host.Err): String
+  case e {
+    empty: "empty"
+    missing: "missing"
+    io: e.message
+    bad_tag: "bad host tag"
+  }

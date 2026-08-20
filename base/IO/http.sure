@@ -1,0 +1,3 @@
+IO.http(payload: String): IO<String>
+  IO.ask<String>("http", payload, (text)
+  IO.end<String>(text))

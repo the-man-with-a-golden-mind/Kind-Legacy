@@ -1,0 +1,2 @@
+Host.encode.random: Host.encode(Host.Op.random) == Pair.new<String, String>("get_random", "")
+  refl

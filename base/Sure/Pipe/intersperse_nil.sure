@@ -1,0 +1,2 @@
+Sure.Pipe.intersperse_nil: Sure.Pipe.intersperse<Nat>(0, []) == []
+  refl

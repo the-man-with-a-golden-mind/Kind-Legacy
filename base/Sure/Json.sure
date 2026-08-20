@@ -1,0 +1,24 @@
+// Minimal JSON string escape for compiler diagnostics.
+Sure.Json.escape(str: String): String
+  case str {
+    nil:
+      ""
+    cons:
+      let head =
+        if U16.eql(str.head, '"') then "\\\""
+        else if U16.eql(str.head, '\\') then "\\\\"
+        else if U16.eql(str.head, '\n') then "\\n"
+        else if U16.eql(str.head, '\r') then "\\r"
+        else if U16.eql(str.head, '\t') then "\\t"
+        else Char.to_string(str.head)
+      head | Sure.Json.escape(str.tail)
+  }
+
+Sure.Json.string(str: String): String
+  "\"" | Sure.Json.escape(str) | "\""
+
+Sure.Json.null: String
+  "null"
+
+Sure.Json.field(key: String, value: String): String
+  Sure.Json.string(key) | ":" | value

@@ -1,0 +1,2 @@
+Sure.Check.nat_lte: Nat.lte(3, 5) == true
+  refl

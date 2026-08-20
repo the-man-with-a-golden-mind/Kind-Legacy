@@ -1,0 +1,14 @@
+Http.Server.serve_one(port: Nat, then: Http.Server.Req -> IO<Unit>): IO<Bool>
+  IO {
+    get raw = Http.Server.recv(port)
+    let parsed = Http.Server.parse(raw)
+    case parsed {
+      none: IO {
+        return false
+      }
+      some: IO {
+        then(parsed.value)
+        return true
+      }
+    }
+  }

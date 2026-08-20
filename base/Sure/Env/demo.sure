@@ -1,0 +1,18 @@
+Sure.Env.demo: IO<Unit>
+  IO {
+    get a = Sure.Env.get("")
+    get b = Sure.Env.get("SURE_NO_SUCH_ENV_ZZ")
+    get s = Sure.Env.set("SURE_ENV_DEMO", "x")
+    get d = Sure.Env.get("SURE_ENV_DEMO")
+    get z = Sure.Env.set("SURE_ENV_DEMO", "")
+    get e = Sure.Env.get("SURE_ENV_DEMO")
+    get u = Sure.Env.del("SURE_ENV_DEMO")
+    let sa = Sure.Env.show_get(a)
+    let sb = Sure.Env.show_get(b)
+    let sd = Sure.Env.show_get(d)
+    let se = case e {
+      err: "err"
+      ok: if String.is_empty(e.value) then "-" else e.value
+    }
+    IO.print(sa | " " | sb | " " | sd | " " | se)
+  }

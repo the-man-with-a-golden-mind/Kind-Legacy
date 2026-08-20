@@ -1,0 +1,25 @@
+Sure.Cfg.all: Unit
+  let k0 = Sure.Cfg.ok_key.empty
+  let k1 = Sure.Cfg.ok_key.x
+  let k2 = Sure.Cfg.ok_key.nl
+  let k3 = Sure.Cfg.ok_key.nul
+  let b0 = Sure.Cfg.blank.empty
+  let b1 = Sure.Cfg.blank.x
+  let e0 = Sure.Cfg.Err.show.empty_path
+  let e1 = Sure.Cfg.Err.show.missing
+  let e2 = Sure.Cfg.Err.show.junk
+  let e3 = Sure.Cfg.Err.show.bad_file
+  let e4 = Sure.Cfg.Err.read.empty
+  let e5 = Sure.Cfg.Err.read.junk
+  let o0 = Sure.Cfg.of.null
+  let o1 = Sure.Cfg.of.arr
+  let o2 = Sure.Cfg.of.bool
+  let r0 = Sure.Cfg.read.junk
+  let g0 = Sure.Cfg.get.empty
+  let g1 = Sure.Cfg.get_or.empty
+  let n0 = Sure.Cfg.need.empty
+  let f0 = Sure.Cfg.flag.empty
+  let h0 = Sure.Cfg.has.empty
+  let p0 = Sure.Cfg.path.empty
+  let p1 = Sure.Cfg.path.bad
+  unit

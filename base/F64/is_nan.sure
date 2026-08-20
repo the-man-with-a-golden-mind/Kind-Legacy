@@ -1,0 +1,3 @@
+F64.is_nan(x: F64): Bool
+  let b = F64.word_bits(x)
+  Bool.and(F64.bits_ones(Bits.drop(52, b), 11), Bool.not(F64.bits_zero(b, 52)))

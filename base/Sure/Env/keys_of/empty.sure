@@ -1,0 +1,2 @@
+Sure.Env.keys_of.empty: List.length<String>(Sure.Env.keys_of("")) == 0
+  refl

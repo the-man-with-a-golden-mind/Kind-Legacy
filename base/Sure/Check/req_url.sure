@@ -1,0 +1,5 @@
+Sure.Check.req_url:
+  let r = Http.Server.Req.new("0", "GET", "/u", "c", "b")
+  open r
+  r.url == "/u"
+  refl

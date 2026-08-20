@@ -1,0 +1,2 @@
+Proc.decode.stdout: Proc.decode.out("0\n0\nhi") == "hi"
+  refl

@@ -1,0 +1,33 @@
+Sure.Qc.shrink(v: Sure.Qc.Val): List<Sure.Qc.Val>
+  case v {
+    unit: []
+    bool:
+      case v.value {
+        false: []
+        true: [Sure.Qc.Val.bool(false)]
+      }
+    nat:
+      case v.value {
+        zero: []
+        succ: [Sure.Qc.Val.nat(0), Sure.Qc.Val.nat(v.value.pred)]
+      }
+    string:
+      case v.value {
+        nil: []
+        cons: [Sure.Qc.Val.string(""), Sure.Qc.Val.string(v.value.tail)]
+      }
+    list:
+      case v.value {
+        nil: []
+        cons: [Sure.Qc.Val.list([]), Sure.Qc.Val.list(v.value.tail)]
+      }
+    pair:
+      List.concat<Sure.Qc.Val>(
+        List.map<Sure.Qc.Val, Sure.Qc.Val>((a) Sure.Qc.Val.pair(a, v.snd), Sure.Qc.shrink(v.fst)),
+        List.map<Sure.Qc.Val, Sure.Qc.Val>((b) Sure.Qc.Val.pair(v.fst, b), Sure.Qc.shrink(v.snd))
+      )
+    none: []
+    some: List.cons<Sure.Qc.Val>(Sure.Qc.Val.none, Sure.Qc.shrink(v.value))
+    left: Sure.Qc.shrink(v.value)
+    right: Sure.Qc.shrink(v.value)
+  }

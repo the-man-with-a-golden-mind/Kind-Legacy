@@ -1,0 +1,6 @@
+Task.both.def<A: Type, B: Type>(x: A, y: B):
+  Task.both<A, B>(Task.pure<A>(x), Task.pure<B>(y)) ==
+    IO.bind<A, Pair<A, B>>(IO.end<A>(x), (x)
+      IO.bind<B, Pair<A, B>>(IO.end<B>(y), (y)
+        IO.end<Pair<A, B>>(Pair.new<A, B>(x, y))))
+  refl

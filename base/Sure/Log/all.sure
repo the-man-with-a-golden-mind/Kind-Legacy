@@ -1,0 +1,5 @@
+Sure.Log.all: Unit
+  let w0 = Sure.Log.want.off
+  let f0 = Sure.Log.format.off
+  let f1 = Sure.Log.format.info
+  unit

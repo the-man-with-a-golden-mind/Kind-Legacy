@@ -1,0 +1,2 @@
+Regex.ok.dot: Regex.ok(".", "q") == true
+  refl

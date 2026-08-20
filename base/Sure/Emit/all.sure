@@ -1,0 +1,18 @@
+Sure.Emit.all: Unit
+  let d0 = Sure.Emit.dir.def
+  let j0 = Sure.Emit.js_name.empty
+  let j1 = Sure.Emit.js_name.main
+  let j2 = Sure.Emit.js_name.dot
+  let f0 = Sure.Emit.file.empty
+  let f1 = Sure.Emit.file.main
+  let r0 = Sure.Emit.ready.no_js
+  let r1 = Sure.Emit.ready.unproved
+  let r2 = Sure.Emit.ready.ok
+  let h0 = Sure.Emit.html_name.empty
+  let h1 = Sure.Emit.html_file.main
+  let k0 = Sure.Emit.safe.empty
+  let k1 = Sure.Emit.safe.main
+  let k2 = Sure.Emit.safe.slash
+  let k3 = Sure.Emit.safe.dotdot
+  let k4 = Sure.Emit.file.slash
+  unit

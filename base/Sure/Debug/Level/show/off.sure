@@ -1,0 +1,2 @@
+Sure.Debug.Level.show.off: Sure.Debug.Level.show(Sure.Debug.Level.off) == "off"
+  refl

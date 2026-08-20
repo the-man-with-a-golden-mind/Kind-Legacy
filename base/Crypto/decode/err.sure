@@ -1,0 +1,2 @@
+Crypto.decode.err: Outcome.is_ok<Crypto.Err, String>(Crypto.decode("1\nbad")) == false
+  refl

@@ -1,0 +1,7 @@
+Test.Stats.add.zero_right(p: Nat, f: Nat):
+  Test.Stats.add(Test.Stats.new(p, f), Test.Stats.zero) == Test.Stats.new(p, f)
+  let ep = Nat.add.zero_right(p)
+  let ef = Nat.add.zero_right(f)
+  let p0 = apply((x) Test.Stats.new(x, Nat.add(f, 0)), ep)
+  let p1 = apply((y) Test.Stats.new(p, y), ef)
+  Equal.chain!!!!(p0, p1)

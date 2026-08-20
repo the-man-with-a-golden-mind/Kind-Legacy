@@ -1,0 +1,2 @@
+Sure.Cfg.read.junk: Maybe.is_none<Sure.Cfg>(Sure.Cfg.read("nope")) == true
+  refl

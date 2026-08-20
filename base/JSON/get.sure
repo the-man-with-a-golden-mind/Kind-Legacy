@@ -1,0 +1,4 @@
+JSON.get(j: JSON, key: String): Maybe<JSON>
+  case j {
+    object: Map.get<JSON>(key, j.value)
+  } default none

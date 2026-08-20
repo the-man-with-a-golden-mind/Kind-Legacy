@@ -1,0 +1,2 @@
+Crypto.decode.bad_tag: Outcome.is_ok<Crypto.Err, String>(Crypto.decode("nope")) == false
+  refl

@@ -1,0 +1,2 @@
+Sure.Agent.Method.read.parse: Sure.Agent.Method.read("sure.parse") == some(Sure.Agent.Method.parse)
+  refl

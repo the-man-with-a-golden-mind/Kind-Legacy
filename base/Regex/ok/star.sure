@@ -1,0 +1,2 @@
+Regex.ok.star: Regex.ok("a*", "") == true
+  refl

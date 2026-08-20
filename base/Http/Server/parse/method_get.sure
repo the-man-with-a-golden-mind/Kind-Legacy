@@ -1,0 +1,2 @@
+Http.Server.parse.method_get: Http.Server.parse.method("0\nabc\nGET\n/ping\n") == "GET"
+  refl

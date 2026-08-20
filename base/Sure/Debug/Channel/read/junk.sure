@@ -1,0 +1,2 @@
+Sure.Debug.Channel.read.junk: Maybe.is_none<Sure.Debug.Channel>(Sure.Debug.Channel.read("all")) == true
+  refl

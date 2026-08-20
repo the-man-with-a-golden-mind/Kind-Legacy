@@ -1,0 +1,2 @@
+Sure.Ui.Sub.show.every_zero: Sure.Ui.Sub.show(Sure.Ui.Sub.every(0, "t")) == ""
+  refl

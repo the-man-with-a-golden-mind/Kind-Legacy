@@ -1,0 +1,2 @@
+Sure.Lsp.offset.nl: Sure.Lsp.offset("a\nb", 1, 0) == 2
+  refl

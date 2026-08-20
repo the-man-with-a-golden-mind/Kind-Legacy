@@ -1,0 +1,9 @@
+Bytes.xor(a: Bytes, b: Bytes): Bytes
+  case a {
+    nil: []
+    cons:
+      case b {
+        nil: []
+        cons: List.cons<U8>(U8.xor(a.head, b.head), Bytes.xor(a.tail, b.tail))
+      }
+  }

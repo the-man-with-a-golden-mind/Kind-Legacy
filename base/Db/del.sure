@@ -1,0 +1,9 @@
+Db.del(conn: Db.Conn, key: String): IO<Outcome<Db.Err, Unit>>
+  open conn
+  case Db.key_err(key) as ke {
+    some: IO.end<Outcome<Db.Err, Unit>>(Outcome.err<Db.Err, Unit>(ke.value))
+    none: IO {
+      get raw = IO.ask<String>("db_del", conn.id | "\n" | key, (t) IO.end<String>(t))
+      return Db.decode_unit(raw)
+    }
+  }

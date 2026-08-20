@@ -1,0 +1,13 @@
+Crypto.all: Unit
+  let h0 = Crypto.is_hex.empty
+  let h1 = Crypto.is_hex.ok
+  let h2 = Crypto.is_hex.bad
+  let x0 = Crypto.hex64.empty
+  let x1 = Crypto.hex64.short
+  let x2 = Crypto.hex64.abc
+  let x3 = Crypto.hex64.empty_vec
+  let d0 = Crypto.decode.err
+  let d1 = Crypto.decode.bad_tag
+  let d2 = Crypto.decode.short
+  let d3 = Crypto.decode.abc
+  unit

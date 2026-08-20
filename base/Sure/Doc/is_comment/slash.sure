@@ -1,0 +1,2 @@
+Sure.Doc.is_comment.slash: Sure.Doc.is_comment("/") == false
+  refl

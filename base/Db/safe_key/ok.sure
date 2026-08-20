@@ -1,0 +1,2 @@
+Db.safe_key.ok: Db.safe_key("k") == true
+  refl

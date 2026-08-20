@@ -1,0 +1,2 @@
+Time.Month.of_nat.zero: Maybe.is_none<Time.Month>(Time.Month.of_nat(0)) == true
+  refl

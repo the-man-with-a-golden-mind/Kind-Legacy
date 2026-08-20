@@ -1,0 +1,13 @@
+Worker.all: Unit
+  let s0 = Worker.safe.empty
+  let s1 = Worker.safe.slash
+  let s2 = Worker.safe.math
+  let e0 = Worker.Err.show.empty_name
+  let e1 = Worker.Err.show.no_thread
+  let d0 = Worker.decode.empty_name
+  let d1 = Worker.decode.missing
+  let d2 = Worker.decode.junk
+  let d3 = Worker.decode.empty
+  let j0 = Worker.join_list.err
+  let j1 = Worker.join_list.nil
+  unit

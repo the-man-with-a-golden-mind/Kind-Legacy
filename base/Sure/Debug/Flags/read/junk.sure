@@ -1,0 +1,2 @@
+Sure.Debug.Flags.read.junk: Sure.Debug.Flags.any(Sure.Debug.Flags.read("loud")) == false
+  refl

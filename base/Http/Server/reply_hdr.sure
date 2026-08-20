@@ -1,0 +1,9 @@
+Http.Server.reply_hdr(id: String, status: Nat, headers: String, body: String): IO<Unit>
+  IO {
+    IO.ask<Unit>(
+      "http_reply_hdr",
+      id | "\n" | Nat.show(status) | "\n" | headers | "\n\n" | body,
+      (t) IO.end<Unit>(unit)
+    )
+    return unit
+  }

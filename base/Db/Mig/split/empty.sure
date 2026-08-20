@@ -1,0 +1,2 @@
+Db.Mig.split.empty: List.length<String>(Db.Mig.split("")) == 0
+  refl

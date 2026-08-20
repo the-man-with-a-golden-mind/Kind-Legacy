@@ -1,0 +1,2 @@
+String.has_none.hit: String.has_none("a b", [" "]) == false
+  refl

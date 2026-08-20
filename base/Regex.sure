@@ -1,0 +1,75 @@
+// Regular expressions. Junk patterns are none. Empty pattern is eps.
+type Regex {
+  eps
+  never
+  lit(c: Char)
+  any
+  cls(neg: Bool, cs: String)
+  concat(a: Regex, b: Regex)
+  alt(a: Regex, b: Regex)
+  star(r: Regex)
+}
+
+Regex.flat(xs: List<String>, f: String -> List<String>): List<String>
+  case xs {
+    nil: []
+    cons: List.concat<String>(f(xs.head), Regex.flat(xs.tail, f))
+  }
+
+Regex.shorter(s: String, t: String): Bool
+  Nat.ltn(String.length(t), String.length(s))
+
+Regex.in_class(cs: String, c: Char): Bool
+  String.includes(cs, Char.to_string(c))
+
+Regex.remainders(re: Regex, s: String): List<String>
+  case re {
+    eps: [s]
+    never: []
+    lit:
+      case s {
+        nil: []
+        cons: if U16.eql(s.head, re.c) then [s.tail] else []
+      }
+    any:
+      case s {
+        nil: []
+        cons: [s.tail]
+      }
+    cls:
+      case s {
+        nil: []
+        cons:
+          let hit = Regex.in_class(re.cs, s.head)
+          case re.neg {
+            true: if hit then [] else [s.tail]
+            false: if hit then [s.tail] else []
+          }
+      }
+    concat: Regex.flat(Regex.remainders(re.a, s), (rest) Regex.remainders(re.b, rest))
+    alt: List.concat<String>(Regex.remainders(re.a, s), Regex.remainders(re.b, s))
+    star: List.cons<String>(s, Regex.star_rest(re.r, s))
+  }
+
+Regex.star_rest(r: Regex, s: String): List<String>
+  Regex.flat(Regex.remainders(r, s), (rest)
+    if Regex.shorter(s, rest) then
+      List.cons<String>(rest, Regex.star_rest(r, rest))
+    else [])
+
+Regex.match(re: Regex, s: String): Bool
+  List.any<String>(String.is_empty, Regex.remainders(re, s))
+
+Regex.contains(re: Regex, s: String): Bool
+  if Bool.not(List.is_empty<String>(Regex.remainders(re, s))) then true
+  else
+    case s {
+      nil: false
+      cons: Regex.contains(re, s.tail)
+    }
+
+Regex.ok(pat: String, s: String): Bool
+  case Regex.read(pat) as r {
+    none: false
+    some: Regex.match(r.value, s)
+  }

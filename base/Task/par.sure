@@ -1,0 +1,3 @@
+// Parallel composition of two IO trees. The host runs both before join.
+Task.par<A: Type, B: Type>(a: IO<A>, b: IO<B>): IO<Pair<A, B>>
+  IO.par<Pair<A, B>, A, B>(a, b, (xy) IO.end<Pair<A, B>>(xy))

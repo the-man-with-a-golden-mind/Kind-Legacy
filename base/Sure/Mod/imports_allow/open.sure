@@ -1,0 +1,2 @@
+Sure.Mod.imports_allow.open: Sure.Mod.imports_allow([], "Foo.bar") == true
+  refl

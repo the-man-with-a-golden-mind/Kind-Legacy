@@ -1,0 +1,2 @@
+Sure.Pipe.flatten<A: Type>(xs: List<List<A>>): List<A>
+  List.flatten<A>(xs)

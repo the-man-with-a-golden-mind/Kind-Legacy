@@ -1,0 +1,2 @@
+Compress.decode.err: Outcome.is_ok<Compress.Err, String>(Compress.decode("1\nbad")) == false
+  refl

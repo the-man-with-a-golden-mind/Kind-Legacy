@@ -1,0 +1,18 @@
+Nat.read_base.go_stop_none(
+  base: Nat,
+  acc: Nat,
+  chr: Char,
+  tail: String
+)(e: Nat.read_base.digit(chr) == none):
+  Nat.read_base.go(base, String.cons(chr, tail), acc) == acc
+  rewrite X in
+    (case X {
+      none: acc
+      some:
+        if Nat.ltn(X.value, base) then
+          Nat.read_base.go(base, tail, Nat.add(Nat.mul(acc, base), X.value))
+        else
+          acc
+    }) == acc
+  with e
+  refl

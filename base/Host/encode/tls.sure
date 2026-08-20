@@ -1,0 +1,2 @@
+Host.encode.tls: Host.encode(Host.Op.tcp_connect("h", 1, true)) == Pair.new<String, String>("tcp_connect", "h\n1\n1")
+  refl

@@ -1,0 +1,2 @@
+Http.App.hit.get_id: Http.App.hit(Http.Method.get, "/user/:id", "GET", "/user/7", "id") == "7"
+  refl

@@ -1,0 +1,2 @@
+File.write.decode.ok: File.write.decode("0\n") == Outcome.ok<File.Err, Unit>(unit)
+  refl

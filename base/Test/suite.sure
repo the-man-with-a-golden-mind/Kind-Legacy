@@ -1,0 +1,3337 @@
+Test.suite: Test
+  Test.group("Sure security suite", [
+    Test.group("Nat.read_base", [
+      Test.unit("empty", Test.nat(Nat.read_base(10, ""), 0)),
+      Test.unit("dec 0", Test.nat(Nat.read_base(10, "0"), 0)),
+      Test.unit("dec 42", Test.nat(Nat.read_base(10, "42"), 42)),
+      Test.unit("hex ff", Test.nat(Nat.read_base(16, "ff"), 255)),
+      Test.unit("hex FF", Test.nat(Nat.read_base(16, "FF"), 255)),
+      Test.unit("bin 1010", Test.nat(Nat.read_base(2, "1010"), 10)),
+      Test.unit("stops at x", Test.nat(Nat.read_base(10, "12x3"), 12)),
+      Test.unit("stops at invalid first", Test.nat(Nat.read_base(10, "!9"), 0)),
+      Test.unit("digit above base", Test.nat(Nat.read_base(2, "2"), 0)),
+    ]),
+    Test.group("Word.from_bits", [
+      Test.unit("zero", Test.bool(Word.eql<0>(Word.from_bits(0, Bits.e), Word.e), true)),
+    ]),
+    Test.group("String.slice", [
+      Test.unit("middle", Test.string(String.slice(1, 4, "abcdef"), "bcd")),
+      Test.unit("all", Test.string(String.slice(0, 3, "abc"), "abc")),
+      Test.unit("empty range", Test.string(String.slice(2, 2, "abc"), "")),
+      Test.unit("nil", Test.string(String.slice(0, 4, ""), "")),
+    ]),
+    Test.group("String.ops", [
+      Test.unit("replace empty needle", Test.string(String.replace("a", "", "x"), "a")),
+      Test.unit("replace miss", Test.string(String.replace("a", "b", "c"), "a")),
+      Test.unit("replace hit", Test.string(String.replace("a", "a", "b"), "b")),
+      Test.unit("replace_all empty", Test.string(String.replace_all("aa", "", "b"), "aa")),
+      Test.unit("replace_all aa", Test.string(String.replace_all("aa", "a", "b"), "bb")),
+      Test.unit("index empty",
+        case String.index_of("ab", "") as i {
+          none: Test.Result.fail("none")
+          some: Test.nat(i.value, 0)
+        }),
+      Test.unit("index miss", Test.bool(Maybe.is_none<Nat>(String.index_of("ab", "c")), true)),
+      Test.unit("count empty needle", Test.nat(String.count("aaa", ""), 0)),
+      Test.unit("count a", Test.nat(String.count("aaa", "a"), 3)),
+      Test.unit("lines empty", Test.nat(List.length<String>(String.lines("")), 1)),
+      Test.unit("words empty", Test.nat(List.length<String>(String.words("")), 0)),
+      Test.unit("trim left empty", Test.string(String.trim_left(""), "")),
+      Test.unit("trim left space", Test.string(String.trim_left(" a"), "a")),
+      Test.unit("space char", Test.bool(Char.is_space(' '), true)),
+      Test.unit("a not space", Test.bool(Char.is_space('a'), false)),
+      Test.unit("has_none nil", Test.bool(String.has_none("x", []), true)),
+      Test.unit("has_none space", Test.bool(String.has_none("a b", [" "]), false)),
+      Test.unit("ok empty", Test.bool(String.ok("", [" "]), false)),
+      Test.unit("ok ada", Test.bool(String.ok("ada", [" ", "\n", "&", "="]), true)),
+    ]),
+    Test.group("Regex", [
+      Test.unit("empty", Test.bool(Regex.ok("", ""), true)),
+      Test.unit("junk", Test.bool(Maybe.is_none<Regex>(Regex.read("[")), true)),
+      Test.unit("lit", Test.bool(Regex.ok("a", "a"), true)),
+      Test.unit("miss", Test.bool(Regex.ok("a", "b"), false)),
+      Test.unit("star empty", Test.bool(Regex.ok("a*", ""), true)),
+      Test.unit("star aa", Test.bool(Regex.ok("a*", "aa"), true)),
+      Test.unit("empty s", Test.bool(Regex.ok("a", ""), false)),
+      Test.unit("alt", Test.bool(Regex.ok("a|b", "b"), true)),
+      Test.unit("dot", Test.bool(Regex.ok(".", "q"), true)),
+    ]),
+    Test.group("Parse", [
+      Test.unit("nat empty", Test.bool(Maybe.is_none<Nat>(Parse.nat("")), true)),
+      Test.unit("nat junk", Test.bool(Maybe.is_none<Nat>(Parse.nat("12x")), true)),
+      Test.unit("nat zero",
+        case Parse.nat("0") as n {
+          none: Test.Result.fail("none")
+          some: Test.nat(n.value, 0)
+        }),
+      Test.unit("bool empty", Test.bool(Maybe.is_none<Bool>(Parse.bool("")), true)),
+      Test.unit("bool junk", Test.bool(Maybe.is_none<Bool>(Parse.bool("yes")), true)),
+      Test.unit("hex empty", Test.bool(Maybe.is_none<Nat>(Parse.hex("")), true)),
+      Test.unit("hex junk", Test.bool(Maybe.is_none<Nat>(Parse.hex("gg")), true)),
+      Test.unit("f64 empty", Test.bool(Maybe.is_none<F64>(Parse.f64("")), true)),
+      Test.unit("f64 junk", Test.bool(Maybe.is_none<F64>(Parse.f64("abc")), true)),
+    ]),
+    Test.group("Bytes", [
+      Test.unit("length empty", Test.nat(Bytes.length([]), 0)),
+      Test.unit("is empty", Test.bool(Bytes.is_empty([]), true)),
+      Test.unit("eql empty", Test.bool(Bytes.eql([], []), true)),
+      Test.unit("get empty", Test.bool(Maybe.is_none<U8>(Bytes.get(0, [])), true)),
+      Test.unit("xor empty", Test.bool(Bytes.eql(Bytes.xor([], []), []), true)),
+      Test.unit("slice empty", Test.bool(Bytes.eql(Bytes.slice(0, 1, []), []), true)),
+    ]),
+    Test.group("F64", [
+      Test.unit("dec empty", Test.bool(F64.is_dec(""), false)),
+      Test.unit("dec junk", Test.bool(F64.is_dec("abc"), false)),
+      Test.unit("dec zero", Test.bool(F64.is_dec("0"), true)),
+      Test.unit("dec tail", Test.bool(F64.is_dec("12x"), false)),
+      Test.unit("read empty", Test.bool(Maybe.is_none<F64>(F64.read_dec("")), true)),
+      Test.unit("is zero", Test.bool(F64.is_zero(F64.0), true)),
+      Test.unit("nan of zero", Test.bool(F64.is_nan(F64.0), false)),
+      Test.unit("inf of zero", Test.bool(F64.is_inf(F64.0), false)),
+      Test.unit("finite zero", Test.bool(F64.is_finite(F64.0), true)),
+      Test.unit("floor zero", Test.bool(F64.eql(F64.floor(F64.0), F64.0), true)),
+      Test.unit("floor pos", Test.bool(F64.eql(F64.floor(1.9), 1.0), true)),
+      Test.unit("floor neg", Test.bool(F64.eql(F64.floor(-1.1), -2.0), true)),
+      Test.unit("floor near", Test.bool(F64.eql(F64.floor(0.9999999999999), 0.0), true)),
+      Test.unit("parse bin empty", Test.bool(F64.eql(F64.parse_binary(""), F64.0), true)),
+      Test.unit("parse bin junk", Test.bool(F64.eql(F64.parse_binary("xxxx"), F64.0), true)),
+      Test.unit("atan2 east", Test.bool(F64.eql(F64.atan2(0.0, 1.0), 0.0), true)),
+    ]),
+    Test.group("F32.parse_binary", [
+      Test.unit("empty", Test.bool(F32.eql(F32.parse_binary(""), F32.0), true)),
+      Test.unit("junk", Test.bool(F32.eql(F32.parse_binary("xxxx"), F32.0), true)),
+      Test.unit("two", Test.bool(F32.eql(F32.parse_binary("00000000000000000000000000000010"), F32.2), true)),
+      Test.unit("one", Test.bool(F32.eql(F32.parse_binary("00000000000000000000000111111100"), F32.1), true)),
+      Test.unit("floor zero", Test.bool(F32.eql(F32.floor(F32.0), F32.0), true)),
+    ]),
+    Test.group("Parser.f64", [
+      Test.unit("empty", Test.bool(Maybe.is_none<F64>(Parser.run<F64>(Parser.f64, "")), true)),
+      Test.unit("junk", Test.bool(Maybe.is_none<F64>(Parser.run<F64>(Parser.f64, "abc")), true)),
+      Test.unit("int",
+        case Parser.run<F64>(Parser.f64, "12") as n {
+          none: Test.Result.fail("none")
+          some: Test.bool(F64.eql(n.value, 12.0), true)
+        }),
+      Test.unit("frac",
+        case Parser.run<F64>(Parser.f64, "1.5") as n {
+          none: Test.Result.fail("none")
+          some: Test.bool(F64.eql(n.value, 1.5), true)
+        }),
+      Test.unit("exp",
+        case Parser.run<F64>(Parser.f64, "1e2") as n {
+          none: Test.Result.fail("none")
+          some: Test.bool(F64.eql(n.value, 100.0), true)
+        }),
+      Test.unit("neg",
+        case Parser.run<F64>(Parser.f64, "-2.5") as n {
+          none: Test.Result.fail("none")
+          some: Test.bool(F64.eql(n.value, -2.5), true)
+        }),
+    ]),
+    Test.group("Bits.to_string", [
+      Test.unit("empty", Test.string(Bits.to_string(Bits.e), "")),
+      Test.unit("o", Test.string(Bits.to_string(Bits.o(Bits.e)), "0")),
+      Test.unit("i", Test.string(Bits.to_string(Bits.i(Bits.e)), "1")),
+    ]),
+    Test.group("Word.to_f64", [
+      Test.unit("e", Test.bool(F64.eql(Word.to_f64<0>(Word.e), F64.0), true)),
+      Test.unit("one", Test.bool(F64.eql(Word.to_f64<1>(Word.i<0>(Word.e)), 1.0), true)),
+      Test.unit("s one", Test.bool(F64.eql(Word.s_to_f64<1>(Word.i<0>(Word.e)), -1.0), true)),
+      Test.unit("s zero", Test.bool(F64.eql(Word.s_to_f64<0>(Word.e), F64.0), true)),
+    ]),
+    Test.group("utf8", [
+      Test.unit("empty", Test.string(String.hex.decode.utf8(""), "")),
+      Test.unit("junk", Test.string(String.hex.decode.utf8("zz"), "")),
+      Test.unit("A", Test.string(String.hex.decode.utf8("41"), "A")),
+      Test.unit("AB", Test.string(String.hex.decode.utf8("4142"), "AB")),
+      Test.unit("incomplete", Test.string(String.hex.decode.utf8("c3"), "")),
+      Test.unit("two byte", Test.string(String.hex.decode.utf8("c3a9"), "é")),
+      Test.unit("surr hex", Test.string(U16.to_hex.show(0xD800), "efbfbd")),
+    ]),
+    Test.group("Nat.parse_decimal", [
+      Test.unit("empty", Test.nat(Nat.parse_decimal(""), 0)),
+      Test.unit("junk", Test.nat(Nat.parse_decimal("x"), 0)),
+      Test.unit("stop", Test.nat(Nat.parse_decimal("12x"), 12)),
+      Test.unit("42", Test.nat(Nat.parse_decimal("42"), 42)),
+    ]),
+    Test.group("Sure", [
+      Test.unit("name", Test.string(Sure.name, "Sure")),
+      Test.unit("version", Test.string(Sure.version, "0.1.0")),
+      Test.unit("how next", Test.string(Sure.How.next, "sure prove && sure build && sure run")),
+      Test.unit("how empty topic", Test.bool(Sure.How.is_topic(""), false)),
+      Test.unit("how json topic", Test.bool(Sure.How.is_topic("json"), true)),
+      Test.unit("how junk topic", Test.bool(Sure.How.is_topic("xyz"), false)),
+      Test.unit("how ffi topic", Test.bool(Sure.How.is_topic("ffi"), true)),
+      Test.unit("how gen topic", Test.bool(Sure.How.is_topic("gen"), true)),
+      Test.unit("how pkg topic", Test.bool(Sure.How.is_topic("pkg"), true)),
+      Test.unit("how bun topic", Test.bool(Sure.How.is_topic("bun"), true)),
+      Test.unit("how worker topic", Test.bool(Sure.How.is_topic("worker"), true)),
+      Test.unit("how db topic", Test.bool(Sure.How.is_topic("db"), true)),
+      Test.unit("how debug topic", Test.bool(Sure.How.is_topic("debug"), true)),
+      Test.unit("how lsp topic", Test.bool(Sure.How.is_topic("lsp"), true)),
+      Test.unit("how pipe topic", Test.bool(Sure.How.is_topic("pipe"), true)),
+      Test.unit("how time topic", Test.bool(Sure.How.is_topic("time"), true)),
+      Test.unit("how cli topic", Test.bool(Sure.How.is_topic("cli"), true)),
+      Test.unit("how log topic", Test.bool(Sure.How.is_topic("log"), true)),
+      Test.unit("how repl topic", Test.bool(Sure.How.is_topic("repl"), true)),
+      Test.unit("how test topic", Test.bool(Sure.How.is_topic("test"), true)),
+      Test.unit("how env topic", Test.bool(Sure.How.is_topic("env"), true)),
+      Test.unit("how cfg topic", Test.bool(Sure.How.is_topic("cfg"), true)),
+      Test.unit("how ssr topic", Test.bool(Sure.How.is_topic("ssr"), true)),
+      Test.unit("how ui topic", Test.bool(Sure.How.is_topic("ui"), true)),
+      Test.unit("how web topic", Test.bool(Sure.How.is_topic("web"), true)),
+      Test.unit("cli tokens empty", Test.nat(List.length<String>(Sure.Cli.tokens("")), 0)),
+      Test.unit("cli parse empty", Test.nat(Sure.Cli.count(Sure.Cli.parse([])), 0)),
+      Test.unit("cli flag empty", Test.bool(Sure.Cli.flag(Sure.Cli.empty, ""), false)),
+      Test.unit("cli flag miss", Test.bool(Sure.Cli.flag(Sure.Cli.empty, "x"), false)),
+      Test.unit("cli nth empty", Test.bool(Maybe.is_none<String>(Sure.Cli.nth(Sure.Cli.empty, 0)), true)),
+      Test.unit("cli get empty", Test.bool(Maybe.is_none<String>(Sure.Cli.get(Sure.Cli.empty, "")), true)),
+      Test.unit("cli flag on", Test.bool(Sure.Cli.flag(Sure.Cli.parse(["--x"]), "x"), true)),
+      Test.unit("cli get eq",
+        case Sure.Cli.get(Sure.Cli.parse(["--x=y"]), "x") as v {
+          none: Test.Result.fail("none")
+          some: Test.string(v.value, "y")
+        }),
+      Test.unit("cli rest", Test.nat(Sure.Cli.count(Sure.Cli.parse(["a"])), 1)),
+      Test.unit("cli end", Test.bool(Sure.Cli.flag(Sure.Cli.parse(["--", "--x"]), "x"), false)),
+      Test.unit("cli junk eq", Test.bool(Sure.Cli.flag(Sure.Cli.parse(["--=z"]), "z"), false)),
+      Test.unit("log want off", Test.bool(Sure.Log.want(Sure.Debug.Level.off, Sure.Debug.Level.info), false)),
+      Test.unit("log format off", Test.bool(Maybe.is_none<String>(Sure.Log.format(Sure.Debug.Level.off, Sure.Debug.Level.info, "t", "m")), true)),
+      Test.unit("log format info",
+        case Sure.Log.format(Sure.Debug.Level.info, Sure.Debug.Level.info, "t", "m") as l {
+          none: Test.Result.fail("none")
+          some: Test.string(l.value, "info t m")
+        }),
+      Test.unit("repl line empty", Test.bool(Maybe.is_none<Pair<Sure.Repl.Cmd, String>>(Sure.Repl.line("")), true)),
+      Test.unit("repl line colon", Test.bool(Maybe.is_none<Pair<Sure.Repl.Cmd, String>>(Sure.Repl.line(":")), true)),
+      Test.unit("repl line junk", Test.bool(Maybe.is_none<Pair<Sure.Repl.Cmd, String>>(Sure.Repl.line(":xyz")), true)),
+      Test.unit("repl read empty", Test.bool(Maybe.is_none<Sure.Repl.Cmd>(Sure.Repl.Cmd.read("")), true)),
+      Test.unit("repl read help",
+        case Sure.Repl.Cmd.read("help") as c {
+          none: Test.Result.fail("none")
+          some: Test.string(Sure.Repl.Cmd.show(c.value), "help")
+        }),
+      Test.unit("repl show quit", Test.string(Sure.Repl.Cmd.show(Sure.Repl.Cmd.quit), "quit")),
+      Test.unit("env ok empty", Test.bool(Sure.Env.ok_name(""), false)),
+      Test.unit("env ok path", Test.bool(Sure.Env.ok_name("PATH"), true)),
+      Test.unit("env ok eq", Test.bool(Sure.Env.ok_name("A=B"), false)),
+      Test.unit("env ok nl", Test.bool(Sure.Env.ok_name("A\nB"), false)),
+      Test.unit("env decode empty", Test.bool(Outcome.is_ok<Sure.Env.Err, String>(Sure.Env.decode("")), false)),
+      Test.unit("env decode missing", Test.bool(Outcome.is_ok<Sure.Env.Err, String>(Sure.Env.decode("1\nmissing")), false)),
+      Test.unit("env decode ok",
+        case Sure.Env.decode("0\nhi") as o {
+          err: Test.Result.fail("err")
+          ok: Test.string(o.value, "hi")
+        }),
+      Test.unit("env decode blank",
+        case Sure.Env.decode("0\n") as o {
+          err: Test.Result.fail("err")
+          ok: Test.string(o.value, "")
+        }),
+      Test.unit("env parse nat empty", Test.bool(Outcome.is_ok<Sure.Env.Err, Nat>(Sure.Env.parse_nat("")), false)),
+      Test.unit("env parse nat junk", Test.bool(Outcome.is_ok<Sure.Env.Err, Nat>(Sure.Env.parse_nat("x")), false)),
+      Test.unit("env parse nat zero",
+        case Sure.Env.parse_nat("0") as o {
+          err: Test.Result.fail("err")
+          ok: Test.nat(o.value, 0)
+        }),
+      Test.unit("env parse bool empty", Test.bool(Outcome.is_ok<Sure.Env.Err, Bool>(Sure.Env.parse_bool("")), false)),
+      Test.unit("env parse bool junk", Test.bool(Outcome.is_ok<Sure.Env.Err, Bool>(Sure.Env.parse_bool("yes")), false)),
+      Test.unit("env parse bool true",
+        case Sure.Env.parse_bool("true") as o {
+          err: Test.Result.fail("err")
+          ok: Test.bool(o.value, true)
+        }),
+      Test.unit("env flag empty", Test.bool(Sure.Env.is_flag(""), false)),
+      Test.unit("env flag 0", Test.bool(Sure.Env.is_flag("0"), false)),
+      Test.unit("env flag false", Test.bool(Sure.Env.is_flag("false"), false)),
+      Test.unit("env flag off", Test.bool(Sure.Env.is_flag("off"), false)),
+      Test.unit("env flag no", Test.bool(Sure.Env.is_flag("no"), false)),
+      Test.unit("env flag 1", Test.bool(Sure.Env.is_flag("1"), true)),
+      Test.unit("env keys empty", Test.nat(List.length<String>(Sure.Env.keys_of("")), 0)),
+      Test.unit("env keys one", Test.nat(List.length<String>(Sure.Env.keys_of("PATH")), 1)),
+      Test.unit("env err empty name", Test.string(Sure.Env.Err.show(Sure.Env.Err.empty_name), "empty_name")),
+      Test.unit("cfg ok empty", Test.bool(Sure.Cfg.ok_key(""), false)),
+      Test.unit("cfg ok x", Test.bool(Sure.Cfg.ok_key("x"), true)),
+      Test.unit("cfg ok nul", Test.bool(Sure.Cfg.ok_key(String.cons(0#16, "")), false)),
+      Test.unit("cfg blank empty", Test.bool(Sure.Cfg.blank(""), true)),
+      Test.unit("cfg blank space", Test.bool(Sure.Cfg.blank(" \n\t"), true)),
+      Test.unit("cfg blank x", Test.bool(Sure.Cfg.blank("x"), false)),
+      Test.unit("cfg count empty", Test.nat(Sure.Cfg.count(Sure.Cfg.empty), 0)),
+      Test.unit("cfg of null", Test.bool(Maybe.is_none<Sure.Cfg>(Sure.Cfg.of(JSON.null)), true)),
+      Test.unit("cfg of arr", Test.bool(Maybe.is_none<Sure.Cfg>(Sure.Cfg.of(JSON.array([]))), true)),
+      Test.unit("cfg of bool", Test.bool(Maybe.is_none<Sure.Cfg>(Sure.Cfg.of(JSON.bool(true))), true)),
+      Test.unit("cfg read empty",
+        case Sure.Cfg.read("") as c {
+          none: Test.Result.fail("none")
+          some: Test.nat(Sure.Cfg.count(c.value), 0)
+        }),
+      Test.unit("cfg read space",
+        case Sure.Cfg.read(" \n") as c {
+          none: Test.Result.fail("none")
+          some: Test.nat(Sure.Cfg.count(c.value), 0)
+        }),
+      Test.unit("cfg read junk", Test.bool(Maybe.is_none<Sure.Cfg>(Sure.Cfg.read("nope")), true)),
+      Test.unit("cfg read null", Test.bool(Maybe.is_none<Sure.Cfg>(Sure.Cfg.read("null")), true)),
+      Test.unit("cfg read arr", Test.bool(Maybe.is_none<Sure.Cfg>(Sure.Cfg.read("[]")), true)),
+      Test.unit("cfg read leftover", Test.bool(Maybe.is_none<Sure.Cfg>(Sure.Cfg.read("{}x")), true)),
+      Test.unit("cfg read object",
+        case Sure.Cfg.read("{}") as c {
+          none: Test.Result.fail("none")
+          some: Test.nat(Sure.Cfg.count(c.value), 0)
+        }),
+      Test.unit("cfg read trail nl",
+        case Sure.Cfg.read("{}\n") as c {
+          none: Test.Result.fail("none")
+          some: Test.nat(Sure.Cfg.count(c.value), 0)
+        }),
+      Test.unit("cfg get empty", Test.bool(Maybe.is_none<JSON>(Sure.Cfg.get(Sure.Cfg.empty, "")), true)),
+      Test.unit("cfg get miss", Test.bool(Maybe.is_none<JSON>(Sure.Cfg.get(Sure.Cfg.empty, "x")), true)),
+      Test.unit("cfg get hit",
+        case Sure.Cfg.str(Sure.Cfg.put(Sure.Cfg.empty, "x", "y"), "x") as v {
+          none: Test.Result.fail("none")
+          some: Test.string(v.value, "y")
+        }),
+      Test.unit("cfg set empty", Test.nat(Sure.Cfg.count(Sure.Cfg.put(Sure.Cfg.empty, "", "x")), 0)),
+      Test.unit("cfg get_or empty", Test.string(Sure.Cfg.get_or(Sure.Cfg.empty, "", "d"), "d")),
+      Test.unit("cfg get_or miss", Test.string(Sure.Cfg.get_or(Sure.Cfg.empty, "x", "d"), "d")),
+      Test.unit("cfg get_or hit", Test.string(Sure.Cfg.get_or(Sure.Cfg.put(Sure.Cfg.empty, "x", "y"), "x", "d"), "y")),
+      Test.unit("cfg del empty", Test.nat(Sure.Cfg.count(Sure.Cfg.del(Sure.Cfg.empty, "")), 0)),
+      Test.unit("cfg del miss", Test.nat(Sure.Cfg.count(Sure.Cfg.del(Sure.Cfg.empty, "x")), 0)),
+      Test.unit("cfg del hit", Test.nat(Sure.Cfg.count(Sure.Cfg.del(Sure.Cfg.put(Sure.Cfg.empty, "x", "y"), "x")), 0)),
+      Test.unit("cfg need empty", Test.bool(Outcome.is_ok<Sure.Cfg.Err, JSON>(Sure.Cfg.need(Sure.Cfg.empty, "")), false)),
+      Test.unit("cfg need miss", Test.bool(Outcome.is_ok<Sure.Cfg.Err, JSON>(Sure.Cfg.need(Sure.Cfg.empty, "x")), false)),
+      Test.unit("cfg nat empty", Test.bool(Maybe.is_none<Nat>(Sure.Cfg.nat(Sure.Cfg.empty, "n")), true)),
+      Test.unit("cfg nat junk", Test.bool(Maybe.is_none<Nat>(Sure.Cfg.nat(Sure.Cfg.put(Sure.Cfg.empty, "n", "x"), "n")), true)),
+      Test.unit("cfg nat zero",
+        case Sure.Cfg.nat(Sure.Cfg.put(Sure.Cfg.empty, "n", "0"), "n") as v {
+          none: Test.Result.fail("none")
+          some: Test.nat(v.value, 0)
+        }),
+      Test.unit("cfg bool empty", Test.bool(Maybe.is_none<Bool>(Sure.Cfg.bool(Sure.Cfg.empty, "b")), true)),
+      Test.unit("cfg bool 1",
+        case Sure.Cfg.bool(Sure.Cfg.put(Sure.Cfg.empty, "b", "1"), "b") as v {
+          none: Test.Result.fail("none")
+          some: Test.bool(v.value, true)
+        }),
+      Test.unit("cfg bool 0",
+        case Sure.Cfg.bool(Sure.Cfg.put(Sure.Cfg.empty, "b", "0"), "b") as v {
+          none: Test.Result.fail("none")
+          some: Test.bool(v.value, false)
+        }),
+      Test.unit("cfg bool junk", Test.bool(Maybe.is_none<Bool>(Sure.Cfg.bool(Sure.Cfg.put(Sure.Cfg.empty, "b", "yes"), "b")), true)),
+      Test.unit("cfg flag empty", Test.bool(Sure.Cfg.flag(Sure.Cfg.empty, ""), false)),
+      Test.unit("cfg flag 0", Test.bool(Sure.Cfg.flag(Sure.Cfg.put(Sure.Cfg.empty, "x", "0"), "x"), false)),
+      Test.unit("cfg flag 1", Test.bool(Sure.Cfg.flag(Sure.Cfg.put(Sure.Cfg.empty, "x", "1"), "x"), true)),
+      Test.unit("cfg from cli empty", Test.nat(Sure.Cfg.count(Sure.Cfg.from_cli(Sure.Cli.empty)), 0)),
+      Test.unit("cfg from cli eq",
+        case Sure.Cfg.str(Sure.Cfg.from_cli(Sure.Cli.parse(["--x=y"])), "x") as v {
+          none: Test.Result.fail("none")
+          some: Test.string(v.value, "y")
+        }),
+      Test.unit("cfg from cli flag",
+        case Sure.Cfg.bool(Sure.Cfg.from_cli(Sure.Cli.parse(["--x"])), "x") as v {
+          none: Test.Result.fail("none")
+          some: Test.bool(v.value, true)
+        }),
+      Test.unit("cfg from cli empty val",
+        case Sure.Cfg.str(Sure.Cfg.from_cli(Sure.Cli.parse(["--x="])), "x") as v {
+          none: Test.Result.fail("none")
+          some: Test.string(v.value, "")
+        }),
+      Test.unit("cfg from cli last",
+        case Sure.Cfg.str(Sure.Cfg.from_cli(Sure.Cli.parse(["--x=1", "--x=2"])), "x") as v {
+          none: Test.Result.fail("none")
+          some: Test.string(v.value, "2")
+        }),
+      Test.unit("cfg overlay right",
+        case Sure.Cfg.str(Sure.Cfg.overlay(Sure.Cfg.put(Sure.Cfg.empty, "x", "1"), Sure.Cfg.put(Sure.Cfg.empty, "x", "2")), "x") as v {
+          none: Test.Result.fail("none")
+          some: Test.string(v.value, "2")
+        }),
+      Test.unit("cfg overlay keep",
+        case Sure.Cfg.str(Sure.Cfg.overlay(Sure.Cfg.put(Sure.Cfg.empty, "a", "1"), Sure.Cfg.put(Sure.Cfg.empty, "b", "2")), "a") as v {
+          none: Test.Result.fail("none")
+          some: Test.string(v.value, "1")
+        }),
+      Test.unit("cfg overlay deep",
+        case Sure.Cfg.path(Sure.Cfg.overlay(Sure.Cfg.set(Sure.Cfg.empty, "a", Sure.Cfg.json(Sure.Cfg.put(Sure.Cfg.empty, "x", "1"))), Sure.Cfg.set(Sure.Cfg.empty, "a", Sure.Cfg.json(Sure.Cfg.put(Sure.Cfg.empty, "y", "2")))), ["a", "x"]) as v {
+          none: Test.Result.fail("none")
+          some:
+            case v.value as j {
+              string: Test.string(j.value, "1")
+            } default Test.Result.fail("not string")
+        }),
+      Test.unit("cfg overlay deep y",
+        case Sure.Cfg.path(Sure.Cfg.overlay(Sure.Cfg.set(Sure.Cfg.empty, "a", Sure.Cfg.json(Sure.Cfg.put(Sure.Cfg.empty, "x", "1"))), Sure.Cfg.set(Sure.Cfg.empty, "a", Sure.Cfg.json(Sure.Cfg.put(Sure.Cfg.empty, "y", "2")))), ["a", "y"]) as v {
+          none: Test.Result.fail("none")
+          some:
+            case v.value as j {
+              string: Test.string(j.value, "2")
+            } default Test.Result.fail("not string")
+        }),
+      Test.unit("cfg pick cli",
+        case Sure.Cfg.str(Sure.Cfg.pick(Sure.Cfg.put(Sure.Cfg.empty, "x", "f"), Sure.Cfg.put(Sure.Cfg.empty, "x", "e"), Sure.Cfg.put(Sure.Cfg.empty, "x", "c")), "x") as v {
+          none: Test.Result.fail("none")
+          some: Test.string(v.value, "c")
+        }),
+      Test.unit("cfg has empty", Test.bool(Sure.Cfg.has(Sure.Cfg.empty, ""), false)),
+      Test.unit("cfg show empty", Test.string(Sure.Cfg.show(Sure.Cfg.empty), "{}")),
+      Test.unit("cfg path miss", Test.bool(Maybe.is_none<JSON>(Sure.Cfg.path(Sure.Cfg.empty, ["x"])), true)),
+      Test.unit("cfg path bad", Test.bool(Maybe.is_none<JSON>(Sure.Cfg.path(Sure.Cfg.empty, [""])), true)),
+      Test.unit("cfg err empty path", Test.string(Sure.Cfg.Err.show(Sure.Cfg.Err.empty_path), "empty_path")),
+      Test.unit("cfg err bad file", Test.string(Sure.Cfg.Err.show(Sure.Cfg.Err.bad_file), "bad_file")),
+      Test.unit("ssr url empty", Test.bool(Sure.Ssr.ok_url(""), false)),
+      Test.unit("ssr url slash", Test.bool(Sure.Ssr.ok_url("/"), true)),
+      Test.unit("ssr ctype html", Test.string(Sure.Ssr.ctype.html, "text/html; charset=utf-8")),
+      Test.unit("ssr sse script empty", Test.string(Sure.Ssr.sse_script(""), "")),
+      Test.unit("ssr html lt", Test.bool(String.includes(Sure.Ssr.html(Sure.Ssr.ok("T", Html.p([Html.text("<")]))), "&lt;"), true)),
+      Test.unit("ssr html no client", Test.bool(String.includes(Sure.Ssr.html(Sure.Ssr.ok("", Html.p([]))), "EventSource"), false)),
+      Test.unit("sse bus empty", Test.bool(Sure.Sse.ok_bus(""), false)),
+      Test.unit("sse event nl", Test.bool(Sure.Sse.ok_event("a\nb"), false)),
+      Test.unit("sse event empty", Test.string(Sure.Sse.event_name(""), "message")),
+      Test.unit("sse frame nl", Test.bool(Maybe.is_none<String>(Sure.Sse.frame("a\nb", "x")), true)),
+      Test.unit("sse frame empty",
+        case Sure.Sse.frame("", "") as f {
+          none: Test.Result.fail("none")
+          some: Test.string(f.value, "event: message\ndata:\n\n")
+        }),
+      Test.unit("sse comment empty",
+        case Sure.Sse.comment("") as f {
+          none: Test.Result.fail("none")
+          some: Test.string(f.value, ": \n\n")
+        }),
+      Test.unit("dsl read empty", Test.bool(Maybe.is_none<Db.Dsl>(Db.Dsl.read("")), true)),
+      Test.unit("dsl read junk", Test.bool(Maybe.is_none<Db.Dsl>(Db.Dsl.read("nope")), true)),
+      Test.unit("dsl read count",
+        case Db.Dsl.read("COUNT") as s {
+          none: Test.Result.fail("none")
+          some: Test.string(Db.Dsl.show(s.value), "COUNT")
+        }),
+      Test.unit("dsl prefix empty", Test.bool(Maybe.is_none<Db.Dsl>(Db.Dsl.read("PREFIX ")), true)),
+      Test.unit("dsl part empty", Test.bool(Db.Dsl.part(""), false)),
+      Test.unit("dsl part slash", Test.bool(Db.Dsl.part("a/b"), false)),
+      Test.unit("dsl row empty", Test.bool(Maybe.is_none<String>(Db.Dsl.row_key("", "a")), true)),
+      Test.unit("dsl row ok",
+        case Db.Dsl.row_key("t", "i") as k {
+          none: Test.Result.fail("none")
+          some: Test.string(k.value, "t/i")
+        }),
+      Test.unit("dsl row get junk", Test.bool(Maybe.is_none<Db.Dsl>(Db.Dsl.read("ROW GET ")), true)),
+      Test.unit("mig name empty", Test.bool(Db.Mig.ok_name(""), false)),
+      Test.unit("mig step empty", Test.bool(Maybe.is_none<Db.Mig>(Db.Mig.step("", [], [])), true)),
+      Test.unit("mig split empty", Test.nat(List.length<String>(Db.Mig.split("")), 0)),
+      Test.unit("mig join empty", Test.string(Db.Mig.join([]), "")),
+      Test.unit("mig has empty", Test.bool(Db.Mig.has("", ["a"]), false)),
+      Test.unit("mig log key", Test.string(Db.Mig.log_key, "__sure.mig")),
+      Test.unit("lsp lang", Test.string(Sure.Lsp.lang, "sure")),
+      Test.unit("lsp sync", Test.nat(Sure.Lsp.sync, 1)),
+      Test.unit("lsp ext empty", Test.bool(Sure.Lsp.ext(""), false)),
+      Test.unit("lsp ext sure", Test.bool(Sure.Lsp.ext("Nat.sure"), true)),
+      Test.unit("lsp ext kind", Test.bool(Sure.Lsp.ext("Nat.kind"), false)),
+      Test.unit("lsp uri empty", Test.bool(Sure.Lsp.uri_ok(""), false)),
+      Test.unit("lsp uri junk", Test.bool(Sure.Lsp.uri_ok("http://x"), false)),
+      Test.unit("lsp uri file", Test.bool(Sure.Lsp.uri_ok("file:///tmp/x.sure"), true)),
+      Test.unit("lsp frame empty", Test.string(Sure.Lsp.frame(""), "Content-Length: 0\r\n\r\n")),
+      Test.unit("lsp word empty", Test.string(Sure.Lsp.word("", 0), "")),
+      Test.unit("lsp word plus", Test.string(Sure.Lsp.word("+", 0), "")),
+      Test.unit("lsp word after", Test.string(Sure.Lsp.word("a+b", 1), "a")),
+      Test.unit("lsp keyword empty", Test.bool(Sure.Lsp.keyword(""), false)),
+      Test.unit("lsp keyword type", Test.bool(Sure.Lsp.keyword("type"), true)),
+      Test.unit("lsp keyword junk", Test.bool(Sure.Lsp.keyword("TYPE"), false)),
+      Test.unit("lsp method empty", Test.bool(Maybe.is_none<Sure.Lsp.Method>(Sure.Lsp.Method.read("")), true)),
+      Test.unit("lsp method junk", Test.bool(Maybe.is_none<Sure.Lsp.Method>(Sure.Lsp.Method.read("hover")), true)),
+      Test.unit("lsp severity error", Test.nat(Sure.Lsp.Severity.code(Sure.Lsp.Severity.error), 1)),
+      Test.unit("lsp severity hole", Test.string(Sure.Lsp.Severity.show(Sure.Lsp.Severity.of_code("show_goal")), "warning")),
+      Test.unit("lsp severity junk", Test.string(Sure.Lsp.Severity.show(Sure.Lsp.Severity.of_code("")), "error")),
+      Test.unit("debug level empty", Test.bool(Maybe.is_none<Sure.Debug.Level>(Sure.Debug.Level.read("")), true)),
+      Test.unit("debug level junk", Test.bool(Maybe.is_none<Sure.Debug.Level>(Sure.Debug.Level.read("loud")), true)),
+      Test.unit("debug flags empty", Test.bool(Sure.Debug.Flags.host(Sure.Debug.Flags.read("")), false)),
+      Test.unit("debug flags junk", Test.bool(Sure.Debug.Flags.any(Sure.Debug.Flags.read("loud")), false)),
+      Test.unit("debug redact empty", Test.string(Sure.Debug.redact(""), "")),
+      Test.unit("debug host empty", Test.string(Sure.Debug.host_line("", "", ""), "host ?  -> ")),
+      Test.unit("db cmd empty", Test.bool(Maybe.is_none<Db.Cmd>(Db.Cmd.read("")), true)),
+      Test.unit("db cmd junk", Test.bool(Maybe.is_none<Db.Cmd>(Db.Cmd.read("SELECT 1")), true)),
+      Test.unit("db show missing", Test.string(Db.Err.show(Db.Err.missing), "missing")),
+      Test.unit("db decode empty", Test.bool(Outcome.is_ok<Db.Err, String>(Db.decode_text("")), false)),
+      Test.unit("db safe empty", Test.bool(Db.safe_key(""), false)),
+      Test.unit("db safe nl", Test.bool(Db.safe_key("a\nb"), false)),
+      Test.unit("db file abs", Test.bool(Db.file_path("/tmp/x.json"), false)),
+      Test.unit("db cmd low", Test.bool(Maybe.is_none<Db.Cmd>(Db.Cmd.read("get k")), true)),
+      Test.unit("db keys empty dec",
+        case Db.decode_keys("0\n[]") as o {
+          err: Test.Result.fail("err")
+          ok: Test.nat(List.length<String>(o.value), 0)
+        }),
+      Test.unit("worker safe empty", Test.bool(Worker.safe(""), false)),
+      Test.unit("worker safe math", Test.bool(Worker.safe("Math.abs"), true)),
+      Test.unit("worker show missing", Test.string(Worker.Err.show(Worker.Err.missing), "missing")),
+      Test.unit("worker decode empty", Test.bool(Outcome.is_ok<Worker.Err, JSON>(Worker.decode("")), false)),
+      Test.unit("worker decode tag", Test.bool(Outcome.is_ok<Worker.Err, JSON>(Worker.decode("nope")), false)),
+      Test.unit("runtime bun show", Test.string(Sure.Runtime.show(Sure.Runtime.bun), "bun")),
+      Test.unit("runtime node show", Test.string(Sure.Runtime.show(Sure.Runtime.node), "node")),
+      Test.unit("runtime read empty", Test.bool(Maybe.is_none<Sure.Runtime>(Sure.Runtime.read("")), true)),
+      Test.unit("runtime read junk", Test.bool(Maybe.is_none<Sure.Runtime>(Sure.Runtime.read("deno")), true)),
+      Test.unit("runtime pick flag", Test.bool(Sure.Runtime.is_bun(Sure.Runtime.pick(true, "", false)), true)),
+      Test.unit("runtime pick node", Test.bool(Sure.Runtime.is_bun(Sure.Runtime.pick(false, "", false)), false)),
+      Test.unit("runtime pick junk env", Test.bool(Sure.Runtime.is_bun(Sure.Runtime.pick(false, "xyz", false)), false)),
+      Test.unit("show gen", Test.string(Sure.Agent.Method.show(Sure.Agent.Method.gen), "sure.gen")),
+      Test.unit("mod name empty", Test.bool(Sure.Mod.name(""), false)),
+      Test.unit("mod name ok", Test.bool(Sure.Mod.name("Foo.Bar"), true)),
+      Test.unit("mod name junk", Test.bool(Sure.Mod.name("foo"), false)),
+      Test.unit("mod pkg empty", Test.bool(Sure.Mod.pkg(""), false)),
+      Test.unit("mod pkg ok", Test.bool(Sure.Mod.pkg("ada/boxes"), true)),
+      Test.unit("mod pkg junk", Test.bool(Sure.Mod.pkg("ada"), false)),
+      Test.unit("mod kind app", Test.string(Sure.Mod.Sort.show(Sure.Mod.Sort.application), "application")),
+      Test.unit("mod kind junk", Test.bool(Maybe.is_none<Sure.Mod.Sort>(Sure.Mod.Sort.read("")), true)),
+      Test.unit("mod module empty", Test.string(Sure.Mod.module_name(""), "")),
+      Test.unit("mod module ok", Test.string(Sure.Mod.module_name("module Foo exposing (bar)"), "Foo")),
+      Test.unit("mod import none", Test.string(Sure.Mod.import_name("import Nat"), "Nat")),
+      Test.unit("mod allows miss", Test.bool(Sure.Mod.allows("Foo", Sure.Mod.Exposing.names(["bar"]), "Foo.secret"), false)),
+      Test.unit("mod allows hit", Test.bool(Sure.Mod.allows("Foo", Sure.Mod.Exposing.names(["bar"]), "Foo.bar"), true)),
+      Test.unit("mod imports open", Test.bool(Sure.Mod.imports_allow([], "Foo.bar"), true)),
+      Test.unit("gen qc law", Test.bool(Sure.Total.needs_qc(true, 2), true)),
+      Test.unit("gen qc zero", Test.bool(Sure.Total.needs_qc(true, 0), false)),
+      Test.unit("gen qc term", Test.bool(Sure.Total.needs_qc(false, 3), false)),
+      Test.unit("ffi safe empty", Test.bool(Ffi.safe(""), false)),
+      Test.unit("ffi safe math", Test.bool(Ffi.safe("Math.abs"), true)),
+      Test.unit("ffi show missing", Test.string(Ffi.Err.show(Ffi.Err.missing), "missing")),
+      Test.unit("ffi decode missing",
+        case Ffi.decode("1\nmissing") as r {
+          ok: Test.Result.fail("ok")
+          err: Test.string(Ffi.Err.show(r.error), "missing")
+        }),
+      Test.unit("ffi decode tag",
+        case Ffi.decode("") as r {
+          ok: Test.Result.fail("ok")
+          err: Test.string(Ffi.Err.show(r.error), "bad_tag")
+        }),
+    ]),
+    Test.group("Sure.Qc", [
+      Test.unit("gen 0", Test.nat(Sure.Gen.nat(0), 0)),
+      Test.unit("gen 1", Test.nat(Sure.Gen.nat(1), 1)),
+      Test.unit("gen bool 0", Test.bool(Sure.Gen.bool(0), false)),
+      Test.unit("gen bool 1", Test.bool(Sure.Gen.bool(1), true)),
+      Test.unit("pipe map nil", Test.nat(List.length<Nat>(Sure.Pipe.map<Nat, Nat>(Nat.succ, [])), 0)),
+      Test.unit("pipe filter nil", Test.nat(List.length<Nat>(Sure.Pipe.filter<Nat>((n) Bool.true, [])), 0)),
+      Test.unit("pipe range 0", Test.nat(List.length<Nat>(Sure.Pipe.range(0)), 0)),
+      Test.unit("pipe range 2", Test.nat(List.length<Nat>(Sure.Pipe.range(2)), 2)),
+      Test.unit("pipe once", Test.nat(List.length<Nat>(Sure.Pipe.once<Nat>(1)), 1)),
+      Test.unit("pipe maybe none", Test.nat(List.length<Nat>(Sure.Pipe.from_maybe<Nat>(none)), 0)),
+      Test.unit("pipe replicate 0", Test.nat(List.length<Nat>(Sure.Pipe.replicate<Nat>(0, 1)), 0)),
+      Test.unit("pipe chunks 0", Test.nat(List.length<List<Nat>>(Sure.Pipe.chunks<Nat>(0, [1, 2])), 0)),
+      Test.unit("pipe chunks empty", Test.nat(List.length<List<Nat>>(Sure.Pipe.chunks<Nat>(2, [])), 0)),
+      Test.unit("pipe windows 0", Test.nat(List.length<List<Nat>>(Sure.Pipe.windows<Nat>(0, [1, 2])), 0)),
+      Test.unit("pipe decode junk", Test.nat(List.length<Nat>(Sure.Pipe.nats(["", "x", "2"])), 1)),
+      Test.unit("pipe first empty", Test.bool(Maybe.is_none<Nat>(Sure.Pipe.first<Nat>([])), true)),
+      Test.unit("pipe last empty", Test.bool(Maybe.is_none<Nat>(Sure.Pipe.last<Nat>([])), true)),
+      Test.unit("pipe nth empty", Test.bool(Maybe.is_none<Nat>(Sure.Pipe.nth<Nat>(0, [])), true)),
+      Test.unit("pipe any empty", Test.bool(Sure.Pipe.any<Nat>((n) Bool.true, []), false)),
+      Test.unit("pipe every empty", Test.bool(Sure.Pipe.every<Nat>((n) Bool.false, []), true)),
+      Test.unit("pipe sum empty", Test.nat(Sure.Pipe.sum([]), 0)),
+      Test.unit("pipe lines empty", Test.nat(List.length<String>(Sure.Pipe.lines("")), 0)),
+      Test.unit("pipe words empty", Test.nat(List.length<String>(Sure.Pipe.words("")), 0)),
+      Test.unit("pipe fold empty", Test.nat(Sure.Pipe.fold<Nat, Nat>(9, Nat.add, []), 9)),
+      Test.unit("csv read empty", Test.nat(List.length<Sure.Csv.Row>(Sure.Csv.read("")), 0)),
+      Test.unit("csv read a", Test.nat(List.length<Sure.Csv.Row>(Sure.Csv.read("a")), 1)),
+      Test.unit("csv read pair",
+        case List.head<Sure.Csv.Row>(Sure.Csv.read("a,b")) as r {
+          none: Test.Result.fail("none")
+          some: Test.nat(List.length<String>(r.value), 2)
+        }),
+      Test.unit("csv empty field",
+        case List.head<Sure.Csv.Row>(Sure.Csv.read(",")) as r {
+          none: Test.Result.fail("none")
+          some: Test.nat(List.length<String>(r.value), 2)
+        }),
+      Test.unit("csv quoted comma",
+        case List.head<Sure.Csv.Row>(Sure.Csv.read("\"a,b\"")) as r {
+          none: Test.Result.fail("none")
+          some: Test.nat(List.length<String>(r.value), 1)
+        }),
+      Test.unit("csv unclosed", Test.nat(List.length<Sure.Csv.Row>(Sure.Csv.read("\"abc")), 1)),
+      Test.unit("csv rows", Test.nat(List.length<Sure.Csv.Row>(Sure.Csv.read("a\nb")), 2)),
+      Test.unit("csv trail nl", Test.nat(List.length<Sure.Csv.Row>(Sure.Csv.read("a\n")), 1)),
+      Test.unit("csv show empty", Test.string(Sure.Csv.show([]), "")),
+      Test.unit("csv get empty", Test.bool(Maybe.is_none<String>(Sure.Csv.get([], 0)), true)),
+      Test.unit("csv col empty", Test.nat(List.length<String>(Sure.Csv.col([], 0)), 0)),
+      Test.unit("csv header empty", Test.bool(Maybe.is_none<Sure.Csv.Row>(Sure.Csv.header([])), true)),
+      Test.unit("csv body empty", Test.nat(List.length<Sure.Csv.Row>(Sure.Csv.body([])), 0)),
+      Test.unit("csv nats junk", Test.nat(List.length<Nat>(Sure.Csv.nats(Sure.Csv.read("x,2"), 0)), 0)),
+      Test.unit("csv nats hit", Test.nat(List.length<Nat>(Sure.Csv.nats(Sure.Csv.read("x,2"), 1)), 1)),
+      Test.unit("csv need quote empty", Test.bool(Sure.Csv.need_quote(""), false)),
+      Test.unit("csv need quote comma", Test.bool(Sure.Csv.need_quote("a,b"), true)),
+      Test.unit("csv field plain", Test.string(Sure.Csv.field.show("a"), "a")),
+      Test.unit("csv field comma", Test.string(Sure.Csv.field.show(","), "\",\"" )),
+      Test.unit("time div 0", Test.nat(Time.div(5, 0), 0)),
+      Test.unit("time mod 0", Test.nat(Time.mod(5, 0), 5)),
+      Test.unit("time dur empty", Test.bool(Maybe.is_none<Time.Duration>(Time.Duration.read("")), true)),
+      Test.unit("time dur junk", Test.bool(Maybe.is_none<Time.Duration>(Time.Duration.read("nope")), true)),
+      Test.unit("time dur 0",
+        case Time.Duration.read("0") as d {
+          none: Test.Result.fail("none")
+          some: Test.nat(Time.Duration.ms_of(d.value), 0)
+        }),
+      Test.unit("time dur 1s",
+        case Time.Duration.read("1s") as d {
+          none: Test.Result.fail("none")
+          some: Test.nat(Time.Duration.ms_of(d.value), 1000)
+        }),
+      Test.unit("time dur 1ms",
+        case Time.Duration.read("1ms") as d {
+          none: Test.Result.fail("none")
+          some: Test.nat(Time.Duration.ms_of(d.value), 1)
+        }),
+      Test.unit("time stamp empty", Test.bool(Maybe.is_none<Time.Stamp>(Time.Stamp.read("")), true)),
+      Test.unit("time month empty", Test.bool(Maybe.is_none<Time.Month>(Time.Month.read("")), true)),
+      Test.unit("time month 0", Test.bool(Maybe.is_none<Time.Month>(Time.Month.of_nat(0)), true)),
+      Test.unit("time month 13", Test.bool(Maybe.is_none<Time.Month>(Time.Month.read("13")), true)),
+      Test.unit("time leap 1970", Test.bool(Time.leap(1970), false)),
+      Test.unit("time leap 1972", Test.bool(Time.leap(1972), true)),
+      Test.unit("time leap 1900", Test.bool(Time.leap(1900), false)),
+      Test.unit("time leap 2000", Test.bool(Time.leap(2000), true)),
+      Test.unit("time feb 1970", Test.nat(Time.month_days(1970, 2), 28)),
+      Test.unit("time feb 1972", Test.nat(Time.month_days(1972, 2), 29)),
+      Test.unit("time month 0 days", Test.nat(Time.month_days(1970, 0), 0)),
+      Test.unit("time parts bad month", Test.bool(Time.Parts.ok(Time.Parts.new(1970, 0, 1, 0, 0, 0, 0)), false)),
+      Test.unit("time parts bad day", Test.bool(Time.Parts.ok(Time.Parts.new(1970, 1, 32, 0, 0, 0, 0)), false)),
+      Test.unit("time parts feb 30", Test.bool(Time.Parts.ok(Time.Parts.new(1970, 2, 30, 0, 0, 0, 0)), false)),
+      Test.unit("time parts hour 24", Test.bool(Time.Parts.ok(Time.Parts.new(1970, 1, 1, 24, 0, 0, 0)), false)),
+      Test.unit("time from epoch",
+        case Time.from_parts(Time.Parts.new(1970, 1, 1, 0, 0, 0, 0)) as t {
+          none: Test.Result.fail("none")
+          some: Test.nat(Time.Stamp.ms_of(t.value), 0)
+        }),
+      Test.unit("time to epoch year", Test.nat(Time.Parts.year(Time.to_parts(Time.Stamp.epoch)), 1970)),
+      Test.unit("time to epoch day", Test.nat(Time.Parts.day(Time.to_parts(Time.Stamp.epoch)), 1)),
+      Test.unit("time iso epoch", Test.string(Time.iso(Time.Stamp.epoch), "1970-01-01T00:00:00.000Z")),
+      Test.unit("time read empty", Test.bool(Maybe.is_none<Time.Stamp>(Time.read("")), true)),
+      Test.unit("time read junk", Test.bool(Maybe.is_none<Time.Stamp>(Time.read("nope")), true)),
+      Test.unit("time read bad month", Test.bool(Maybe.is_none<Time.Stamp>(Time.read("1970-13-01")), true)),
+      Test.unit("time read epoch",
+        case Time.read("1970-01-01") as t {
+          none: Test.Result.fail("none")
+          some: Test.nat(Time.Stamp.ms_of(t.value), 0)
+        }),
+      Test.unit("time read z",
+        case Time.read("1970-01-01T00:00:00Z") as t {
+          none: Test.Result.fail("none")
+          some: Test.nat(Time.Stamp.ms_of(t.value), 0)
+        }),
+      Test.unit("time sub under", Test.nat(Time.Duration.ms_of(Time.Duration.sub(Time.Duration.zero, Time.Duration.milli(1))), 0)),
+      Test.io("time now", IO {
+        get t = Time.now
+        let p = Time.to_parts(t)
+        return Test.assert(Nat.gte(Time.Parts.year(p), 1970), "year")
+      }),
+      Test.unit("debug empty", Test.string(Sure.Debug.got_want("", "x"), "got  want x")),
+      Test.unit("debug hi", Test.string(Sure.Debug.got_want("1", "0"), "got 1 want 0")),
+      Test.unit("debug redact short", Test.string(Sure.Debug.redact("hi"), "hi")),
+      Test.unit("debug redact nl", Test.string(Sure.Debug.redact("hi\nthere"), "hi...")),
+      Test.unit("debug redact 80", Test.string(Sure.Debug.redact(String.pad_right(80, 'a', "")), String.pad_right(80, 'a', ""))),
+      Test.unit("debug redact 81", Test.string(Sure.Debug.redact(String.pad_right(81, 'a', "")), String.pad_right(80, 'a', "") | "...")),
+      Test.unit("debug flags empty", Test.bool(Sure.Debug.Flags.any(Sure.Debug.Flags.read("")), false)),
+      Test.unit("debug flags term", Test.bool(Sure.Debug.Flags.term(Sure.Debug.Flags.read("term")), true)),
+      Test.unit("debug flags term not host", Test.bool(Sure.Debug.Flags.host(Sure.Debug.Flags.read("term")), false)),
+      Test.unit("debug flags holes", Test.bool(Sure.Debug.Flags.holes(Sure.Debug.Flags.read("holes")), true)),
+      Test.unit("debug flags qc", Test.bool(Sure.Debug.Flags.qc(Sure.Debug.Flags.read("qc")), true)),
+      Test.unit("debug flags junk", Test.bool(Sure.Debug.Flags.any(Sure.Debug.Flags.read("loud")), false)),
+      Test.unit("debug flags upper", Test.bool(Sure.Debug.Flags.host(Sure.Debug.Flags.read("HOST")), false)),
+      Test.unit("debug flags all", Test.string(Sure.Debug.Flags.show(Sure.Debug.Flags.read("all")), "all")),
+      Test.unit("debug flags mixed", Test.string(Sure.Debug.Flags.show(Sure.Debug.Flags.read("qc,host")), "host qc")),
+      Test.unit("debug open empty", Test.bool(Sure.Debug.open(Sure.Debug.Flags.read(""), Sure.Debug.Channel.host), true)),
+      Test.unit("debug open filter", Test.bool(Sure.Debug.open(Sure.Debug.Flags.read("qc"), Sure.Debug.Channel.host), false)),
+      Test.unit("debug emit off", Test.bool(Sure.Debug.emit(Sure.Debug.Level.off, Sure.Debug.Level.info, Sure.Debug.Flags.read(""), Sure.Debug.Channel.host), false)),
+      Test.unit("debug host yield info", Test.bool(Sure.Debug.host_ask(Sure.Debug.Level.info, Sure.Debug.Flags.read(""), "yield"), false)),
+      Test.unit("debug host yield trace", Test.bool(Sure.Debug.host_ask(Sure.Debug.Level.trace, Sure.Debug.Flags.read(""), "yield"), true)),
+      Test.unit("debug host opt off", Test.bool(Sure.Debug.host_ask(Sure.Debug.Level.off, Sure.Debug.Flags.read("host"), "db_get"), true)),
+      Test.unit("debug channel empty", Test.bool(Maybe.is_none<Sure.Debug.Channel>(Sure.Debug.Channel.read("")), true)),
+      Test.unit("debug channel junk", Test.bool(Maybe.is_none<Sure.Debug.Channel>(Sure.Debug.Channel.read("all")), true)),
+      Test.unit("debug channel host",
+        case Sure.Debug.Channel.read("host") as r {
+          none: Test.Result.fail("none")
+          some: Test.string(Sure.Debug.Channel.show(r.value), "host")
+        }),
+      Test.unit("show debug", Test.string(Sure.Agent.Method.show(Sure.Agent.Method.debug), "sure.debug")),
+      Test.unit("read debug",
+        case Sure.Agent.Method.read("sure.debug") {
+          some: Test.assert(true, "ok")
+          none: Test.Result.fail("read debug")
+        }),
+      Test.unit("read kind.debug alias",
+        case Sure.Agent.Method.read("kind.debug") {
+          some: Test.assert(true, "ok")
+          none: Test.Result.fail("kind.debug alias")
+        }),
+      Test.unit("show qc", Test.string(Sure.Agent.Method.show(Sure.Agent.Method.qc), "sure.qc")),
+      Test.unit("show fill", Test.string(Sure.Agent.Method.show(Sure.Agent.Method.fill), "sure.fill")),
+      Test.unit("show trace", Test.string(Sure.Agent.Method.show(Sure.Agent.Method.trace), "sure.trace")),
+      Test.unit("list nil", Test.nat(List.length<Nat>([]), 0)),
+      Test.unit("list one", Test.nat(List.length<Nat>(Sure.Qc.List.sing(9)), 1)),
+      Test.unit("tag div", Test.string(Html.Tag.show(Html.Tag.div), "div")),
+      Test.unit("tag br void", Test.bool(Html.Tag.void(Html.Tag.br), true)),
+      Test.unit("tag read empty", Test.bool(Maybe.is_none<Html.Tag>(Html.Tag.read("")), true)),
+      Test.unit("tag read junk", Test.bool(Maybe.is_none<Html.Tag>(Html.Tag.read("not-a-tag")), true)),
+      Test.unit("event click", Test.string(Html.Event.show(Html.Event.click), "click")),
+      Test.unit("event vis", Test.string(Html.Event.show(Html.Event.visibilitychange), "visibilitychange")),
+      Test.unit("event read empty", Test.bool(Maybe.is_none<Html.Event>(Html.Event.read("")), true)),
+      Test.unit("event read junk", Test.bool(Maybe.is_none<Html.Event>(Html.Event.read("zzz")), true)),
+      Test.unit("void input", Test.bool(Html.void_name("input"), true)),
+      Test.unit("void empty", Test.bool(Html.void_name(""), false)),
+      Test.unit("escape lt", Test.string(Html.escape("<"), "&lt;")),
+      Test.unit("escape empty", Test.string(Html.escape(""), "")),
+      Test.unit("render a", Test.string(DOM.render(DOM.text("a")), "a")),
+      Test.unit("filter nil", Test.nat(List.length<Nat>(Sure.Pipe.filter<Nat>((n) Bool.true, [])), 0)),
+      Test.unit("qc val unit", Test.string(Sure.Qc.Val.show(Sure.Qc.Val.unit), "unit")),
+      Test.unit("qc sort nat", Test.string(Sure.Qc.Sort.show(Sure.Qc.Sort.nat), "Nat")),
+    ]),
+    Test.group("Sure.Agent", [
+      Test.unit("show check", Test.string(Sure.Agent.Method.show(Sure.Agent.Method.check), "sure.check")),
+      Test.unit("read check",
+        case Sure.Agent.Method.read("sure.check") {
+          some: Test.assert(true, "ok")
+          none: Test.Result.fail("read check")
+        }),
+      Test.unit("read kind.check alias",
+        case Sure.Agent.Method.read("kind.check") {
+          some: Test.assert(true, "ok")
+          none: Test.Result.fail("kind alias")
+        }),
+      Test.unit("?implement", Test.string(Sure.Agent.implement, "implement")),
+      Test.unit("roundtrip check",
+        case Sure.Agent.Method.read(Sure.Agent.Method.show(Sure.Agent.Method.check)) {
+          some: Test.assert(true, "ok")
+          none: Test.Result.fail("roundtrip")
+        }),
+      Test.unit("show prove", Test.string(Sure.Agent.Method.show(Sure.Agent.Method.prove), "sure.prove")),
+      Test.unit("read prove",
+        case Sure.Agent.Method.read("sure.prove") {
+          some: Test.assert(true, "ok")
+          none: Test.Result.fail("read prove")
+        }),
+      Test.unit("read empty", Test.bool(Maybe.is_none<Sure.Agent.Method>(Sure.Agent.Method.read("")), true)),
+      Test.unit("read junk", Test.bool(Maybe.is_none<Sure.Agent.Method>(Sure.Agent.Method.read("kind.unknown")), true)),
+      Test.unit("read prove-no-prefix", Test.bool(Maybe.is_none<Sure.Agent.Method>(Sure.Agent.Method.read("prove")), true)),
+      Test.unit("fill no hole", Test.string(Sure.Agent.fill("no hole", "0"), "no hole")),
+      Test.unit("fill empty src", Test.string(Sure.Agent.fill("", "0"), "")),
+      Test.unit("fill first keep", Test.string(Sure.Agent.fill.first("x?implementy?implementz", "0"), "x0y?implementz")),
+      Test.unit("fill first none", Test.string(Sure.Agent.fill.first("no hole", "0"), "no hole")),
+      Test.unit("fill first empty", Test.string(Sure.Agent.fill.first("", "0"), "")),
+      Test.unit("fill two", Test.string(Sure.Agent.fill("a?implementb?implementc", "0"), "a0b0c")),
+      Test.unit("fill empty term", Test.string(Sure.Agent.fill("?implement", ""), "")),
+      Test.unit("hole count empty", Test.nat(Sure.Agent.hole_count(""), 0)),
+      Test.unit("hole count none", Test.nat(Sure.Agent.hole_count("no hole"), 0)),
+      Test.unit("hole count one", Test.nat(Sure.Agent.hole_count("?implement"), 1)),
+      Test.unit("hole count two", Test.nat(Sure.Agent.hole_count("a?implementb?implementc"), 2)),
+      Test.unit("trace empty", Test.string(Sure.Agent.trace("", "", ""), "Goal ?:\nWith type: \nWith context:\n")),
+      Test.unit("trace nat", Test.string(Sure.Agent.trace("implement", "Nat", ""), "Goal ?implement:\nWith type: Nat\nWith context:\n")),
+      Test.unit("names empty", Test.string(Sure.Agent.names_head(""), "")),
+      Test.unit("uses Nat.add", Test.bool(Sure.Agent.uses("Nat.add(1, 1)", "Nat.add"), true)),
+      Test.unit("uses miss", Test.bool(Sure.Agent.uses("Nat.add(1, 1)", "List"), false)),
+      Test.unit("uses empty", Test.bool(Sure.Agent.uses("", "Nat"), false)),
+      Test.unit("uses empty name", Test.bool(Sure.Agent.uses("Nat.add", ""), false)),
+      Test.unit("theorem line", Test.bool(Sure.Agent.is_theorem_line("Foo: 1 == 1"), true)),
+      Test.unit("not theorem", Test.bool(Sure.Agent.is_theorem_line("Foo: Nat"), false)),
+      Test.unit("theorem empty", Test.bool(Sure.Agent.is_theorem_line(""), false)),
+      Test.unit("theorem bare ==", Test.bool(Sure.Agent.is_theorem_line("1 == 1"), false)),
+      Test.unit("has implement", Test.bool(Sure.Agent.has_implement("n: Nat\n  ?implement"), true)),
+      Test.unit("no implement", Test.bool(Sure.Agent.has_implement("n: Nat\n  0"), false)),
+      Test.unit("implement word", Test.bool(Sure.Agent.has_implement("implement"), false)),
+      Test.unit("show impact", Test.string(Sure.Agent.Method.show(Sure.Agent.Method.impact), "sure.impact")),
+      Test.unit("read impact",
+        case Sure.Agent.Method.read("sure.impact") {
+          some: Test.assert(true, "ok")
+          none: Test.Result.fail("read impact")
+        }),
+      Test.unit("show theorems", Test.string(Sure.Agent.Method.show(Sure.Agent.Method.theorems), "sure.theorems")),
+      Test.unit("read theorems",
+        case Sure.Agent.Method.read("sure.theorems") {
+          some: Test.assert(true, "ok")
+          none: Test.Result.fail("read theorems")
+        }),
+      Test.unit("show docs", Test.string(Sure.Agent.Method.show(Sure.Agent.Method.docs), "sure.docs")),
+      Test.unit("read docs",
+        case Sure.Agent.Method.read("sure.docs") {
+          some: Test.assert(true, "ok")
+          none: Test.Result.fail("read docs")
+        }),
+      Test.unit("deps empty", Test.nat(List.length<String>(Sure.Agent.deps("")), 0)),
+      Test.unit("deps none", Test.nat(List.length<String>(Sure.Agent.deps("1 + 2")), 0)),
+      Test.unit("deps dup", Test.nat(List.length<String>(Sure.Agent.deps("Nat.add Nat.add")), 1)),
+      Test.unit("deps without", Test.nat(List.length<String>(Sure.Agent.deps.drop("Foo Bar", "Foo")), 1)),
+      Test.unit("edge eql", Test.bool(Sure.Agent.Edge.eql(Sure.Agent.Edge.new("A", "B"), Sure.Agent.Edge.new("A", "B")), true)),
+      Test.unit("edge diff", Test.bool(Sure.Agent.Edge.eql(Sure.Agent.Edge.new("A", "B"), Sure.Agent.Edge.new("A", "C")), false)),
+      Test.unit("edge self", Test.bool(Sure.Agent.Edge.self(Sure.Agent.Edge.new("A", "A")), true)),
+      Test.unit("edge not self", Test.bool(Sure.Agent.Edge.self(Sure.Agent.Edge.new("A", "B")), false)),
+      Test.unit("show graph", Test.string(Sure.Agent.Method.show(Sure.Agent.Method.graph), "sure.graph")),
+      Test.unit("read graph",
+        case Sure.Agent.Method.read("sure.graph") {
+          some: Test.assert(true, "ok")
+          none: Test.Result.fail("read graph")
+        }),
+      Test.unit("read fill",
+        case Sure.Agent.Method.read("sure.fill") {
+          some: Test.assert(true, "ok")
+          none: Test.Result.fail("read fill")
+        }),
+      Test.unit("read kind.fill alias",
+        case Sure.Agent.Method.read("kind.fill") {
+          some: Test.assert(true, "ok")
+          none: Test.Result.fail("kind.fill alias")
+        }),
+      Test.unit("read trace",
+        case Sure.Agent.Method.read("sure.trace") {
+          some: Test.assert(true, "ok")
+          none: Test.Result.fail("read trace")
+        }),
+      Test.unit("read fill-no-prefix", Test.bool(Maybe.is_none<Sure.Agent.Method>(Sure.Agent.Method.read("fill")), true)),
+      Test.unit("read gen",
+        case Sure.Agent.Method.read("sure.gen") {
+          some: Test.assert(true, "ok")
+          none: Test.Result.fail("read gen")
+        }),
+      Test.unit("read kind.gen alias",
+        case Sure.Agent.Method.read("kind.gen") {
+          some: Test.assert(true, "ok")
+          none: Test.Result.fail("kind.gen alias")
+        }),
+    ]),
+    Test.group("Sure.Build", [
+      Test.unit("fresh same", Test.bool(Sure.Build.fresh("abc", "abc"), false)),
+      Test.unit("fresh diff", Test.bool(Sure.Build.fresh("", "abc"), true)),
+      Test.unit("fresh empty", Test.bool(Sure.Build.fresh("", ""), false)),
+      Test.unit("dirty hash", Test.bool(Sure.Build.dirty("a", "b", false), true)),
+      Test.unit("dirty dep", Test.bool(Sure.Build.dirty("a", "a", true), true)),
+      Test.unit("dirty clean", Test.bool(Sure.Build.dirty("a", "a", false), false)),
+      Test.unit("emit empty", Test.string(Sure.Emit.file(""), "")),
+      Test.unit("emit main", Test.string(Sure.Emit.file("Main"), "dist/Main.js")),
+      Test.unit("emit js empty", Test.string(Sure.Emit.js_name(""), "")),
+      Test.unit("emit ready no js", Test.bool(Sure.Emit.ready(false, true), false)),
+      Test.unit("emit ready unproved", Test.bool(Sure.Emit.ready(true, false), false)),
+      Test.unit("emit ready ok", Test.bool(Sure.Emit.ready(true, true), true)),
+      Test.unit("html name empty", Test.string(Sure.Emit.html_name(""), "")),
+      Test.unit("html file main", Test.string(Sure.Emit.html_file("Main"), "dist/Main.html")),
+      Test.unit("json bool true",
+        case JSON.dec.bool(JSON.bool(true)) as j {
+          none: Test.Result.fail("none")
+          some: Test.bool(j.value, true)
+        }),
+      Test.unit("json bool null", Test.bool(Maybe.is_none<Bool>(JSON.dec.bool(JSON.null)), true)),
+      Test.unit("json nat empty", Test.bool(Maybe.is_none<Nat>(JSON.dec.nat(JSON.string(""))), true)),
+      Test.unit("json nat junk", Test.bool(Maybe.is_none<Nat>(JSON.dec.nat(JSON.string("abc"))), true)),
+      Test.unit("json nat tail", Test.bool(Maybe.is_none<Nat>(JSON.dec.nat(JSON.string("12x"))), true)),
+      Test.unit("json pair empty", Test.bool(Maybe.is_none<Pair<Bool, Bool>>(JSON.dec.pair<Bool, Bool>(JSON.dec.bool, JSON.dec.bool, JSON.array([]))), true)),
+      Test.unit("json either null", Test.bool(Maybe.is_none<Either<Bool, Bool>>(JSON.dec.either<Bool, Bool>(JSON.dec.bool, JSON.dec.bool, JSON.null)), true)),
+      Test.unit("emit unsafe slash", Test.bool(Sure.Emit.safe("a/b"), false)),
+      Test.unit("emit unsafe dotdot", Test.string(Sure.Emit.file("../x"), "")),
+      Test.unit("escape amp", Test.string(Html.escape("&"), "&amp;")),
+      Test.unit("event nat junk", Test.nat(Html.Event.Data.nat("nope"), 0)),
+      Test.unit("counter empty wire", Test.nat(Html.Client.step_of<Nat>(Html.Counter.client, "", 0), 0)),
+      Test.unit("json list null", Test.bool(Maybe.is_none<List<Bool>>(JSON.dec.list<Bool>(JSON.dec.bool, JSON.null)), true)),
+      Test.unit("json get miss", Test.bool(Maybe.is_none<JSON>(JSON.get(JSON.null, "x")), true)),
+      Test.unit("json maybe none",
+        case JSON.dec.maybe<Bool>(JSON.dec.bool, JSON.null) as j {
+          none: Test.Result.fail("none")
+          some: Test.bool(Maybe.is_none<Bool>(j.value), true)
+        }),
+      Test.unit("counter init", Test.nat(Html.Client.init_of<Nat>(Html.Counter.client), 0)),
+      Test.unit("counter inc", Test.nat(Html.Client.step_of<Nat>(Html.Counter.client, Html.Client.wire("click", "inc", "", ""), 0), 1)),
+      Test.unit("counter miss", Test.nat(Html.Client.step_of<Nat>(Html.Counter.client, Html.Client.wire("click", "nope", "", ""), 4), 4)),
+      Test.unit("echo init", Test.string(Html.Client.init_of<String>(Html.Echo.client), "")),
+      Test.unit("echo set", Test.string(Html.Client.step_of<String>(Html.Echo.client, Html.Client.wire("input", "set", "", "hi"), ""), "hi")),
+      Test.unit("echo clear", Test.string(Html.Client.step_of<String>(Html.Echo.client, Html.Client.wire("click", "clear", "", ""), "hi"), "")),
+      Test.unit("echo miss", Test.string(Html.Client.step_of<String>(Html.Echo.client, Html.Client.wire("click", "nope", "", ""), "keep"), "keep")),
+      Test.unit("on click attr", Test.string(DOM.prop_attr.one(Pair.new<String, String>("on-click", "inc")), " data-sure-on-click=\"inc\"")),
+    ]),
+    Test.group("Sure.Ui", [
+      Test.unit("cmd none", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.none), "")),
+      Test.unit("cmd http empty", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.http("", "m")), "")),
+      Test.unit("cmd tick zero", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.tick(0, "t")), "")),
+      Test.unit("cmd push", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.push("x")), "P\nx")),
+      Test.unit("cmd push empty", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.push("")), "P\n")),
+      Test.unit("cmd batch nil", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.batch([])), "")),
+      Test.unit("cmd batch none only", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.batch([Sure.Ui.Cmd.none])), "")),
+      Test.unit("cmd show http", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.http("/u", "ok")), "H\n/u\nok")),
+      Test.unit("cmd show tick", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.tick(1, "t")), "T\n1\nt")),
+      Test.unit("cmd show tick two", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.tick(2, "x")), "T\n2\nx")),
+      Test.unit("cmd http space url", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.http(" ", "m")), "H\n \nm")),
+      Test.unit("cmd http nl msg", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.http("/u", "a\nb")), "H\n/u\na\nb")),
+      Test.unit("cmd batch drop", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.batch([Sure.Ui.Cmd.none, Sure.Ui.Cmd.push("x"), Sure.Ui.Cmd.http("", "m"), Sure.Ui.Cmd.tick(0, "t"), Sure.Ui.Cmd.push("y")])), "P\nx\n.\nP\ny")),
+      Test.unit("cmd nested batch", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.batch([Sure.Ui.Cmd.batch([Sure.Ui.Cmd.push("a")]), Sure.Ui.Cmd.push("b")])), "P\na\n.\nP\nb")),
+      Test.unit("cmd deep batch", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.batch([Sure.Ui.Cmd.batch([Sure.Ui.Cmd.batch([Sure.Ui.Cmd.push("z")])]), Sure.Ui.Cmd.none])), "P\nz")),
+      Test.unit("cmd is none", Test.bool(Sure.Ui.Cmd.is_none(Sure.Ui.Cmd.none), true)),
+      Test.unit("cmd is none push", Test.bool(Sure.Ui.Cmd.is_none(Sure.Ui.Cmd.push("x")), false)),
+      Test.unit("cmd is none empty batch", Test.bool(Sure.Ui.Cmd.is_none(Sure.Ui.Cmd.batch([])), false)),
+      Test.unit("cmd is none empty http", Test.bool(Sure.Ui.Cmd.is_none(Sure.Ui.Cmd.http("", "m")), false)),
+      Test.unit("cmd read empty", Test.bool(Sure.Ui.Cmd.is_none(Sure.Ui.Cmd.read("")), true)),
+      Test.unit("cmd read junk", Test.bool(Sure.Ui.Cmd.is_none(Sure.Ui.Cmd.read("nope")), true)),
+      Test.unit("cmd read empty url", Test.bool(Sure.Ui.Cmd.is_none(Sure.Ui.Cmd.read("H\n\nok")), true)),
+      Test.unit("cmd read tick zero", Test.bool(Sure.Ui.Cmd.is_none(Sure.Ui.Cmd.read("T\n0\nx")), true)),
+      Test.unit("cmd read tick junk", Test.bool(Sure.Ui.Cmd.is_none(Sure.Ui.Cmd.read("T\nno\nx")), true)),
+      Test.unit("cmd read H only", Test.bool(Sure.Ui.Cmd.is_none(Sure.Ui.Cmd.read("H")), true)),
+      Test.unit("cmd read T only", Test.bool(Sure.Ui.Cmd.is_none(Sure.Ui.Cmd.read("T")), true)),
+      Test.unit("cmd read T empty ms", Test.bool(Sure.Ui.Cmd.is_none(Sure.Ui.Cmd.read("T\n")), true)),
+      Test.unit("cmd read dots", Test.bool(Sure.Ui.Cmd.is_none(Sure.Ui.Cmd.read("\n.\n")), true)),
+      Test.unit("cmd read show empty batch", Test.bool(Sure.Ui.Cmd.is_none(Sure.Ui.Cmd.read(Sure.Ui.Cmd.show(Sure.Ui.Cmd.batch([])))), true)),
+      Test.unit("cmd read http",
+        case Sure.Ui.Cmd.read("H\n/u\nok") as c {
+          http: Test.string(c.url | " " | c.msg, "/u ok")
+        } default Test.Result.fail("not http")),
+      Test.unit("cmd read http no msg",
+        case Sure.Ui.Cmd.read("H\n/u") as c {
+          http: Test.string(c.url | "/" | c.msg, "/u/")
+        } default Test.Result.fail("not http")),
+      Test.unit("cmd read http nl msg",
+        case Sure.Ui.Cmd.read("H\n/u\na\nb") as c {
+          http: Test.string(c.msg, "a\nb")
+        } default Test.Result.fail("not http")),
+      Test.unit("cmd read push empty",
+        case Sure.Ui.Cmd.read("P\n") as c {
+          push: Test.string(c.msg, "")
+        } default Test.Result.fail("not push")),
+      Test.unit("cmd read P only",
+        case Sure.Ui.Cmd.read("P") as c {
+          push: Test.string(c.msg, "")
+        } default Test.Result.fail("not push")),
+      Test.unit("cmd read tick",
+        case Sure.Ui.Cmd.read("T\n1\nx") as c {
+          tick: Test.string(Nat.show(c.ms) | " " | c.msg, "1 x")
+        } default Test.Result.fail("not tick")),
+      Test.unit("cmd read batch",
+        case Sure.Ui.Cmd.read("P\na\n.\nP\nb") as c {
+          batch: Test.nat(List.length<Sure.Ui.Cmd>(c.xs), 2)
+        } default Test.Result.fail("not batch")),
+      Test.unit("cmd read drop junk", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.read("nope\n.\nP\nx\n.\nH\n\nz\n.\nP\ny")), "P\nx\n.\nP\ny")),
+      Test.unit("cmd read trailing sep", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.read("P\nx\n.\n")), "P\nx")),
+      Test.unit("cmd roundtrip push", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.read("P\nx")), "P\nx")),
+      Test.unit("cmd roundtrip http", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.read("H\n/u\nok")), "H\n/u\nok")),
+      Test.unit("cmd roundtrip tick", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.read("T\n1\nx")), "T\n1\nx")),
+      Test.unit("cmd roundtrip batch", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.read("P\na\n.\nP\nb")), "P\na\n.\nP\nb")),
+      Test.unit("join empty", Test.string(Sure.Ui.join([]), "")),
+      Test.unit("join one", Test.string(Sure.Ui.join(["a"]), "a")),
+      Test.unit("join two", Test.string(Sure.Ui.join(["a", "b"]), "a\n.\nb")),
+      Test.unit("sub none", Test.string(Sure.Ui.Sub.show(Sure.Ui.Sub.none), "")),
+      Test.unit("sub every zero", Test.string(Sure.Ui.Sub.show(Sure.Ui.Sub.every(0, "t")), "")),
+      Test.unit("sub sse empty", Test.string(Sure.Ui.Sub.show(Sure.Ui.Sub.sse("", "m")), "")),
+      Test.unit("sub show sse", Test.string(Sure.Ui.Sub.show(Sure.Ui.Sub.sse("/sse", "m")), "S\n/sse\nm")),
+      Test.unit("sub show every", Test.string(Sure.Ui.Sub.show(Sure.Ui.Sub.every(1, "t")), "E\n1\nt")),
+      Test.unit("sub batch nil", Test.string(Sure.Ui.Sub.show(Sure.Ui.Sub.batch([])), "")),
+      Test.unit("sub batch none only", Test.string(Sure.Ui.Sub.show(Sure.Ui.Sub.batch([Sure.Ui.Sub.none])), "")),
+      Test.unit("sub batch drop", Test.string(Sure.Ui.Sub.show(Sure.Ui.Sub.batch([Sure.Ui.Sub.none, Sure.Ui.Sub.every(0, "t"), Sure.Ui.Sub.sse("", "m"), Sure.Ui.Sub.every(1, "x")])), "E\n1\nx")),
+      Test.unit("sub nested batch", Test.string(Sure.Ui.Sub.show(Sure.Ui.Sub.batch([Sure.Ui.Sub.batch([Sure.Ui.Sub.sse("/s", "m")]), Sure.Ui.Sub.every(1, "t")])), "S\n/s\nm\n.\nE\n1\nt")),
+      Test.unit("sub is none", Test.bool(Sure.Ui.Sub.is_none(Sure.Ui.Sub.none), true)),
+      Test.unit("sub is none every", Test.bool(Sure.Ui.Sub.is_none(Sure.Ui.Sub.every(1, "t")), false)),
+      Test.unit("sub is none empty batch", Test.bool(Sure.Ui.Sub.is_none(Sure.Ui.Sub.batch([])), false)),
+      Test.unit("sub read empty", Test.bool(Sure.Ui.Sub.is_none(Sure.Ui.Sub.read("")), true)),
+      Test.unit("sub read junk", Test.bool(Sure.Ui.Sub.is_none(Sure.Ui.Sub.read("nope")), true)),
+      Test.unit("sub read empty path", Test.bool(Sure.Ui.Sub.is_none(Sure.Ui.Sub.read("S\n\nm")), true)),
+      Test.unit("sub read every zero", Test.bool(Sure.Ui.Sub.is_none(Sure.Ui.Sub.read("E\n0\nt")), true)),
+      Test.unit("sub read every junk", Test.bool(Sure.Ui.Sub.is_none(Sure.Ui.Sub.read("E\nno\nt")), true)),
+      Test.unit("sub read E only", Test.bool(Sure.Ui.Sub.is_none(Sure.Ui.Sub.read("E")), true)),
+      Test.unit("sub read S only", Test.bool(Sure.Ui.Sub.is_none(Sure.Ui.Sub.read("S")), true)),
+      Test.unit("sub read drop junk", Test.string(Sure.Ui.Sub.show(Sure.Ui.Sub.read("nope\n.\nE\n1\nt\n.\nS\n\nm")), "E\n1\nt")),
+      Test.unit("sub roundtrip every", Test.string(Sure.Ui.Sub.show(Sure.Ui.Sub.read("E\n1\nt")), "E\n1\nt")),
+      Test.unit("sub roundtrip sse", Test.string(Sure.Ui.Sub.show(Sure.Ui.Sub.read("S\n/sse\nm")), "S\n/sse\nm")),
+      Test.unit("sub roundtrip batch", Test.string(Sure.Ui.Sub.show(Sure.Ui.Sub.read("E\n1\nt\n.\nS\n/s\nm")), "E\n1\nt\n.\nS\n/s\nm")),
+      Test.unit("wire is html wire", Test.string(Sure.Ui.wire("click", "inc", "", ""), Html.Client.wire("click", "inc", "", ""))),
+      Test.unit("counter init", Test.nat(Sure.Ui.init_of<Nat>(Sure.Ui.Counter.client), 0)),
+      Test.unit("counter inc", Test.nat(Sure.Ui.step_model<Nat>(Sure.Ui.Counter.client, Sure.Ui.wire("click", "inc", "", ""), 0), 1)),
+      Test.unit("counter miss", Test.nat(Sure.Ui.step_model<Nat>(Sure.Ui.Counter.client, Sure.Ui.wire("click", "nope", "", ""), 4), 4)),
+      Test.unit("counter empty wire", Test.nat(Sure.Ui.step_model<Nat>(Sure.Ui.Counter.client, "", 0), 0)),
+      Test.unit("counter fx", Test.string(Sure.Ui.step_fx<Nat>(Sure.Ui.Counter.client, Sure.Ui.wire("click", "inc", "", ""), 0), "")),
+      Test.unit("counter listen", Test.string(Sure.Ui.listen_of<Nat>(Sure.Ui.Counter.client, 0), "")),
+      Test.unit("counter boot", Test.string(Sure.Ui.boot_of<Nat>(Sure.Ui.Counter.client), "")),
+      Test.unit("counter draw inc", Test.bool(String.includes(Sure.Ui.draw_of<Nat>(Sure.Ui.Counter.client, 0), "data-sure-on-click=\"inc\""), true)),
+      Test.unit("counter draw zero", Test.bool(String.includes(Sure.Ui.draw_of<Nat>(Sure.Ui.Counter.client, 0), ">0<"), true)),
+      Test.unit("echo init", Test.string(Sure.Ui.init_of<String>(Sure.Ui.Echo.client), "")),
+      Test.unit("echo set", Test.string(Sure.Ui.step_model<String>(Sure.Ui.Echo.client, Sure.Ui.wire("input", "set", "", "hi"), ""), "hi")),
+      Test.unit("echo clear", Test.string(Sure.Ui.step_model<String>(Sure.Ui.Echo.client, Sure.Ui.wire("click", "clear", "", ""), "hi"), "")),
+      Test.unit("echo miss", Test.string(Sure.Ui.step_model<String>(Sure.Ui.Echo.client, Sure.Ui.wire("click", "nope", "", ""), "keep"), "keep")),
+      Test.unit("echo empty set", Test.string(Sure.Ui.step_model<String>(Sure.Ui.Echo.client, Sure.Ui.wire("input", "set", "", ""), "keep"), "")),
+      Test.unit("echo listen", Test.string(Sure.Ui.listen_of<String>(Sure.Ui.Echo.client, "hi"), "")),
+      Test.unit("echo boot", Test.string(Sure.Ui.boot_of<String>(Sure.Ui.Echo.client), "")),
+      Test.unit("echo fx none", Test.string(Sure.Ui.step_fx<String>(Sure.Ui.Echo.client, Sure.Ui.wire("input", "set", "", "x"), ""), "")),
+      Test.unit("echo draw hi", Test.bool(String.includes(Sure.Ui.draw_of<String>(Sure.Ui.Echo.client, "hi"), "hi"), true)),
+      Test.unit("echo draw escape", Test.bool(String.includes(Sure.Ui.draw_of<String>(Sure.Ui.Echo.client, "<"), "&lt;"), true)),
+      Test.unit("tick init", Test.nat(Sure.Ui.init_of<Nat>(Sure.Ui.Tick.client), 0)),
+      Test.unit("tick step", Test.nat(Sure.Ui.step_model<Nat>(Sure.Ui.Tick.client, Sure.Ui.wire("tick", "tick", "", ""), 2), 3)),
+      Test.unit("tick miss", Test.nat(Sure.Ui.step_model<Nat>(Sure.Ui.Tick.client, Sure.Ui.wire("click", "nope", "", ""), 2), 2)),
+      Test.unit("tick listen", Test.bool(String.starts_with(Sure.Ui.listen_of<Nat>(Sure.Ui.Tick.client, 0), "E\n"), true)),
+      Test.unit("tick listen stays", Test.string(Sure.Ui.listen_of<Nat>(Sure.Ui.Tick.client, 0), Sure.Ui.listen_of<Nat>(Sure.Ui.Tick.client, 9))),
+      Test.unit("tick boot", Test.string(Sure.Ui.boot_of<Nat>(Sure.Ui.Tick.client), "")),
+      Test.unit("tick fx none", Test.string(Sure.Ui.step_fx<Nat>(Sure.Ui.Tick.client, Sure.Ui.wire("tick", "tick", "", ""), 0), "")),
+      Test.unit("tick draw zero", Test.bool(String.includes(Sure.Ui.draw_of<Nat>(Sure.Ui.Tick.client, 0), ">0<"), true)),
+      Test.unit("probe init", Test.string(Sure.Ui.init_of<String>(Sure.Ui.Probe.client), "")),
+      Test.unit("probe miss", Test.string(Sure.Ui.step_model<String>(Sure.Ui.Probe.client, Sure.Ui.wire("click", "nope", "", ""), "x"), "x")),
+      Test.unit("probe empty", Test.string(Sure.Ui.step_model<String>(Sure.Ui.Probe.client, "", "x"), "x")),
+      Test.unit("probe go fx", Test.string(Sure.Ui.step_fx<String>(Sure.Ui.Probe.client, Sure.Ui.wire("click", "go", "", ""), ""), "P\nplus")),
+      Test.unit("probe plus", Test.string(Sure.Ui.step_model<String>(Sure.Ui.Probe.client, Sure.Ui.wire("push", "plus", "", ""), ""), "+")),
+      Test.unit("probe pack fx", Test.string(Sure.Ui.step_fx<String>(Sure.Ui.Probe.client, Sure.Ui.wire("click", "pack", "", ""), ""), "P\na\n.\nP\nb")),
+      Test.unit("probe net fx", Test.string(Sure.Ui.step_fx<String>(Sure.Ui.Probe.client, Sure.Ui.wire("click", "net", "", ""), ""), "H\n/u\ngot")),
+      Test.unit("probe wait fx", Test.string(Sure.Ui.step_fx<String>(Sure.Ui.Probe.client, Sure.Ui.wire("click", "wait", "", ""), ""), "T\n1\ndone")),
+      Test.unit("probe got", Test.string(Sure.Ui.step_model<String>(Sure.Ui.Probe.client, Sure.Ui.wire("http", "got", "", "body"), "old"), "body")),
+      Test.unit("probe got empty", Test.string(Sure.Ui.step_model<String>(Sure.Ui.Probe.client, Sure.Ui.wire("http", "got", "", ""), "old"), "")),
+      Test.unit("probe a", Test.string(Sure.Ui.step_model<String>(Sure.Ui.Probe.client, Sure.Ui.wire("push", "a", "", ""), "x"), "xA")),
+      Test.unit("probe b", Test.string(Sure.Ui.step_model<String>(Sure.Ui.Probe.client, Sure.Ui.wire("push", "b", "", ""), "x"), "xB")),
+      Test.unit("probe done", Test.string(Sure.Ui.step_model<String>(Sure.Ui.Probe.client, Sure.Ui.wire("tick", "done", "", ""), "x"), "done")),
+      Test.unit("probe subon", Test.string(Sure.Ui.step_model<String>(Sure.Ui.Probe.client, Sure.Ui.wire("click", "subon", "", ""), ""), "sub")),
+      Test.unit("probe suboff", Test.string(Sure.Ui.step_model<String>(Sure.Ui.Probe.client, Sure.Ui.wire("click", "suboff", "", ""), "sub"), "")),
+      Test.unit("probe eson", Test.string(Sure.Ui.step_model<String>(Sure.Ui.Probe.client, Sure.Ui.wire("click", "eson", "", ""), ""), "es")),
+      Test.unit("probe sse msg", Test.string(Sure.Ui.step_model<String>(Sure.Ui.Probe.client, Sure.Ui.wire("sse", "msg", "", "PING"), "es"), "PING")),
+      Test.unit("probe loop fx", Test.string(Sure.Ui.step_fx<String>(Sure.Ui.Probe.client, Sure.Ui.wire("click", "loop", "", ""), ""), "P\nloop")),
+      Test.unit("probe http0 fx", Test.string(Sure.Ui.step_fx<String>(Sure.Ui.Probe.client, Sure.Ui.wire("click", "http0", "", ""), ""), "")),
+      Test.unit("probe tick0 fx", Test.string(Sure.Ui.step_fx<String>(Sure.Ui.Probe.client, Sure.Ui.wire("click", "tick0", "", ""), ""), "")),
+      Test.unit("probe blank fx", Test.string(Sure.Ui.step_fx<String>(Sure.Ui.Probe.client, Sure.Ui.wire("click", "blank", "", ""), ""), "P\n")),
+      Test.unit("probe listen off", Test.string(Sure.Ui.listen_of<String>(Sure.Ui.Probe.client, ""), "")),
+      Test.unit("probe listen every", Test.string(Sure.Ui.listen_of<String>(Sure.Ui.Probe.client, "sub"), "E\n1\ntick")),
+      Test.unit("probe listen keep", Test.string(Sure.Ui.listen_of<String>(Sure.Ui.Probe.client, "subT"), "E\n1\ntick")),
+      Test.unit("probe listen sse", Test.string(Sure.Ui.listen_of<String>(Sure.Ui.Probe.client, "es"), "S\n/sse\nmsg")),
+      Test.unit("probe listen ping off", Test.string(Sure.Ui.listen_of<String>(Sure.Ui.Probe.client, "PING"), "")),
+      Test.unit("probe boot", Test.string(Sure.Ui.boot_of<String>(Sure.Ui.Probe.client), "")),
+      Test.unit("probe draw go", Test.bool(String.includes(Sure.Ui.draw_of<String>(Sure.Ui.Probe.client, ""), "data-sure-on-click=\"go\""), true)),
+      Test.unit("boot init", Test.string(Sure.Ui.init_of<String>(Sure.Ui.Boot.client), "")),
+      Test.unit("boot fx", Test.string(Sure.Ui.boot_of<String>(Sure.Ui.Boot.client), "P\nplus\n.\nP\nplus")),
+      Test.unit("boot plus", Test.string(Sure.Ui.step_model<String>(Sure.Ui.Boot.client, Sure.Ui.wire("push", "plus", "", ""), ""), "+")),
+      Test.unit("boot miss", Test.string(Sure.Ui.step_model<String>(Sure.Ui.Boot.client, Sure.Ui.wire("click", "nope", "", ""), "x"), "x")),
+      Test.unit("boot listen", Test.string(Sure.Ui.listen_of<String>(Sure.Ui.Boot.client, "+"), "")),
+      Test.unit("boot go fx", Test.string(Sure.Ui.step_fx<String>(Sure.Ui.Boot.client, Sure.Ui.wire("click", "go", "", ""), ""), "P\nplus")),
+    ]),
+    Test.group("Sure.Sheet", [
+      Test.unit("init received", Test.nat(Sure.Sheet.received(Sure.Sheet.init), 0)),
+      Test.unit("init total", Test.nat(Sure.Sheet.total_of(Sure.Sheet.init), 0)),
+      Test.unit("init scroll", Test.nat(Sure.Sheet.scroll_of(Sure.Sheet.init), 0)),
+      Test.unit("init cols", Test.nat(List.length<Nat>(Sure.Sheet.widths_of(Sure.Sheet.init)), 8)),
+      Test.unit("init names", Test.nat(List.length<String>(Sure.Sheet.names_of(Sure.Sheet.init)), 8)),
+      Test.unit("init listen", Test.string(Sure.Ui.listen_of<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Sheet.init), "S\n/sheet/rows\nchunk")),
+      Test.unit("px zero", Test.string(Sure.Sheet.px(0), "0px")),
+      Test.unit("letter A", Test.string(Sure.Sheet.letter(0), "A")),
+      Test.unit("letter H", Test.string(Sure.Sheet.letter(7), "H")),
+      Test.unit("letter oob", Test.string(Sure.Sheet.letter(8), "?")),
+      Test.unit("first zero", Test.nat(Sure.Sheet.first(0, 1), 0)),
+      Test.unit("first hz", Test.nat(Sure.Sheet.first(9, 0), 0)),
+      Test.unit("first two", Test.nat(Sure.Sheet.first(4, 2), 2)),
+      Test.unit("need hz", Test.nat(Sure.Sheet.need(8, 0, 1), 0)),
+      Test.unit("start empty", Test.nat(Sure.Sheet.start(9, 1, 0, 0), 0)),
+      Test.unit("count empty", Test.nat(Sure.Sheet.count(0, 8, 1, 0, 0), 0)),
+      Test.unit("chunk zero", Test.string(Sure.Sheet.chunk(0, 0), "")),
+      Test.unit("read row empty", Test.bool(Maybe.is_none<Sure.Sheet.Row>(Sure.Sheet.read_row("")), true)),
+      Test.unit("read row junk", Test.bool(Maybe.is_none<Sure.Sheet.Row>(Sure.Sheet.read_row("nope")), true)),
+      Test.unit("read row pad",
+        case Sure.Sheet.read_row("0\tA") as r {
+          none: Test.Result.fail("none")
+          some: Test.nat(List.length<String>(Sure.Sheet.cells_of(r.value)), 8)
+        }),
+      Test.unit("read chunk empty", Test.nat(List.length<Sure.Sheet.Row>(Sure.Sheet.read_chunk("")), 0)),
+      Test.unit("read chunk skip", Test.nat(List.length<Sure.Sheet.Row>(Sure.Sheet.read_chunk("\nnope\n\n0\tA")), 1)),
+      Test.unit("col empty", Test.bool(Maybe.is_none<Nat>(Sure.Sheet.col_of("")), true)),
+      Test.unit("col junk", Test.bool(Maybe.is_none<Nat>(Sure.Sheet.col_of("nope")), true)),
+      Test.unit("col down empty", Test.bool(Maybe.is_none<Nat>(Sure.Sheet.col_of("down-")), true)),
+      Test.unit("col down 0",
+        case Sure.Sheet.col_of("down-0") as c {
+          none: Test.Result.fail("none")
+          some: Test.nat(c.value, 0)
+        }),
+      Test.unit("is page empty", Test.bool(Sure.Sheet.is_page(""), true)),
+      Test.unit("is page slash", Test.bool(Sure.Sheet.is_page("/"), true)),
+      Test.unit("is page junk", Test.bool(Sure.Sheet.is_page("/nope"), false)),
+      Test.unit("is rows empty", Test.bool(Sure.Sheet.is_rows(""), false)),
+      Test.unit("is rows hit", Test.bool(Sure.Sheet.is_rows("/sheet/rows"), true)),
+      Test.unit("is save empty", Test.bool(Sure.Sheet.is_save(""), false)),
+      Test.unit("is save hit", Test.bool(Sure.Sheet.is_save("/sheet/save?w=1"), true)),
+      Test.unit("is state empty", Test.bool(Sure.Sheet.is_state(""), false)),
+      Test.unit("is state hit", Test.bool(Sure.Sheet.is_state("/sheet/state"), true)),
+      Test.unit("ok name empty", Test.bool(Sure.Sheet.ok_name(""), false)),
+      Test.unit("ok name comma", Test.bool(Sure.Sheet.ok_name("a,b"), false)),
+      Test.unit("ok name amp", Test.bool(Sure.Sheet.ok_name("a&b"), false)),
+      Test.unit("ok name A", Test.bool(Sure.Sheet.ok_name("A"), true)),
+      Test.unit("qget empty", Test.string(Sure.Sheet.qget("", "w"), "")),
+      Test.unit("qget miss", Test.string(Sure.Sheet.qget("w=1", "n"), "")),
+      Test.unit("qget hit", Test.string(Sure.Sheet.qget("w=1,2&n=A", "w"), "1,2")),
+      Test.unit("qget key empty", Test.string(Sure.Sheet.qget("w=1", ""), "")),
+      Test.unit("read nats empty", Test.bool(Maybe.is_none<List<Nat>>(Sure.Sheet.read_nats("")), true)),
+      Test.unit("read nats junk", Test.bool(Maybe.is_none<List<Nat>>(Sure.Sheet.read_nats("1,x")), true)),
+      Test.unit("apply empty", Test.nat(List.length<Nat>(Sure.Sheet.widths_of(Sure.Sheet.apply_state(Sure.Sheet.init, ""))), 8)),
+      Test.unit("apply junk", Test.string(List.head_with_default<String>("", Sure.Sheet.names_of(Sure.Sheet.apply_state(Sure.Sheet.init, "nope"))), "A")),
+      Test.unit("apply w short", Test.nat(List.head_with_default<Nat>(0, Sure.Sheet.widths_of(Sure.Sheet.apply_state(Sure.Sheet.init, "w=9"))), Sure.Sheet.def_w)),
+      Test.unit("apply n", Test.string(List.head_with_default<String>("", Sure.Sheet.names_of(Sure.Sheet.apply_state(Sure.Sheet.init, "n=Cost"))), "Cost")),
+      Test.unit("apply n empty tok", Test.string(List.head_with_default<String>("", Sure.Sheet.names_of(Sure.Sheet.apply_state(Sure.Sheet.init, "n=,"))), "A")),
+      Test.unit("apply n junk tok", Test.string(List.head_with_default<String>("", Sure.Sheet.names_of(Sure.Sheet.apply_state(Sure.Sheet.init, "n=a=b"))), "A")),
+      Test.unit("set name empty", Test.string(List.head_with_default<String>("", Sure.Sheet.set_name(0, "", Sure.Sheet.letters)), "A")),
+      Test.unit("set name ok", Test.string(List.head_with_default<String>("", Sure.Sheet.set_name(0, "Cost", Sure.Sheet.letters)), "Cost")),
+      Test.unit("set name oob", Test.nat(List.length<String>(Sure.Sheet.set_name(9, "X", Sure.Sheet.letters)), 8)),
+      Test.unit("encode n pad", Test.bool(String.includes(Sure.Sheet.encode_n(["Cost"]), "Cost"), true)),
+      Test.unit("save url", Test.bool(String.starts_with(Sure.Sheet.save_url([1], ["A"]), "/sheet/save?w="), true)),
+      Test.unit("clamp min", Test.nat(Sure.Sheet.clamp_w(0), Sure.Sheet.min_w)),
+      Test.unit("resize grow", Test.nat(Sure.Sheet.resize_w(Sure.Sheet.min_w, 1, 3), Nat.add(Sure.Sheet.min_w, 2))),
+      Test.unit("resize shrink min", Test.nat(Sure.Sheet.resize_w(Sure.Sheet.min_w, 5, 0), Sure.Sheet.min_w)),
+      Test.unit("ingest empty", Test.nat(Sure.Sheet.received(Sure.Sheet.ingest(Sure.Sheet.init, "")), 0)),
+      Test.unit("ingest junk", Test.nat(Sure.Sheet.received(Sure.Sheet.ingest(Sure.Sheet.init, "nope")), 0)),
+      Test.unit("ingest rows", Test.nat(Sure.Sheet.received(Sure.Sheet.ingest(Sure.Sheet.init, "rows\n0\tA")), 1)),
+      Test.unit("ingest rows semi", Test.nat(Sure.Sheet.received(Sure.Sheet.ingest(Sure.Sheet.init, "rows;0\tA;1\tB")), 2)),
+      Test.unit("ingest meta space", Test.nat(Sure.Sheet.total_of(Sure.Sheet.ingest(Sure.Sheet.init, "meta 3")), 3)),
+      Test.unit("ingest plain", Test.nat(Sure.Sheet.received(Sure.Sheet.ingest(Sure.Sheet.init, "0\tA")), 1)),
+      Test.unit("ingest meta", Test.nat(Sure.Sheet.total_of(Sure.Sheet.ingest(Sure.Sheet.init, "meta\n3")), 3)),
+      Test.unit("ingest meta junk", Test.nat(Sure.Sheet.total_of(Sure.Sheet.ingest(Sure.Sheet.init, "meta\nno")), 0)),
+      Test.unit("ingest done", Test.bool(Sure.Sheet.done_of(Sure.Sheet.ingest(Sure.Sheet.init, "done")), true)),
+      Test.unit("ingest done n", Test.nat(Sure.Sheet.total_of(Sure.Sheet.ingest(Sure.Sheet.init, "done\n3")), 3)),
+      Test.unit("done listen none", Test.string(Sure.Ui.listen_of<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Sheet.ingest(Sure.Sheet.init, "done")), "")),
+      Test.unit("boot load", Test.string(Sure.Ui.boot_of<Sure.Sheet.Model>(Sure.Sheet.client), "H\n/sheet/state\nload")),
+      Test.unit("load empty", Test.string(List.head_with_default<String>("", Sure.Sheet.names_of(Sure.Ui.step_model<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Ui.wire("http", "load", "", ""), Sure.Sheet.init))), "A")),
+      Test.unit("load junk", Test.string(List.head_with_default<String>("", Sure.Sheet.names_of(Sure.Ui.step_model<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Ui.wire("http", "load", "", "BODY"), Sure.Sheet.init))), "A")),
+      Test.unit("load name", Test.string(List.head_with_default<String>("", Sure.Sheet.names_of(Sure.Ui.step_model<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Ui.wire("http", "load", "", "n=Cost"), Sure.Sheet.init))), "Cost")),
+      Test.unit("name change", Test.string(List.head_with_default<String>("", Sure.Sheet.names_of(Sure.Ui.step_model<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Ui.wire("change", "name-0", "", "Cost"), Sure.Sheet.init))), "Cost")),
+      Test.unit("name empty", Test.string(List.head_with_default<String>("", Sure.Sheet.names_of(Sure.Ui.step_model<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Ui.wire("change", "name-0", "", ""), Sure.Sheet.init))), "A")),
+      Test.unit("name junk", Test.string(List.head_with_default<String>("", Sure.Sheet.names_of(Sure.Ui.step_model<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Ui.wire("change", "name-0", "", "a,b"), Sure.Sheet.init))), "A")),
+      Test.unit("name oob", Test.string(List.head_with_default<String>("", Sure.Sheet.names_of(Sure.Ui.step_model<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Ui.wire("change", "name-9", "", "X"), Sure.Sheet.init))), "A")),
+      Test.unit("name save fx", Test.bool(String.starts_with(Sure.Ui.step_fx<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Ui.wire("change", "name-0", "", "Cost"), Sure.Sheet.init), "H\n/sheet/save?"), true)),
+      Test.unit("saved idle", Test.nat(Sure.Sheet.received(Sure.Ui.step_model<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Ui.wire("http", "saved", "", "ok"), Sure.Sheet.init)), 0)),
+      Test.unit("miss", Test.nat(Sure.Sheet.received(Sure.Ui.step_model<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Ui.wire("click", "nope", "", ""), Sure.Sheet.init)), 0)),
+      Test.unit("empty wire", Test.nat(Sure.Sheet.scroll_of(Sure.Ui.step_model<Sure.Sheet.Model>(Sure.Sheet.client, "", Sure.Sheet.init)), 0)),
+      Test.unit("scroll", Test.nat(Sure.Sheet.scroll_of(Sure.Ui.step_model<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Ui.wire("scroll", "scroll", "", "4"), Sure.Sheet.init)), 4)),
+      Test.unit("scroll junk", Test.nat(Sure.Sheet.scroll_of(Sure.Ui.step_model<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Ui.wire("scroll", "scroll", "", "no"), Sure.Sheet.init)), 0)),
+      Test.unit("move idle", Test.nat(Sure.Sheet.scroll_of(Sure.Ui.step_model<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Sheet.ptr("mousemove", "move", 9), Sure.Sheet.init)), 0)),
+      Test.unit("down oob",
+        case Sure.Sheet.drag_of(Sure.Ui.step_model<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Sheet.ptr("mousedown", "down-9", 1), Sure.Sheet.init)) {
+          none: Test.assert(true, "ok")
+          col: Test.Result.fail("drag")
+        }),
+      Test.unit("resize col",
+        let a = Sure.Ui.step_model<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Sheet.ptr("mousedown", "down-0", 2), Sure.Sheet.init)
+        let b = Sure.Ui.step_model<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Sheet.ptr("mousemove", "move", 4), a)
+        Test.nat(List.head_with_default<Nat>(0, Sure.Sheet.widths_of(b)), Nat.add(Sure.Sheet.def_w, 2))),
+      Test.unit("up clears",
+        let a = Sure.Ui.step_model<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Sheet.ptr("mousedown", "down-0", 2), Sure.Sheet.init)
+        case Sure.Sheet.drag_of(Sure.Ui.step_model<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Ui.wire("mouseup", "up", "", ""), a)) {
+          none: Test.assert(true, "ok")
+          col: Test.Result.fail("drag")
+        }),
+      Test.unit("up save fx",
+        let a = Sure.Ui.step_model<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Sheet.ptr("mousedown", "down-0", 2), Sure.Sheet.init)
+        Test.bool(String.starts_with(Sure.Ui.step_fx<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Ui.wire("mouseup", "up", "", ""), a), "H\n/sheet/save?"), true)),
+      Test.unit("draw header", Test.bool(String.includes(Sure.Ui.draw_of<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Sheet.init), "data-sure-scroll"), true)),
+      Test.unit("draw excel", Test.bool(String.includes(Sure.Ui.draw_of<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Sheet.init), "Excel"), true)),
+      Test.unit("draw empty no row", Test.bool(String.includes(Sure.Ui.draw_of<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Sheet.init), "data-sure-row"), false)),
+      Test.unit("draw letter A", Test.bool(String.includes(Sure.Ui.draw_of<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Sheet.init), "value=\"A\""), true)),
+      Test.unit("draw daisy navbar", Test.bool(String.includes(Sure.Ui.draw_of<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Sheet.init), "navbar"), true)),
+      Test.unit("draw daisy input", Test.bool(String.includes(Sure.Ui.draw_of<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Sheet.init), "input-ghost"), true)),
+      Test.unit("draw no style attr", Test.bool(String.includes(Sure.Ui.draw_of<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Sheet.init), " style=\""), false)),
+      Test.unit("virtual window",
+        let more = Sure.Sheet.read_chunk(Sure.Sheet.chunk(0, Nat.read("40")))
+        let m = Sure.Sheet.append(Sure.Sheet.init, more)
+        let html = Sure.Ui.draw_of<Sure.Sheet.Model>(Sure.Sheet.client, m)
+        Test.bool(Bool.and(String.includes(html, "data-sure-row=\"0\""), Bool.not(String.includes(html, "data-sure-row=\"39\""))), true)),
+      Test.unit("virtual scroll",
+        let more = Sure.Sheet.read_chunk(Sure.Sheet.chunk(0, Nat.read("40")))
+        let m0 = Sure.Sheet.append(Sure.Sheet.init, more)
+        let m = Sure.Ui.step_model<Sure.Sheet.Model>(Sure.Sheet.client, Sure.Ui.wire("scroll", "scroll", "", Nat.show(Nat.mul(Sure.Sheet.row_h, Nat.read("20")))), m0)
+        let html = Sure.Ui.draw_of<Sure.Sheet.Model>(Sure.Sheet.client, m)
+        Test.bool(String.includes(html, "data-sure-row=\"20\""), true)),
+      Test.unit("line tab", Test.bool(String.includes(Sure.Sheet.line(0), "\t"), true)),
+    ]),
+    Test.group("Sure.Tweeter", [
+      Test.unit("cmd post", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.post("/u", "b", "ok")), "O\n/u\nok\nb")),
+      Test.unit("cmd post empty url", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.post("", "b", "ok")), "")),
+      Test.unit("cmd post empty body", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.post("/u", "", "ok")), "O\n/u\nok\n")),
+      Test.unit("cmd read post empty url", Test.bool(Sure.Ui.Cmd.is_none(Sure.Ui.Cmd.read("O\n\nok\nb")), true)),
+      Test.unit("cmd roundtrip post", Test.string(Sure.Ui.Cmd.show(Sure.Ui.Cmd.read("O\n/u\nok\nb")), "O\n/u\nok\nb")),
+      Test.unit("ok user empty", Test.bool(Sure.Tweeter.ok_user(""), false)),
+      Test.unit("ok user space", Test.bool(Sure.Tweeter.ok_user("a b"), false)),
+      Test.unit("ok user slash", Test.bool(Sure.Tweeter.ok_user("a/b"), false)),
+      Test.unit("ok user ada", Test.bool(Sure.Tweeter.ok_user("ada"), true)),
+      Test.unit("ok pass empty", Test.bool(Sure.Tweeter.ok_pass(""), false)),
+      Test.unit("ok pass nl", Test.bool(Sure.Tweeter.ok_pass("a\nb"), false)),
+      Test.unit("ok pass x", Test.bool(Sure.Tweeter.ok_pass("x"), true)),
+      Test.unit("ok text empty", Test.bool(Sure.Tweeter.ok_text(""), false)),
+      Test.unit("ok text tilde", Test.bool(Sure.Tweeter.ok_text("a~b"), false)),
+      Test.unit("ok text hi", Test.bool(Sure.Tweeter.ok_text("hi"), true)),
+      Test.unit("ok data empty", Test.bool(Sure.Tweeter.ok_data(""), false)),
+      Test.unit("ok data junk", Test.bool(Sure.Tweeter.ok_data("hello"), false)),
+      Test.unit("ok data png", Test.bool(Sure.Tweeter.ok_data("data:image/png;base64,AA"), true)),
+      Test.unit("ok file id empty", Test.bool(Sure.Tweeter.ok_file_id(""), true)),
+      Test.unit("ok file id junk", Test.bool(Sure.Tweeter.ok_file_id("nope"), false)),
+      Test.unit("qget empty", Test.string(Sure.Tweeter.qget("", "u"), "")),
+      Test.unit("qget hit", Test.string(Sure.Tweeter.qget("u=ada&p=x", "u"), "ada")),
+      Test.unit("qget miss", Test.string(Sure.Tweeter.qget("u=ada", "p"), "")),
+      Test.unit("is page empty", Test.bool(Sure.Tweeter.is_page(""), true)),
+      Test.unit("is page client", Test.bool(Sure.Tweeter.is_page("/Sure.Tweeter.client.html"), true)),
+      Test.unit("is page double sure", Test.bool(Sure.Tweeter.is_page("/Sure.Sure.Tweeter.client.html"), false)),
+      Test.unit("is page junk", Test.bool(Sure.Tweeter.is_page("/nope"), false)),
+      Test.unit("is login empty", Test.bool(Sure.Tweeter.is_login(""), false)),
+      Test.unit("is login hit", Test.bool(Sure.Tweeter.is_login("/tweeter/login?u=a"), true)),
+      Test.unit("is upload hit", Test.bool(Sure.Tweeter.is_upload("/tweeter/upload?s=a"), true)),
+      Test.unit("is post empty", Test.bool(Sure.Tweeter.is_post(""), false)),
+      Test.unit("is post GET", Test.bool(Sure.Tweeter.is_post("GET"), false)),
+      Test.unit("is post POST", Test.bool(Sure.Tweeter.is_post("POST"), true)),
+      Test.unit("need post empty", Test.bool(Sure.Tweeter.need_post(""), false)),
+      Test.unit("need post login", Test.bool(Sure.Tweeter.need_post("/tweeter/login"), true)),
+      Test.unit("need post me", Test.bool(Sure.Tweeter.need_post("/tweeter/me"), false)),
+      Test.unit("login body", Test.string(Sure.Tweeter.login_body("ada", "x"), "u=ada&p=x")),
+      Test.unit("login body empty user", Test.string(Sure.Tweeter.login_body("", "x"), "u=&p=x")),
+      Test.unit("tweet body", Test.string(Sure.Tweeter.tweet_body("s", "hi", ""), "s=s&t=hi&f=")),
+      Test.unit("cookie sid empty", Test.string(Sure.Tweeter.cookie_sid(""), "")),
+      Test.unit("cookie sid junk", Test.string(Sure.Tweeter.cookie_sid("sure_sid=nope"), "")),
+      Test.unit("cookie sid hit", Test.string(Sure.Tweeter.cookie_sid("sure_sid=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"), "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")),
+      Test.unit("cookie sid list", Test.string(Sure.Tweeter.cookie_sid("a=1; sure_sid=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"), "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")),
+      Test.unit("pick sid body", Test.string(Sure.Tweeter.pick_sid("s=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "/x", ""), "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")),
+      Test.unit("pick sid url", Test.string(Sure.Tweeter.pick_sid("", "/tweeter/me?s=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", ""), "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")),
+      Test.unit("pick sid cookie", Test.string(Sure.Tweeter.pick_sid("", "/tweeter/me", "sure_sid=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"), "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")),
+      Test.unit("pick sid empty", Test.string(Sure.Tweeter.pick_sid("", "/tweeter/me", ""), "")),
+      Test.unit("data ctype empty", Test.string(Sure.Tweeter.data_ctype(""), "")),
+      Test.unit("data ctype junk", Test.string(Sure.Tweeter.data_ctype("hello"), "")),
+      Test.unit("data ctype png", Test.string(Sure.Tweeter.data_ctype("data:image/png;base64,AA"), "image/png")),
+      Test.unit("data ctype jpeg", Test.string(Sure.Tweeter.data_ctype("data:image/jpeg;base64,AA"), "image/jpeg")),
+      Test.unit("auth sid empty", Test.string(Sure.Tweeter.auth_sid(""), "")),
+      Test.unit("auth sid junk", Test.string(Sure.Tweeter.auth_sid("ok nope"), "")),
+      Test.unit("auth sid", Test.string(Sure.Tweeter.auth_sid("ok e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 ada"), "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")),
+      Test.unit("read me empty", Test.bool(Maybe.is_none<Pair<String, String>>(Sure.Tweeter.read_me("")), true)),
+      Test.unit("read me junk", Test.bool(Maybe.is_none<Pair<String, String>>(Sure.Tweeter.read_me("ok nope ada")), true)),
+      Test.unit("read me hit",
+        case Sure.Tweeter.read_me("ok e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 ada") as m {
+          none: Test.Result.fail("none")
+          some:
+            let p = m.value
+            open p
+            Test.string(p.snd, "ada")
+        }),
+      Test.unit("read tweet empty", Test.bool(Maybe.is_none<Sure.Tweeter.Tweet>(Sure.Tweeter.read_tweet("")), true)),
+      Test.unit("read tweet junk", Test.bool(Maybe.is_none<Sure.Tweeter.Tweet>(Sure.Tweeter.read_tweet("nope")), true)),
+      Test.unit("read feed empty", Test.nat(List.length<Sure.Tweeter.Tweet>(Sure.Tweeter.read_feed("")), 0)),
+      Test.unit("read feed junk", Test.nat(List.length<Sure.Tweeter.Tweet>(Sure.Tweeter.read_feed("nope")), 0)),
+      Test.unit("read feed ok", Test.nat(List.length<Sure.Tweeter.Tweet>(Sure.Tweeter.read_feed("ok")), 0)),
+      Test.unit("read feed one", Test.nat(List.length<Sure.Tweeter.Tweet>(Sure.Tweeter.read_feed("ok ada~hi~")), 1)),
+      Test.unit("show feed nil", Test.string(Sure.Tweeter.show_feed([]), "ok")),
+      Test.unit("read sid junk", Test.bool(Maybe.is_none<String>(Sure.Tweeter.read_sid("nope")), true)),
+      Test.unit("read sid empty", Test.bool(Maybe.is_none<String>(Sure.Tweeter.read_sid("")), true)),
+      Test.unit("read err empty", Test.string(Sure.Tweeter.read_err(""), "empty")),
+      Test.unit("read err", Test.string(Sure.Tweeter.read_err("err taken"), "taken")),
+      Test.unit("init user", Test.string(Sure.Tweeter.user_of(Sure.Tweeter.init), "")),
+      Test.unit("init sess",
+        case Sure.Tweeter.sess_of(Sure.Tweeter.init) {
+          none: Test.assert(true, "ok")
+          some: Test.Result.fail("sess")
+        }),
+      Test.unit("init feed", Test.nat(List.length<Sure.Tweeter.Tweet>(Sure.Tweeter.feed_of(Sure.Tweeter.init)), 0)),
+      Test.unit("boot me", Test.string(Sure.Ui.boot_of<Sure.Tweeter.Model>(Sure.Tweeter.client), "H\n/tweeter/me\nrestore")),
+      Test.unit("listen none", Test.string(Sure.Ui.listen_of<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Tweeter.init), "")),
+      Test.unit("miss", Test.string(Sure.Tweeter.note_of(Sure.Ui.step_model<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Ui.wire("click", "nope", "", ""), Sure.Tweeter.init)), "")),
+      Test.unit("login empty user", Test.string(Sure.Tweeter.note_of(Sure.Ui.step_model<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Ui.wire("click", "login", "", ""), Sure.Tweeter.init)), "empty_user")),
+      Test.unit("register empty user", Test.string(Sure.Tweeter.note_of(Sure.Ui.step_model<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Ui.wire("click", "register", "", ""), Sure.Tweeter.init)), "empty_user")),
+      Test.unit("tweet no session", Test.string(Sure.Tweeter.note_of(Sure.Ui.step_model<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Ui.wire("click", "tweet", "", ""), Sure.Tweeter.init)), "no_session")),
+      Test.unit("file empty", Test.string(Sure.Tweeter.note_of(Sure.Ui.step_model<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Ui.wire("change", "file", "", ""), Sure.Tweeter.init)), "empty_file")),
+      Test.unit("file junk", Test.string(Sure.Tweeter.note_of(Sure.Ui.step_model<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Ui.wire("change", "file", "", "nope"), Sure.Tweeter.init)), "bad_file")),
+      Test.unit("file png", Test.string(Sure.Tweeter.blob_of(Sure.Ui.step_model<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Ui.wire("change", "file", "", "data:image/png;base64,AA"), Sure.Tweeter.init)), "data:image/png;base64,AA")),
+      Test.unit("user set", Test.string(Sure.Tweeter.user_of(Sure.Ui.step_model<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Ui.wire("change", "user", "", "ada"), Sure.Tweeter.init)), "ada")),
+      Test.unit("login empty pass",
+        let a = Sure.Ui.step_model<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Ui.wire("change", "user", "", "ada"), Sure.Tweeter.init)
+        Test.string(Sure.Tweeter.note_of(Sure.Ui.step_model<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Ui.wire("click", "login", "", ""), a)), "empty_pass")),
+      Test.unit("login fx",
+        let a = Sure.Ui.step_model<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Ui.wire("change", "user", "", "ada"), Sure.Tweeter.init)
+        let b = Sure.Ui.step_model<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Ui.wire("change", "pass", "", "x"), a)
+        let fx = Sure.Ui.step_fx<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Ui.wire("click", "login", "", ""), b)
+        if Bool.not(String.starts_with(fx, "O\n/tweeter/login\n")) then Test.Result.fail(fx)
+        else if String.includes(fx, "/tweeter/login?") then Test.Result.fail(fx)
+        else if Bool.not(String.includes(fx, "u=ada&p=x")) then Test.Result.fail(fx)
+        else Test.assert(true, "ok")),
+      Test.unit("register fx post",
+        let a = Sure.Ui.step_model<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Ui.wire("change", "user", "", "ada"), Sure.Tweeter.init)
+        let b = Sure.Ui.step_model<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Ui.wire("change", "pass", "", "x"), a)
+        Test.bool(String.starts_with(Sure.Ui.step_fx<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Ui.wire("click", "register", "", ""), b), "O\n/tweeter/register\n"), true)),
+      Test.unit("authed junk", Test.string(Sure.Tweeter.note_of(Sure.Ui.step_model<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Ui.wire("http", "authed", "", "nope"), Sure.Tweeter.init)), "junk")),
+      Test.unit("authed err", Test.string(Sure.Tweeter.note_of(Sure.Ui.step_model<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Ui.wire("http", "authed", "", "err taken"), Sure.Tweeter.init)), "taken")),
+      Test.unit("restore junk silent", Test.string(Sure.Tweeter.note_of(Sure.Ui.step_model<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Ui.wire("http", "restore", "", "err no_session"), Sure.Tweeter.init)), "")),
+      Test.unit("restore empty silent",
+        case Sure.Tweeter.sess_of(Sure.Ui.step_model<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Ui.wire("http", "restore", "", ""), Sure.Tweeter.init)) {
+          none: Test.assert(true, "ok")
+          some: Test.Result.fail("sess")
+        }),
+      Test.unit("restore hit",
+        let m = Sure.Ui.step_model<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Ui.wire("http", "restore", "", "ok e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 ada"), Sure.Tweeter.init)
+        Test.string(Sure.Tweeter.user_of(m), "ada")),
+      Test.unit("logout idle",
+        case Sure.Tweeter.sess_of(Sure.Ui.step_model<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Ui.wire("click", "logout", "", ""), Sure.Tweeter.init)) {
+          none: Test.assert(true, "ok")
+          some: Test.Result.fail("sess")
+        }),
+      Test.unit("draw login", Test.bool(String.includes(Sure.Ui.draw_of<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Tweeter.init), "Login"), true)),
+      Test.unit("draw daisy", Test.bool(String.includes(Sure.Ui.draw_of<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Tweeter.init), "card"), true)),
+      Test.unit("draw no style", Test.bool(String.includes(Sure.Ui.draw_of<Sure.Tweeter.Model>(Sure.Tweeter.client, Sure.Tweeter.init), " style=\""), false)),
+      Test.unit("draw file url", Test.bool(String.includes(Sure.Tweeter.file_url("ab"), "/tweeter/file?id=ab"), true)),
+      Test.unit("hdr sess empty", Test.bool(String.includes(Sure.Tweeter.hdr_sess(""), "Set-Cookie"), false)),
+      Test.unit("hdr sess", Test.bool(String.includes(Sure.Tweeter.hdr_sess("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"), "sure_sid=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"), true)),
+      Test.unit("hdr clear", Test.bool(String.includes(Sure.Tweeter.hdr_clear, "Max-Age=0"), true)),
+      Test.io("tweeter register empty", IO {
+        get o = Db.with<String>("suremem:tweeter-t1", (c) IO {
+          get s = Sure.Tweeter.do_register(c, "", "x")
+          return Outcome.ok<Db.Err, String>(s)
+        })
+        return case o {
+          err: Test.Result.fail("db")
+          ok: Test.string(o.value, "err empty_user")
+        }
+      }),
+      Test.io("tweeter login empty pass", IO {
+        get o = Db.with<String>("suremem:tweeter-t2", (c) IO {
+          get s = Sure.Tweeter.do_login(c, "ada", "")
+          return Outcome.ok<Db.Err, String>(s)
+        })
+        return case o {
+          err: Test.Result.fail("db")
+          ok: Test.string(o.value, "err empty_pass")
+        }
+      }),
+      Test.io("tweeter register login tweet", IO {
+        get o = Db.with<String>("suremem:tweeter-t3", (c) IO {
+          get r = Sure.Tweeter.do_register(c, "ada", "secret")
+          get l = Sure.Tweeter.do_login(c, "ada", "secret")
+          get bad = Sure.Tweeter.do_login(c, "ada", "nope")
+          get taken = Sure.Tweeter.do_register(c, "ada", "secret")
+          let sid = case Sure.Tweeter.read_sid(l) as s {
+            none: ""
+            some: s.value
+          }
+          get tw = Sure.Tweeter.do_tweet(c, sid, "hi", "")
+          get fd = Sure.Tweeter.do_feed(c, sid)
+          get ns = Sure.Tweeter.do_tweet(c, "", "hi", "")
+          get up0 = Sure.Tweeter.do_upload(c, sid, "")
+          get up = Sure.Tweeter.do_upload(c, sid, "data:image/png;base64,AA")
+          get me = Sure.Tweeter.do_me(c, sid)
+          get lo1 = Sure.Tweeter.do_logout(c, sid)
+          get lo2 = Sure.Tweeter.do_logout(c, sid)
+          return Outcome.ok<Db.Err, String>(r | "|" | bad | "|" | taken | "|" | tw | "|" | fd | "|" | ns | "|" | up0 | "|" | up | "|" | me | "|" | lo1 | "|" | lo2)
+        })
+        return case o {
+          err: Test.Result.fail("db")
+          ok:
+            if Bool.not(String.starts_with(o.value, "ok ")) then Test.Result.fail(o.value)
+            else if Bool.not(String.includes(o.value, "err bad_pass")) then Test.Result.fail(o.value)
+            else if Bool.not(String.includes(o.value, "err taken")) then Test.Result.fail(o.value)
+            else if Bool.not(String.includes(o.value, "ok ada~hi~")) then Test.Result.fail(o.value)
+            else if Bool.not(String.includes(o.value, "err no_session")) then Test.Result.fail(o.value)
+            else if Bool.not(String.includes(o.value, "err empty_file")) then Test.Result.fail(o.value)
+            else if Bool.not(String.includes(o.value, "ok ")) then Test.Result.fail(o.value)
+            else if Bool.not(String.includes(o.value, " ada")) then Test.Result.fail(o.value)
+            else if Bool.not(String.includes(o.value, "err no_session")) then Test.Result.fail(o.value)
+            else Test.assert(true, "ok")
+        }
+      }),
+    ]),
+    Test.group("Sure.Check", [
+      Test.unit("box e", Test.string(Sure.Check.Box.e_of(Sure.Check.Box.new("1", "2", "3", "4", "5")), "5")),
+      Test.unit("box empty a", Test.string(Sure.Check.Box.a_of(Sure.Check.Box.new("", "2", "3", "4", "5")), "")),
+      Test.unit("nat empty", Test.nat(Nat.read(""), 0)),
+      Test.unit("nat junk", Test.nat(Nat.read("x"), 0)),
+      Test.unit("nat day", Test.nat(Nat.read("86400000"), Nat.mul(Nat.read("86400"), Nat.read("1000")))),
+      Test.unit("nat div0", Test.nat(Nat.div(Nat.read("86400000"), 0), 0)),
+      Test.unit("nat lte", Test.bool(Nat.lte(3, 5), true)),
+      Test.unit("map miss", Test.bool(Maybe.is_none<Nat>(Map.get<Nat>("z", Map.from_list<Nat>([]))), true)),
+      Test.unit("map get",
+        case Map.get<Nat>("a", Map.set<Nat>("a", 1, Map.from_list<Nat>([]))) as m {
+          none: Test.Result.fail("none")
+          some: Test.nat(m.value, 1)
+        }),
+      Test.unit("json one", Test.string(JSON.field_string(JSON.object(Map.from_list<JSON>([{"k", JSON.string("v")}])), "k"), "v")),
+    ]),
+    Test.group("Date", [
+      Test.unit("leap 0", Test.bool(Date.is_leap(0), true)),
+      Test.unit("leap 1", Test.bool(Date.is_leap(1), false)),
+      Test.unit("leap 4", Test.bool(Date.is_leap(4), true)),
+      Test.unit("leap 100", Test.bool(Date.is_leap(100), false)),
+      Test.unit("leap 400", Test.bool(Date.is_leap(400), true)),
+    ]),
+    Test.group("Sure.Bench", [
+      Test.unit("delta zero", Test.nat(Sure.Bench.delta(5, 5), 0)),
+      Test.unit("delta pos", Test.nat(Sure.Bench.delta(3, 10), 7)),
+      Test.unit("delta back", Test.nat(Sure.Bench.delta(10, 3), 0)),
+      Test.unit("mean empty", Test.nat(Sure.Bench.mean([]), 0)),
+      Test.unit("mean two", Test.nat(Sure.Bench.mean([2, 4]), 3)),
+      Test.unit("best empty", Test.bool(Maybe.is_none<Nat>(Sure.Bench.best([])), true)),
+      Test.unit("best min",
+        case Sure.Bench.best([5, 2, 9]) as m {
+          none: Test.Result.fail("none")
+          some: Test.nat(m.value, 2)
+        }),
+    ]),
+    Test.group("Sure.Doc", [
+      Test.unit("is comment", Test.bool(Sure.Doc.is_comment("// hi"), true)),
+      Test.unit("not comment", Test.bool(Sure.Doc.is_comment("Foo: Nat"), false)),
+      Test.unit("empty comment", Test.bool(Sure.Doc.is_comment(""), false)),
+      Test.unit("slash only", Test.bool(Sure.Doc.is_comment("/"), false)),
+      Test.unit("body hi", Test.string(Sure.Doc.body("// hi"), "hi")),
+      Test.unit("body tight", Test.string(Sure.Doc.body("//hi"), "hi")),
+      Test.unit("body not", Test.string(Sure.Doc.body("Foo: Nat"), "")),
+      Test.unit("leading hi", Test.string(Sure.Doc.leading("// hi\nFoo: Nat"), "hi")),
+      Test.unit("leading none", Test.string(Sure.Doc.leading("Foo: Nat"), "")),
+      Test.unit("leading empty", Test.string(Sure.Doc.leading(""), "")),
+      Test.unit("leading after", Test.string(Sure.Doc.leading("Foo: Nat\n// later"), "")),
+      Test.unit("leading two", Test.string(Sure.Doc.leading("// a\n// b\nFoo"), "a\nb")),
+    ]),
+    Test.group("Sure.Json", [
+      Test.unit("escape empty", Test.string(Sure.Json.escape(""), "")),
+      Test.unit("escape quote", Test.string(Sure.Json.escape("\""), "\\\"")),
+      Test.unit("escape slash", Test.string(Sure.Json.escape("\\"), "\\\\")),
+      Test.unit("string wrap", Test.string(Sure.Json.string("a"), "\"a\"")),
+    ]),
+    Test.group("Test.assert", [
+      Test.unit("true is pass", Test.assert(true, "ok")),
+      Test.unit("false is fail",
+        case Test.assert(false, "boom") {
+          pass: Test.Result.fail("should have failed")
+          fail: Test.Result.pass
+        }),
+    ]),
+    Test.io("cli load empty", IO {
+      get c = Sure.Cli.load
+      return Test.nat(Sure.Cli.count(c), 0)
+    }),
+    Test.io("log put off", IO {
+      get u = Sure.Log.put(Sure.Debug.Level.off, Sure.Debug.Level.info, "t", "no")
+      return Test.Result.pass
+    }),
+    Test.io("env get empty name", IO {
+      get r = Sure.Env.get("")
+      return case r {
+        ok: Test.Result.fail("empty name")
+        err: Test.string(Sure.Env.Err.show(r.error), "empty_name")
+      }
+    }),
+    Test.io("env get eq name", IO {
+      get r = Sure.Env.get("A=B")
+      return case r {
+        ok: Test.Result.fail("eq name")
+        err: Test.string(Sure.Env.Err.show(r.error), "empty_name")
+      }
+    }),
+    Test.io("env get nl name", IO {
+      get r = Sure.Env.get("A\nB")
+      return case r {
+        ok: Test.Result.fail("nl name")
+        err: Test.string(Sure.Env.Err.show(r.error), "empty_name")
+      }
+    }),
+    Test.io("env set empty name", IO {
+      get r = Sure.Env.set("", "x")
+      return case r {
+        ok: Test.Result.fail("empty name")
+        err: Test.string(Sure.Env.Err.show(r.error), "empty_name")
+      }
+    }),
+    Test.io("env del empty name", IO {
+      get r = Sure.Env.del("")
+      return case r {
+        ok: Test.Result.fail("empty name")
+        err: Test.string(Sure.Env.Err.show(r.error), "empty_name")
+      }
+    }),
+    Test.io("env keys", IO {
+      get r = Sure.Env.keys
+      return case r {
+        err: Test.Result.fail(Sure.Env.Err.show(r.error))
+        ok: Test.assert(Bool.not(List.is_empty<String>(r.value)), "no keys")
+      }
+    }),
+    Test.io("env get missing", IO {
+      get r = Sure.Env.get("SURE_NO_SUCH_ENV_ZZ")
+      return case r {
+        ok: Test.Result.fail("expected missing")
+        err: Test.string(Sure.Env.Err.show(r.error), "missing")
+      }
+    }),
+    Test.io("env empty value", IO {
+      get s = Sure.Env.set("SURE_ENV_TEST", "")
+      get g = Sure.Env.get("SURE_ENV_TEST")
+      get d = Sure.Env.del("SURE_ENV_TEST")
+      get m = Sure.Env.get("SURE_ENV_TEST")
+      return case s {
+        err: Test.Result.fail("set")
+        ok:
+          case g {
+            err: Test.Result.fail("get empty")
+            ok:
+              if Bool.not(String.is_empty(g.value)) then Test.Result.fail("not empty")
+              else case m {
+                ok: Test.Result.fail("not deleted")
+                err: Test.string(Sure.Env.Err.show(m.error), "missing")
+              }
+          }
+      }
+    }),
+    Test.io("env roundtrip", IO {
+      get s = Sure.Env.set("SURE_ENV_TEST", "ada")
+      get g = Sure.Env.get("SURE_ENV_TEST")
+      get n = Sure.Env.nat("SURE_ENV_TEST")
+      get h = Sure.Env.has("SURE_ENV_TEST")
+      get f = Sure.Env.flag("SURE_ENV_TEST")
+      get o = Sure.Env.get_or("SURE_NO_SUCH_ENV_ZZ", "def")
+      get d = Sure.Env.del("SURE_ENV_TEST")
+      return case s g {
+        err err: Test.Result.fail("set")
+        err ok: Test.Result.fail("set")
+        ok err: Test.Result.fail("get")
+        ok ok:
+          if Bool.not(String.eql(g.value, "ada")) then Test.Result.fail("val")
+          else if Bool.not(h) then Test.Result.fail("has")
+          else if Bool.not(f) then Test.Result.fail("flag")
+          else if Bool.not(String.eql(o, "def")) then Test.Result.fail("or")
+          else case n {
+            ok: Test.Result.fail("nat junk")
+            err: Test.string(Sure.Env.Err.show(n.error), "junk")
+          }
+      }
+    }),
+    Test.io("cfg load empty path", IO {
+      get r = Sure.Cfg.load("")
+      return case r {
+        ok: Test.Result.fail("empty path")
+        err: Test.string(Sure.Cfg.Err.show(r.error), "empty_path")
+      }
+    }),
+    Test.io("cfg load missing", IO {
+      get r = Sure.Cfg.load(".cache/kind_no_such_cfg_zz.json")
+      return case r {
+        ok: Test.Result.fail("expected missing")
+        err: Test.string(Sure.Cfg.Err.show(r.error), "missing")
+      }
+    }),
+    Test.io("cfg load junk", IO {
+      File.with_temp<Test.Result>((p)
+        IO {
+          get w = File.write(p, "[")
+          get r = Sure.Cfg.load(Path.text(p))
+          return case w r {
+            ok err: Test.string(Sure.Cfg.Err.show(r.error), "junk")
+          } default Test.Result.fail("junk")
+        })
+    }),
+    Test.io("cfg load empty file", IO {
+      File.with_temp<Test.Result>((p)
+        IO {
+          get w = File.write(p, "")
+          get r = Sure.Cfg.load(Path.text(p))
+          return case w r {
+            ok ok: Test.nat(Sure.Cfg.count(r.value), 0)
+          } default Test.Result.fail("empty file")
+        })
+    }),
+    Test.io("cfg load or empty", IO {
+      get r = Sure.Cfg.load_or_empty(".cache/kind_no_such_cfg_zz.json")
+      return case r {
+        err: Test.Result.fail("or empty")
+        ok: Test.nat(Sure.Cfg.count(r.value), 0)
+      }
+    }),
+    Test.io("cfg from env", IO {
+      get s = Sure.Env.set("SURE_CFG_PORT", "8")
+      get c = Sure.Cfg.from_env(["", "SURE_CFG_PORT", "SURE_NO_SUCH_ENV_ZZ"])
+      get d = Sure.Env.del("SURE_CFG_PORT")
+      return case Sure.Cfg.str(c, "SURE_CFG_PORT") as v {
+        none: Test.Result.fail("none")
+        some: Test.string(v.value, "8")
+      }
+    }),
+    Test.io("cfg from env empty", IO {
+      get c = Sure.Cfg.from_env([])
+      return Test.nat(Sure.Cfg.count(c), 0)
+    }),
+    Test.io("cfg load space", IO {
+      File.with_temp<Test.Result>((p)
+        IO {
+          get w = File.write(p, " \n")
+          get r = Sure.Cfg.load(Path.text(p))
+          return case w r {
+            ok ok: Test.nat(Sure.Cfg.count(r.value), 0)
+          } default Test.Result.fail("space")
+        })
+    }),
+    Test.io("cfg load leftover", IO {
+      File.with_temp<Test.Result>((p)
+        IO {
+          get w = File.write(p, "{}x")
+          get r = Sure.Cfg.load(Path.text(p))
+          return case w r {
+            ok err: Test.string(Sure.Cfg.Err.show(r.error), "junk")
+          } default Test.Result.fail("leftover")
+        })
+    }),
+    Test.io("cfg load object", IO {
+      File.with_temp<Test.Result>((p)
+        IO {
+          get w = File.write(p, Sure.Cfg.show(Sure.Cfg.put(Sure.Cfg.empty, "x", "y")))
+          get r = Sure.Cfg.load(Path.text(p))
+          return case w r {
+            ok ok:
+              case Sure.Cfg.str(r.value, "x") as v {
+                none: Test.Result.fail("none")
+                some: Test.string(v.value, "y")
+              }
+          } default Test.Result.fail("object")
+        })
+    }),
+    Test.io("cfg load dotdot", IO {
+      get r = Sure.Cfg.load("../x.json")
+      return case r {
+        ok: Test.Result.fail("dotdot")
+        err: Test.string(Sure.Cfg.Err.show(r.error), "bad_file")
+      }
+    }),
+    Test.io("cfg load or empty path", IO {
+      get r = Sure.Cfg.load_or_empty("")
+      return case r {
+        ok: Test.Result.fail("empty path")
+        err: Test.string(Sure.Cfg.Err.show(r.error), "empty_path")
+      }
+    }),
+    Test.io("cfg load or junk", IO {
+      File.with_temp<Test.Result>((p)
+        IO {
+          get w = File.write(p, "[")
+          get r = Sure.Cfg.load_or_empty(Path.text(p))
+          return case w r {
+            ok err: Test.string(Sure.Cfg.Err.show(r.error), "junk")
+          } default Test.Result.fail("or junk")
+        })
+    }),
+    Test.io("sse count empty", IO {
+      get r = Sure.Sse.count("")
+      return case r {
+        ok: Test.Result.fail("empty bus")
+        err: Test.string(Sure.Sse.Err.show(r.error), "empty_bus")
+      }
+    }),
+    Test.io("sse send empty", IO {
+      get r = Sure.Sse.send("", "ping", "x")
+      return case r {
+        ok: Test.Result.fail("empty bus")
+        err: Test.string(Sure.Sse.Err.show(r.error), "empty_bus")
+      }
+    }),
+    Test.io("sse open empty", IO {
+      get r = Sure.Sse.open("", "ticks")
+      return case r {
+        ok: Test.Result.fail("empty id")
+        err: Test.string(Sure.Sse.Err.show(r.error), "empty_id")
+      }
+    }),
+    Test.io("sse count none", IO {
+      get r = Sure.Sse.count("sure-no-such-bus")
+      return case r {
+        err: Test.Result.fail("count")
+        ok: Test.nat(r.value, 0)
+      }
+    }),
+    Test.io("sse close empty", IO {
+      get r = Sure.Sse.close("")
+      return case r {
+        ok: Test.Result.fail("empty id")
+        err: Test.string(Sure.Sse.Err.show(r.error), "empty_id")
+      }
+    }),
+    Test.io("ssr send empty", IO {
+      get r = Sure.Ssr.send("", Sure.Ssr.Reply.text(200, "x"))
+      return case r {
+        ok: Test.Result.fail("empty id")
+        err: Test.string(Sure.Ssr.Err.show(r.error), "empty_id")
+      }
+    }),
+    Test.io("dsl mig roundtrip", IO {
+      get o = Db.with<Nat>("suremem:ssr-mig-test", (c)
+        IO {
+          case Db.Mig.step("a", [Db.Dsl.set("k", "v")], [Db.Dsl.del("k")]) as st {
+            none: IO { return Outcome.err<Db.Err, Nat>(Db.Err.empty_key) }
+            some: IO {
+              get n = Db.Mig.up(c, [st.value])
+              get g = Db.get(c, "k")
+              get n2 = Db.Mig.up(c, [st.value])
+              get d = Db.Mig.down(c, [st.value])
+              get g2 = Db.get(c, "k")
+              return case n n2 d {
+                ok ok ok:
+                  if Bool.not(Nat.eql(n.value, 1)) then Outcome.err<Db.Err, Nat>(Db.Err.io("up1"))
+                  else if Bool.not(Nat.eql(n2.value, 0)) then Outcome.err<Db.Err, Nat>(Db.Err.io("up0"))
+                  else if Bool.not(Nat.eql(d.value, 1)) then Outcome.err<Db.Err, Nat>(Db.Err.io("down"))
+                  else case g g2 {
+                    ok err: Outcome.ok<Db.Err, Nat>(0)
+                  } default Outcome.err<Db.Err, Nat>(Db.Err.io("row"))
+              } default Outcome.err<Db.Err, Nat>(Db.Err.io("mig"))
+            }
+          }
+        })
+      return case o as r {
+        err: Test.Result.fail(Db.Err.show(r.error))
+        ok: Test.nat(r.value, 0)
+      }
+    }),
+    Test.io("dsl prefix", IO {
+      get o = Db.with<Nat>("suremem:ssr-dsl-test", (c)
+        IO {
+          get s = Db.set(c, "user/1", "a")
+          get s2 = Db.set(c, "post/1", "b")
+          get r = Db.Dsl.exec(c, "PREFIX user/")
+          return case r {
+            err: Outcome.err<Db.Err, Nat>(r.error)
+            ok:
+              case r.value {
+                list: Outcome.ok<Db.Err, Nat>(List.length<String>(r.value.value))
+              } default Outcome.err<Db.Err, Nat>(Db.Err.io("not list"))
+          }
+        })
+      return case o as r {
+        err: Test.Result.fail(Db.Err.show(r.error))
+        ok: Test.nat(r.value, 1)
+      }
+    }),
+    Test.io("host.state", IO {
+      IO.set_state("prove", "ok")
+      get got = IO.get_state("prove")
+      return case got {
+        none: Test.Result.fail("missing")
+        some: Test.string(got.value, "ok")
+      }
+    }),
+    Test.group("Host", [
+      Test.unit("decode empty",
+        case Host.decode("") {
+          ok_string: Test.Result.fail("string")
+          ok_unit: Test.Result.pass
+          err: Test.Result.fail("err")
+        }),
+      Test.unit("decode ok empty",
+        case Host.decode("0\n") as e {
+          ok_string: Test.string(e.value, "")
+          ok_unit: Test.Result.fail("unit")
+          err: Test.Result.fail("err")
+        }),
+      Test.unit("decode junk",
+        case Host.decode("nope") as e {
+          ok_string: Test.string(e.value, "nope")
+          ok_unit: Test.Result.fail("unit")
+          err: Test.Result.fail("err")
+        }),
+      Test.unit("decode missing",
+        case Host.decode("1\nmissing") as e {
+          ok_string: Test.Result.fail("ok")
+          ok_unit: Test.Result.fail("unit")
+          err: Test.string(Host.Err.show(e.error), "missing")
+        }),
+      Test.unit("decode err empty",
+        case Host.decode("1\n") as e {
+          ok_string: Test.Result.fail("ok")
+          ok_unit: Test.Result.fail("unit")
+          err: Test.string(Host.Err.show(e.error), "empty")
+        }),
+      Test.unit("encode put empty", Test.string(Host.param(Host.Op.put_string("")), "")),
+      Test.unit("encode fs empty", Test.string(Host.query(Host.Op.fs_read("")), "fs_read_ex")),
+      Test.unit("encode env empty", Test.string(Host.param(Host.Op.env_get("")), "")),
+      Test.unit("encode sleep 0", Test.string(Host.param(Host.Op.sleep(0)), "0")),
+      Test.unit("encode tls", Test.string(Host.param(Host.Op.tcp_connect("h", 1, true)), "h\n1\n1")),
+      Test.unit("encode notls", Test.string(Host.param(Host.Op.tcp_connect("", 0, false)), "\n0\n0")),
+      Test.unit("encode ffi empty", Test.string(Host.param(Host.Op.ffi("", "")), "\n")),
+      Test.unit("query put", Test.string(Host.query(Host.Op.put_string("")), "put_string")),
+      Test.unit("query get_line", Test.string(Host.query(Host.Op.get_line("")), "get_line")),
+      Test.unit("query get_args", Test.string(Host.query(Host.Op.get_args), "get_args")),
+      Test.unit("query cwd", Test.string(Host.query(Host.Op.cwd), "cwd")),
+      Test.unit("query time", Test.string(Host.query(Host.Op.time_now), "get_time")),
+      Test.unit("query sleep", Test.string(Host.query(Host.Op.sleep(0)), "sleep")),
+      Test.unit("query yield", Test.string(Host.query(Host.Op.yield), "yield")),
+      Test.unit("query exit", Test.string(Host.query(Host.Op.exit(0)), "exit")),
+      Test.unit("query fs_write", Test.string(Host.query(Host.Op.fs_write("", "")), "fs_write_ex")),
+      Test.unit("query fs_del", Test.string(Host.query(Host.Op.fs_del("")), "fs_del_ex")),
+      Test.unit("query fs_mtime", Test.string(Host.query(Host.Op.fs_mtime("")), "get_file_mtime")),
+      Test.unit("query fs_dir", Test.string(Host.query(Host.Op.fs_dir("")), "get_dir_ex")),
+      Test.unit("query fs_read_hex", Test.string(Host.query(Host.Op.fs_read_hex("")), "fs_read_hex")),
+      Test.unit("query fs_write_hex", Test.string(Host.query(Host.Op.fs_write_hex("", "")), "fs_write_hex")),
+      Test.unit("query file_hash", Test.string(Host.query(Host.Op.file_hash("")), "file_hash")),
+      Test.unit("query env_set", Test.string(Host.query(Host.Op.env_set("", "")), "set_env")),
+      Test.unit("query env_del", Test.string(Host.query(Host.Op.env_del("")), "del_env")),
+      Test.unit("query env_keys", Test.string(Host.query(Host.Op.env_keys), "env_keys")),
+      Test.unit("query random", Test.string(Host.query(Host.Op.random), "get_random")),
+      Test.unit("query sha256", Test.string(Host.query(Host.Op.sha256("")), "sha256_ex")),
+      Test.unit("query hmac", Test.string(Host.query(Host.Op.hmac("", "")), "hmac_sha256")),
+      Test.unit("query http", Test.string(Host.query(Host.Op.http("")), "http")),
+      Test.unit("query http_listen", Test.string(Host.query(Host.Op.http_listen(0)), "http_listen")),
+      Test.unit("query http_recv", Test.string(Host.query(Host.Op.http_recv(0)), "http_recv")),
+      Test.unit("query http_reply", Test.string(Host.query(Host.Op.http_reply("", 0, "")), "http_reply")),
+      Test.unit("query http_reply_ex", Test.string(Host.query(Host.Op.http_reply_ex("", 0, "", "")), "http_reply_ex")),
+      Test.unit("query http_stop", Test.string(Host.query(Host.Op.http_stop(0)), "http_stop")),
+      Test.unit("query dns", Test.string(Host.query(Host.Op.dns("")), "dns")),
+      Test.unit("query tcp_send", Test.string(Host.query(Host.Op.tcp_send("", "")), "tcp_send")),
+      Test.unit("query tcp_recv", Test.string(Host.query(Host.Op.tcp_recv("")), "tcp_recv")),
+      Test.unit("query tcp_close", Test.string(Host.query(Host.Op.tcp_close("")), "tcp_close")),
+      Test.unit("query ws", Test.string(Host.query(Host.Op.ws_connect("")), "ws_connect")),
+      Test.unit("query udp_bind", Test.string(Host.query(Host.Op.udp_bind(0)), "udp_bind")),
+      Test.unit("query udp_send", Test.string(Host.query(Host.Op.udp_send(0, "", 0, "")), "udp_send")),
+      Test.unit("query udp_recv", Test.string(Host.query(Host.Op.udp_recv(0)), "udp_recv")),
+      Test.unit("query udp_close", Test.string(Host.query(Host.Op.udp_close(0)), "udp_close")),
+      Test.unit("query proc_exec", Test.string(Host.query(Host.Op.proc_exec("")), "proc_exec")),
+      Test.unit("query proc_spawn", Test.string(Host.query(Host.Op.proc_spawn("")), "proc_spawn")),
+      Test.unit("query proc_wait", Test.string(Host.query(Host.Op.proc_wait(0)), "proc_wait")),
+      Test.unit("query proc_kill", Test.string(Host.query(Host.Op.proc_kill(0, "")), "proc_kill")),
+      Test.unit("query job_start", Test.string(Host.query(Host.Op.job_start("")), "job_start")),
+      Test.unit("query job_await", Test.string(Host.query(Host.Op.job_await("")), "job_await")),
+      Test.unit("query job_cancel", Test.string(Host.query(Host.Op.job_cancel("")), "job_cancel")),
+      Test.unit("query job_all", Test.string(Host.query(Host.Op.job_all("")), "job_all")),
+      Test.unit("query job_race", Test.string(Host.query(Host.Op.job_race("")), "job_race")),
+      Test.unit("query gzip", Test.string(Host.query(Host.Op.gzip("")), "gzip")),
+      Test.unit("query gunzip", Test.string(Host.query(Host.Op.gunzip("")), "gunzip")),
+      Test.unit("query state_get", Test.string(Host.query(Host.Op.state_get("")), "get_state")),
+      Test.unit("query state_set", Test.string(Host.query(Host.Op.state_set("", "")), "set_state")),
+      Test.unit("query worker", Test.string(Host.query(Host.Op.worker_run("", "")), "worker_run")),
+      Test.unit("query sse_open", Test.string(Host.query(Host.Op.sse_open("", "")), "sse_open")),
+      Test.unit("query sse_send", Test.string(Host.query(Host.Op.sse_send("", "")), "sse_send")),
+      Test.unit("query sse_close", Test.string(Host.query(Host.Op.sse_close("")), "sse_close")),
+      Test.unit("query sse_count", Test.string(Host.query(Host.Op.sse_count("")), "sse_count")),
+      Test.unit("query db_connect", Test.string(Host.query(Host.Op.db_connect("")), "db_connect")),
+      Test.unit("query db_set", Test.string(Host.query(Host.Op.db_set("", "", "")), "db_set")),
+      Test.unit("query db_del", Test.string(Host.query(Host.Op.db_del("", "")), "db_del")),
+      Test.unit("query db_query", Test.string(Host.query(Host.Op.db_query("", "")), "db_query")),
+      Test.unit("query db_keys", Test.string(Host.query(Host.Op.db_keys("")), "db_keys")),
+      Test.unit("query db_clear", Test.string(Host.query(Host.Op.db_clear("")), "db_clear")),
+      Test.unit("query db_close", Test.string(Host.query(Host.Op.db_close("")), "db_close")),
+      Test.unit("param get_line", Test.string(Host.param(Host.Op.get_line("")), "")),
+      Test.unit("param get_args", Test.string(Host.param(Host.Op.get_args), "")),
+      Test.unit("param cwd", Test.string(Host.param(Host.Op.cwd), "")),
+      Test.unit("param time", Test.string(Host.param(Host.Op.time_now), "")),
+      Test.unit("param yield", Test.string(Host.param(Host.Op.yield), "")),
+      Test.unit("param exit0", Test.string(Host.param(Host.Op.exit(0)), "0")),
+      Test.unit("param fs_write", Test.string(Host.param(Host.Op.fs_write("", "")), "\n")),
+      Test.unit("param fs_del", Test.string(Host.param(Host.Op.fs_del("")), "")),
+      Test.unit("param fs_mtime", Test.string(Host.param(Host.Op.fs_mtime("")), "")),
+      Test.unit("param fs_dir", Test.string(Host.param(Host.Op.fs_dir("")), "")),
+      Test.unit("param fs_read_hex", Test.string(Host.param(Host.Op.fs_read_hex("")), "")),
+      Test.unit("param fs_write_hex", Test.string(Host.param(Host.Op.fs_write_hex("", "")), "\n")),
+      Test.unit("param file_hash", Test.string(Host.param(Host.Op.file_hash("")), "")),
+      Test.unit("param env_set", Test.string(Host.param(Host.Op.env_set("", "")), "\n")),
+      Test.unit("param env_del", Test.string(Host.param(Host.Op.env_del("")), "")),
+      Test.unit("param env_keys", Test.string(Host.param(Host.Op.env_keys), "")),
+      Test.unit("param sha256", Test.string(Host.param(Host.Op.sha256("")), "")),
+      Test.unit("param hmac", Test.string(Host.param(Host.Op.hmac("", "")), "\n")),
+      Test.unit("param http", Test.string(Host.param(Host.Op.http("")), "")),
+      Test.unit("param http_listen", Test.string(Host.param(Host.Op.http_listen(0)), "0")),
+      Test.unit("param http_recv", Test.string(Host.param(Host.Op.http_recv(0)), "0")),
+      Test.unit("param http_reply", Test.string(Host.param(Host.Op.http_reply("", 0, "")), "\n0\n")),
+      Test.unit("param http_reply_ex", Test.string(Host.param(Host.Op.http_reply_ex("", 0, "", "")), "\n0\n\n")),
+      Test.unit("param http_stop", Test.string(Host.param(Host.Op.http_stop(0)), "0")),
+      Test.unit("param dns", Test.string(Host.param(Host.Op.dns("")), "")),
+      Test.unit("param tcp_send", Test.string(Host.param(Host.Op.tcp_send("", "")), "\n")),
+      Test.unit("param tcp_recv", Test.string(Host.param(Host.Op.tcp_recv("")), "")),
+      Test.unit("param tcp_close", Test.string(Host.param(Host.Op.tcp_close("")), "")),
+      Test.unit("param ws", Test.string(Host.param(Host.Op.ws_connect("")), "")),
+      Test.unit("param udp_bind", Test.string(Host.param(Host.Op.udp_bind(0)), "0")),
+      Test.unit("param udp_send", Test.string(Host.param(Host.Op.udp_send(0, "", 0, "")), "0\n\n0\n")),
+      Test.unit("param udp_recv", Test.string(Host.param(Host.Op.udp_recv(0)), "0")),
+      Test.unit("param udp_close", Test.string(Host.param(Host.Op.udp_close(0)), "0")),
+      Test.unit("param proc_exec", Test.string(Host.param(Host.Op.proc_exec("")), "")),
+      Test.unit("param proc_spawn", Test.string(Host.param(Host.Op.proc_spawn("")), "")),
+      Test.unit("param proc_wait", Test.string(Host.param(Host.Op.proc_wait(0)), "0")),
+      Test.unit("param proc_kill", Test.string(Host.param(Host.Op.proc_kill(0, "")), "0\n")),
+      Test.unit("param job_start", Test.string(Host.param(Host.Op.job_start("")), "")),
+      Test.unit("param job_await", Test.string(Host.param(Host.Op.job_await("")), "")),
+      Test.unit("param job_cancel", Test.string(Host.param(Host.Op.job_cancel("")), "")),
+      Test.unit("param job_all", Test.string(Host.param(Host.Op.job_all("")), "")),
+      Test.unit("param job_race", Test.string(Host.param(Host.Op.job_race("")), "")),
+      Test.unit("param gzip", Test.string(Host.param(Host.Op.gzip("")), "")),
+      Test.unit("param gunzip", Test.string(Host.param(Host.Op.gunzip("")), "")),
+      Test.unit("param state_get", Test.string(Host.param(Host.Op.state_get("")), "")),
+      Test.unit("param state_set", Test.string(Host.param(Host.Op.state_set("", "")), "\n")),
+      Test.unit("param worker", Test.string(Host.param(Host.Op.worker_run("", "")), "\n")),
+      Test.unit("param sse_open", Test.string(Host.param(Host.Op.sse_open("", "")), "\n")),
+      Test.unit("param sse_send", Test.string(Host.param(Host.Op.sse_send("", "")), "\n")),
+      Test.unit("param sse_close", Test.string(Host.param(Host.Op.sse_close("")), "")),
+      Test.unit("param sse_count", Test.string(Host.param(Host.Op.sse_count("")), "")),
+      Test.unit("param db_connect", Test.string(Host.param(Host.Op.db_connect("")), "")),
+      Test.unit("param db_set", Test.string(Host.param(Host.Op.db_set("", "", "")), "\n\n")),
+      Test.unit("param db_del", Test.string(Host.param(Host.Op.db_del("", "")), "\n")),
+      Test.unit("param db_query", Test.string(Host.param(Host.Op.db_query("", "")), "\n")),
+      Test.unit("param db_keys", Test.string(Host.param(Host.Op.db_keys("")), "")),
+      Test.unit("param db_clear", Test.string(Host.param(Host.Op.db_clear("")), "")),
+      Test.unit("param db_close", Test.string(Host.param(Host.Op.db_close("")), "")),
+      Test.unit("to_file missing",
+        Test.bool(Outcome.is_ok<File.Err, String>(Host.to_file(Host.decode("1\nENOENT"))), false)),
+      Test.unit("to_file ok",
+        case Host.to_file(Host.decode("0\nhi")) as o {
+          err: Test.Result.fail("err")
+          ok: Test.string(o.value, "hi")
+        }),
+      Test.unit("to_file empty",
+        case Host.to_file(Host.decode("")) as o {
+          err: Test.Result.fail("err")
+          ok: Test.string(o.value, "")
+        }),
+      Test.unit("to_file junk",
+        case Host.to_file(Host.decode("nope")) as o {
+          err: Test.Result.fail("err")
+          ok: Test.string(o.value, "nope")
+        }),
+      Test.unit("to_file err empty",
+        case Host.to_file(Host.decode("1\n")) as o {
+          ok: Test.Result.fail("ok")
+          err:
+            case o.error {
+              io: Test.string(o.error.message, "empty")
+            } default Test.Result.fail("expected io")
+        }),
+      Test.unit("to_file host missing",
+        case Host.to_file(Host.decode("1\nmissing")) as o {
+          ok: Test.Result.fail("ok")
+          err:
+            case o.error {
+              missing: Test.Result.pass
+            } default Test.Result.fail("expected missing")
+        }),
+      Test.unit("to_env empty",
+        Test.bool(Outcome.is_ok<Sure.Env.Err, String>(Host.to_env(Host.decode(""))), false)),
+      Test.unit("to_env missing",
+        case Host.to_env(Host.decode("1\nmissing")) as o {
+          ok: Test.Result.fail("ok")
+          err: Test.string(Sure.Env.Err.show(o.error), "missing")
+        }),
+      Test.unit("to_env empty_name",
+        case Host.to_env(Host.decode("1\nempty_name")) as o {
+          ok: Test.Result.fail("ok")
+          err: Test.string(Sure.Env.Err.show(o.error), "empty_name")
+        }),
+      Test.unit("to_env ok empty",
+        case Host.to_env(Host.decode("0\n")) as o {
+          err: Test.Result.fail("err")
+          ok: Test.string(o.value, "")
+        }),
+      Test.unit("to_env junk",
+        case Host.to_env(Host.decode("1\nbad")) as o {
+          ok: Test.Result.fail("ok")
+          err: Test.string(Sure.Env.Err.show(o.error), "junk")
+        }),
+      Test.unit("from_tagged via",
+        Test.bool(Outcome.is_ok<File.Err, String>(File.from_tagged("1\nENOENT")), false)),
+      Test.unit("decode enoent",
+        case Host.decode("1\nENOENT") as e {
+          ok_string: Test.Result.fail("ok")
+          ok_unit: Test.Result.fail("unit")
+          err: Test.string(Host.Err.show(e.error), "missing")
+        }),
+      Test.unit("decode not found",
+        case Host.decode("1\nnot found") as e {
+          ok_string: Test.Result.fail("ok")
+          ok_unit: Test.Result.fail("unit")
+          err: Test.string(Host.Err.show(e.error), "missing")
+        }),
+      Test.unit("decode empty_name",
+        case Host.decode("1\nempty_name") as e {
+          ok_string: Test.Result.fail("ok")
+          ok_unit: Test.Result.fail("unit")
+          err: Test.string(Host.Err.show(e.error), "empty")
+        }),
+      Test.unit("decode io",
+        case Host.decode("1\nbad") as e {
+          ok_string: Test.Result.fail("ok")
+          ok_unit: Test.Result.fail("unit")
+          err: Test.string(Host.Err.show(e.error), "bad")
+        }),
+      Test.unit("decode ok hi",
+        case Host.decode("0\nhi") as e {
+          ok_string: Test.string(e.value, "hi")
+          ok_unit: Test.Result.fail("unit")
+          err: Test.Result.fail("err")
+        }),
+      Test.unit("err show missing", Test.string(Host.Err.show(Host.Err.missing), "missing")),
+      Test.unit("err show io", Test.string(Host.Err.show(Host.Err.io("bad")), "bad")),
+      Test.unit("err show bad_tag", Test.string(Host.Err.show(Host.Err.bad_tag), "bad host tag")),
+      Test.unit("to_file io",
+        case Host.to_file(Host.decode("1\nbad")) as o {
+          ok: Test.Result.fail("ok")
+          err:
+            case o.error {
+              io: Test.string(o.error.message, "bad")
+            } default Test.Result.fail("expected io")
+        }),
+      Test.unit("to_file not found",
+        case Host.to_file(Host.decode("1\nnot found")) as o {
+          ok: Test.Result.fail("ok")
+          err:
+            case o.error {
+              missing: Test.Result.pass
+            } default Test.Result.fail("expected missing")
+        }),
+      Test.unit("to_file empty_name",
+        case Host.to_file(Host.decode("1\nempty_name")) as o {
+          ok: Test.Result.fail("ok")
+          err:
+            case o.error {
+              io: Test.string(o.error.message, "empty")
+            } default Test.Result.fail("expected io")
+        }),
+      Test.unit("to_file ok empty tag",
+        case Host.to_file(Host.decode("0\n")) as o {
+          err: Test.Result.fail("err")
+          ok: Test.string(o.value, "")
+        }),
+      Test.unit("to_file_unit missing",
+        Test.bool(Outcome.is_ok<File.Err, Unit>(Host.to_file_unit(Host.decode("1\nENOENT"))), false)),
+      Test.unit("to_file_unit ok",
+        Test.bool(Outcome.is_ok<File.Err, Unit>(Host.to_file_unit(Host.decode("0\n"))), true)),
+      Test.unit("to_file_unit empty",
+        Test.bool(Outcome.is_ok<File.Err, Unit>(Host.to_file_unit(Host.decode(""))), true)),
+      Test.unit("to_file_unit junk",
+        Test.bool(Outcome.is_ok<File.Err, Unit>(Host.to_file_unit(Host.decode("nope"))), true)),
+      Test.unit("to_file_unit io",
+        Test.bool(Outcome.is_ok<File.Err, Unit>(Host.to_file_unit(Host.decode("1\nbad"))), false)),
+      Test.unit("to_env enoent",
+        case Host.to_env(Host.decode("1\nENOENT")) as o {
+          ok: Test.Result.fail("ok")
+          err: Test.string(Sure.Env.Err.show(o.error), "missing")
+        }),
+      Test.unit("to_env not found",
+        case Host.to_env(Host.decode("1\nnot found")) as o {
+          ok: Test.Result.fail("ok")
+          err: Test.string(Sure.Env.Err.show(o.error), "missing")
+        }),
+      Test.unit("to_env untagged",
+        case Host.to_env(Host.decode("nope")) as o {
+          err: Test.Result.fail("err")
+          ok: Test.string(o.value, "nope")
+        }),
+      Test.unit("to_env err empty",
+        case Host.to_env(Host.decode("1\n")) as o {
+          ok: Test.Result.fail("ok")
+          err: Test.string(Sure.Env.Err.show(o.error), "empty_name")
+        }),
+      Test.unit("to_env_unit ok",
+        Test.bool(Outcome.is_ok<Sure.Env.Err, Unit>(Host.to_env_unit(Host.decode("0\n"))), true)),
+      Test.unit("to_env_unit empty",
+        Test.bool(Outcome.is_ok<Sure.Env.Err, Unit>(Host.to_env_unit(Host.decode(""))), false)),
+      Test.unit("to_env_unit missing",
+        Test.bool(Outcome.is_ok<Sure.Env.Err, Unit>(Host.to_env_unit(Host.decode("1\nmissing"))), false)),
+      Test.unit("to_env_unit junk",
+        Test.bool(Outcome.is_ok<Sure.Env.Err, Unit>(Host.to_env_unit(Host.decode("1\nbad"))), false)),
+      Test.unit("from_tagged junk",
+        case File.from_tagged("nope") as o {
+          err: Test.Result.fail("err")
+          ok: Test.string(o.value, "nope")
+        }),
+      Test.unit("from_tagged raw empty",
+        case File.from_tagged("") as o {
+          err: Test.Result.fail("err")
+          ok: Test.string(o.value, "")
+        }),
+      Test.unit("from_tagged host missing",
+        Test.bool(Outcome.is_ok<File.Err, String>(File.from_tagged("1\nmissing")), false)),
+      Test.unit("from_tagged io",
+        Test.bool(Outcome.is_ok<File.Err, String>(File.from_tagged("1\nbad")), false)),
+      Test.unit("write decode missing",
+        Test.bool(Outcome.is_ok<File.Err, Unit>(File.write.decode("1\nENOENT")), false)),
+      Test.unit("write decode ok",
+        Test.bool(Outcome.is_ok<File.Err, Unit>(File.write.decode("0\n")), true)),
+      Test.unit("write decode empty",
+        Test.bool(Outcome.is_ok<File.Err, Unit>(File.write.decode("")), true)),
+      Test.unit("write decode junk",
+        Test.bool(Outcome.is_ok<File.Err, Unit>(File.write.decode("nope")), true)),
+      Test.unit("delete decode missing",
+        Test.bool(Outcome.is_ok<File.Err, Unit>(File.delete.decode("1\nENOENT")), false)),
+      Test.unit("delete decode ok",
+        Test.bool(Outcome.is_ok<File.Err, Unit>(File.delete.decode("0\n")), true)),
+      Test.unit("bytes decode missing",
+        Test.bool(Outcome.is_ok<File.Err, Bytes>(File.read_bytes.decode("1\nENOENT")), false)),
+      Test.unit("bytes decode empty",
+        case File.read_bytes.decode("0\n") as o {
+          err: Test.Result.fail("err")
+          ok: Test.bool(Bytes.is_empty(o.value), true)
+        }),
+      Test.unit("dir decode missing",
+        Test.bool(Outcome.is_ok<File.Err, List<String>>(Dir.read.decode("1\nENOENT")), false)),
+      Test.unit("dir decode empty",
+        case Dir.read.decode("") as o {
+          err: Test.Result.fail("err")
+          ok: Test.nat(List.length<String>(o.value), 0)
+        }),
+      Test.unit("dir decode ok",
+        case Dir.read.decode("0\na;b") as o {
+          err: Test.Result.fail("err")
+          ok:
+            case o.value as xs {
+              nil: Test.Result.fail("nil")
+              cons: Test.string(xs.head, "a")
+            }
+        }),
+      Test.unit("dir decode io",
+        Test.bool(Outcome.is_ok<File.Err, List<String>>(Dir.read.decode("1\nbad")), false)),
+      Test.unit("file err show missing", Test.string(File.Err.show(File.Err.missing), "file not found")),
+      Test.unit("file err show empty path", Test.string(File.Err.show(File.Err.bad_path(Path.Err.empty)), "empty path")),
+      Test.unit("env decode empty_name",
+        case Sure.Env.decode("1\nempty_name") as o {
+          ok: Test.Result.fail("ok")
+          err: Test.string(Sure.Env.Err.show(o.error), "empty_name")
+        }),
+      Test.unit("env decode junk",
+        case Sure.Env.decode("1\nbad") as o {
+          ok: Test.Result.fail("ok")
+          err: Test.string(Sure.Env.Err.show(o.error), "junk")
+        }),
+      Test.unit("env decode untagged",
+        case Sure.Env.decode("nope") as o {
+          err: Test.Result.fail("err")
+          ok: Test.string(o.value, "nope")
+        }),
+      Test.unit("env decode_unit ok",
+        Test.bool(Outcome.is_ok<Sure.Env.Err, Unit>(Sure.Env.decode_unit("0\n")), true)),
+      Test.unit("env decode_unit empty",
+        Test.bool(Outcome.is_ok<Sure.Env.Err, Unit>(Sure.Env.decode_unit("")), false)),
+      Test.unit("env decode_unit missing",
+        Test.bool(Outcome.is_ok<Sure.Env.Err, Unit>(Sure.Env.decode_unit("1\nmissing")), false)),
+      Test.unit("env decode_keys empty",
+        Test.bool(Outcome.is_ok<Sure.Env.Err, List<String>>(Sure.Env.decode_keys("")), false)),
+      Test.unit("env decode_keys ok",
+        case Sure.Env.decode_keys("0\nPATH") as o {
+          err: Test.Result.fail("err")
+          ok: Test.nat(List.length<String>(o.value), 1)
+        }),
+      Test.unit("env decode_keys missing",
+        Test.bool(Outcome.is_ok<Sure.Env.Err, List<String>>(Sure.Env.decode_keys("1\nmissing")), false)),
+      Test.unit("as_outcome missing",
+        Test.bool(Outcome.is_ok<Host.Err, String>(Host.as_outcome(Host.err(Host.Err.missing))), false)),
+      Test.unit("as_outcome unit",
+        case Host.as_outcome(Host.ok_unit) as o {
+          err: Test.Result.fail("err")
+          ok: Test.string(o.value, "")
+        }),
+    ]),
+    Test.io("host.random", IO {
+      get a = IO.get("get_random", "")
+      return Test.assert(Bool.not(String.is_empty(a)), "empty random")
+    }),
+    Test.io("host.perform.random", IO {
+      get e = Host.perform(Host.Op.random)
+      return case e {
+        ok_string: Test.assert(Bool.not(String.is_empty(e.value)), "empty random")
+        ok_unit: Test.Result.fail("unit")
+        err: Test.Result.fail(Host.Err.show(e.error))
+      }
+    }),
+    Test.io("host.perform.env.empty", IO {
+      get e = Host.perform(Host.Op.env_get(""))
+      return case e {
+        ok_string: Test.Result.fail("ok")
+        ok_unit: Test.Result.fail("unit")
+        err: Test.assert(true, "err")
+      }
+    }),
+    Test.io("host.perform.fs.empty", IO {
+      get e = Host.perform(Host.Op.fs_read(""))
+      return case e {
+        ok_string: Test.Result.fail("ok")
+        ok_unit: Test.Result.fail("unit")
+        err: Test.assert(true, "err")
+      }
+    }),
+    Test.io("host.perform.env.missing", IO {
+      get e = Host.perform(Host.Op.env_get("SURE_NO_SUCH_ENV_ZZ"))
+      return case e {
+        ok_string: Test.Result.fail("ok")
+        ok_unit: Test.Result.fail("unit")
+        err: Test.string(Host.Err.show(e.error), "missing")
+      }
+    }),
+    Test.io("host.perform.env_keys", IO {
+      get e = Host.perform(Host.Op.env_keys)
+      return case e {
+        ok_string: Test.assert(Bool.not(String.is_empty(e.value)), "no keys")
+        ok_unit: Test.Result.fail("unit")
+        err: Test.Result.fail(Host.Err.show(e.error))
+      }
+    }),
+    Test.io("host.perform.cwd", IO {
+      get e = Host.perform(Host.Op.cwd)
+      return case e {
+        ok_string: Test.assert(Bool.not(String.is_empty(e.value)), "empty cwd")
+        ok_unit: Test.Result.fail("unit")
+        err: Test.Result.fail(Host.Err.show(e.error))
+      }
+    }),
+    Test.io("host.perform.time", IO {
+      get e = Host.perform(Host.Op.time_now)
+      return case e {
+        ok_string: Test.assert(Bool.not(String.is_empty(e.value)), "empty time")
+        ok_unit: Test.Result.fail("unit")
+        err: Test.Result.fail(Host.Err.show(e.error))
+      }
+    }),
+    Test.io("host.perform.sleep0", IO {
+      get e = Host.perform(Host.Op.sleep(0))
+      return case e {
+        ok_string: Test.Result.pass
+        ok_unit: Test.Result.pass
+        err: Test.Result.fail(Host.Err.show(e.error))
+      }
+    }),
+    Test.io("host.perform.yield", IO {
+      get e = Host.perform(Host.Op.yield)
+      return case e {
+        ok_string: Test.Result.pass
+        ok_unit: Test.Result.pass
+        err: Test.Result.fail(Host.Err.show(e.error))
+      }
+    }),
+    Test.io("host.perform.sha256.empty", IO {
+      get e = Host.perform(Host.Op.sha256(""))
+      return case e {
+        ok_string: Test.string(e.value, "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
+        ok_unit: Test.Result.fail("unit")
+        err: Test.Result.fail(Host.Err.show(e.error))
+      }
+    }),
+    Test.io("host.perform.hmac.empty", IO {
+      get e = Host.perform(Host.Op.hmac("", ""))
+      return case e {
+        ok_string: Test.string(e.value, "b613679a0814d9ec772f95d778c35fc5ff1697c493715653c6c712144292c5ad")
+        ok_unit: Test.Result.fail("unit")
+        err: Test.Result.fail(Host.Err.show(e.error))
+      }
+    }),
+    Test.io("host.perform.fs_dir.empty", IO {
+      get e = Host.perform(Host.Op.fs_dir(""))
+      return case e {
+        ok_string: Test.Result.fail("ok")
+        ok_unit: Test.Result.fail("unit")
+        err: Test.assert(true, "err")
+      }
+    }),
+    Test.io("host.perform.fs_del.missing", IO {
+      get e = Host.perform(Host.Op.fs_del(".cache/kind_no_such_del_zz.txt"))
+      return case e {
+        ok_string: Test.Result.fail("ok")
+        ok_unit: Test.Result.fail("unit")
+        err: Test.string(Host.Err.show(e.error), "missing")
+      }
+    }),
+    Test.io("host.perform.fs_read_hex.missing", IO {
+      get e = Host.perform(Host.Op.fs_read_hex(".cache/kind_no_such_hex_zz.bin"))
+      return case e {
+        ok_string: Test.Result.fail("ok")
+        ok_unit: Test.Result.fail("unit")
+        err: Test.string(Host.Err.show(e.error), "missing")
+      }
+    }),
+    Test.io("host.perform.gzip.empty", IO {
+      get e = Host.perform(Host.Op.gzip(""))
+      return case e {
+        ok_string: Test.assert(Bool.not(String.is_empty(e.value)), "empty gzip")
+        ok_unit: Test.Result.fail("unit")
+        err: Test.Result.fail(Host.Err.show(e.error))
+      }
+    }),
+    Test.io("host.perform.gunzip.junk", IO {
+      get e = Host.perform(Host.Op.gunzip("zz"))
+      return case e {
+        ok_string: Test.Result.fail("ok")
+        ok_unit: Test.Result.fail("unit")
+        err: Test.assert(true, "err")
+      }
+    }),
+    Test.io("host.perform.dns.empty", IO {
+      get e = Host.perform(Host.Op.dns(""))
+      return case e {
+        ok_string: Test.Result.fail("ok")
+        ok_unit: Test.Result.fail("unit")
+        err: Test.string(Host.Err.show(e.error), "empty")
+      }
+    }),
+    Test.io("host.perform.dns.junk", IO {
+      get e = Host.perform(Host.Op.dns("sure-no-such-host-zz.invalid"))
+      return case e {
+        ok_string: Test.Result.fail("ok")
+        ok_unit: Test.Result.fail("unit")
+        err: Test.assert(true, "err")
+      }
+    }),
+    Test.io("host.perform.state", IO {
+      get s = Host.perform(Host.Op.state_set("host_cover", "ok"))
+      get g = Host.perform(Host.Op.state_get("host_cover"))
+      return case s g {
+        ok_string ok_string: Test.string(g.value, "ok")
+        ok_unit ok_string: Test.string(g.value, "ok")
+      } default Test.Result.fail("state")
+    }),
+    Test.io("host.sha256.abc", IO {
+      get h = IO.sha256("abc")
+      return Test.string(h, "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
+    }),
+    Test.io("host.set_file2", IO {
+      IO.set_file(".cache/kind_set_file2_test.txt", "ok=yes")
+      get body = IO.get_file(".cache/kind_set_file2_test.txt")
+      IO.del_file(".cache/kind_set_file2_test.txt")
+      return Test.string(body, "ok=yes")
+    }),
+    Test.group("Path", [
+      Test.unit("safe foo", Test.bool(Path.is_safe("foo.txt"), true)),
+      Test.unit("reject empty", Test.bool(Path.is_safe(""), false)),
+      Test.unit("reject ..", Test.bool(Path.is_safe(".."), false)),
+      Test.unit("reject a/../b", Test.bool(Path.is_safe("a/../b"), false)),
+      Test.unit("reject ../x", Test.bool(Path.is_safe("../x"), false)),
+      Test.unit("reject x/..", Test.bool(Path.is_safe("x/.."), false)),
+      Test.unit("from_string empty", Test.bool(Outcome.is_ok<Path.Err, Path>(Path.from_string("")), false)),
+      Test.unit("from_string ..", Test.bool(Outcome.is_ok<Path.Err, Path>(Path.from_string("../x")), false)),
+    ]),
+    Test.io("file.roundtrip", IO {
+      File.with_temp<Test.Result>((p)
+        IO {
+          get w = File.write(p, "hi=there")
+          get r = File.read(p)
+          return case w r {
+            ok ok: Test.string(r.value, "hi=there")
+          } default Test.Result.fail("roundtrip")
+        })
+    }),
+    Test.io("file.missing", IO {
+      get r = File.read(Path.unsafe(".cache/kind_no_such_file_zz.txt"))
+      return case r {
+        err:
+          case r.error {
+            missing: Test.Result.pass
+          } default Test.Result.fail("expected missing")
+        ok: Test.Result.fail("should be missing")
+      }
+    }),
+    Test.io("file.bad_path", IO {
+      get r = File.read_string("../secret")
+      return case r {
+        err:
+          case r.error {
+            bad_path: Test.Result.pass
+          } default Test.Result.fail("expected bad_path")
+        ok: Test.Result.fail("should reject ..")
+      }
+    }),
+    Test.io("file.read_string.empty", IO {
+      get r = File.read_string("")
+      return case r {
+        err:
+          case r.error {
+            bad_path: Test.Result.pass
+          } default Test.Result.fail("expected bad_path")
+        ok: Test.Result.fail("should reject empty")
+      }
+    }),
+    Test.io("file.write_string.dotdot", IO {
+      get r = File.write_string("../secret", "x")
+      return case r {
+        err:
+          case r.error {
+            bad_path: Test.Result.pass
+          } default Test.Result.fail("expected bad_path")
+        ok: Test.Result.fail("should reject ..")
+      }
+    }),
+    Test.io("file.delete.missing", IO {
+      get r = File.delete(Path.unsafe(".cache/kind_no_such_del_file_zz.txt"))
+      return case r {
+        err:
+          case r.error {
+            missing: Test.Result.pass
+          } default Test.Result.fail("expected missing")
+        ok: Test.Result.fail("should be missing")
+      }
+    }),
+    Test.io("file.delete.hit", IO {
+      File.with_temp<Test.Result>((p)
+        IO {
+          get w = File.write(p, "x")
+          get d = File.delete(p)
+          get r = File.read(p)
+          return case w d r {
+            ok ok err:
+              case r.error {
+                missing: Test.Result.pass
+              } default Test.Result.fail("expected missing after delete")
+          } default Test.Result.fail("delete hit")
+        })
+    }),
+    Test.io("file.read_bytes.missing", IO {
+      get r = File.read_bytes(Path.unsafe(".cache/kind_no_such_bytes_zz.bin"))
+      return case r {
+        err:
+          case r.error {
+            missing: Test.Result.pass
+          } default Test.Result.fail("expected missing")
+        ok: Test.Result.fail("should be missing")
+      }
+    }),
+    Test.io("proc.cwd", IO {
+      get c = Proc.cwd
+      return Test.assert(Bool.not(String.is_empty(c)), "empty cwd")
+    }),
+    Test.io("http.decode", IO {
+      let o = Http.decode("0\n200\nok")
+      return case o {
+        ok: Test.nat(o.value@status, 200)
+        err: Test.Result.fail("decode")
+      }
+    }),
+    Test.group("JSON", [
+      Test.unit("stringify null", Test.string(JSON.stringify(JSON.null), "null")),
+      Test.unit("stringify true", Test.string(JSON.stringify(JSON.bool(true)), "true")),
+      Test.unit("parse null",
+        case JSON.parse("null") {
+          some: Test.assert(true, "ok")
+          none: Test.Result.fail("parse null")
+        }),
+      Test.unit("parse empty", Test.bool(Maybe.is_none<JSON>(JSON.parse("")), true)),
+      Test.unit("parse junk", Test.bool(Maybe.is_none<JSON>(JSON.parse("{")), true)),
+      Test.unit("field on null", Test.string(JSON.field_string(JSON.null, "name"), "")),
+    ]),
+    Test.io("task.race", IO {
+      get w = Task.race_sleep(10, 80)
+      return Test.nat(w, 0)
+    }),
+    Test.io("task.par", IO {
+      get t0 = IO.get_time
+      Task.par_sleep(80, 80)
+      get t1 = IO.get_time
+      let dt = Nat.sub(t1, t0)
+      return Test.assert(Nat.ltn(dt, 140), "sequential? dt=" | Nat.show(dt))
+    }),
+    Test.group("Http.Path", [
+      Test.unit("bound id", Test.string(Http.Path.bound("/user/:id", "/user/42", "id"), "42")),
+      Test.unit("miss", Test.string(Http.Path.bound("/user/:id", "/post/1", "id"), "")),
+      Test.unit("query stripped", Test.string(Http.Path.bound("/ping", "/ping?x=1", "x"), "")),
+      Test.unit("empty url", Test.string(Http.Path.bound("/user/:id", "", "id"), "")),
+      Test.unit("short url", Test.string(Http.Path.bound("/user/:id", "/user", "id"), "")),
+      Test.unit("slash only", Test.string(Http.Path.bound("/user/:id", "/user/", "id"), "")),
+      Test.unit("wrong name", Test.string(Http.Path.bound("/user/:id", "/user/1", "nope"), "")),
+      Test.unit("empty name", Test.string(Http.Path.bound("/user/:id", "/user/1", ""), "")),
+    ]),
+    Test.group("Http.Server.parse", [
+      Test.unit("url", Test.string(Http.Server.parse.url("0\nabc\nGET\n/ping\n"), "/ping")),
+    ]),
+    Test.group("Proc.decode", [
+      Test.unit("code 0", Test.nat(Proc.decode.code("0\n0\nhi"), 0)),
+      Test.unit("stdout", Test.string(Proc.decode.out("0\n0\nhi"), "hi")),
+      Test.unit("host err", Test.bool(Outcome.is_ok<Proc.Err, Proc.Out>(Proc.decode("1\nbad")), false)),
+    ]),
+    Test.io("proc.exec.hi", IO {
+      get o = Proc.exec("node -e \"process.stdout.write('hi')\"")
+      return case o {
+        err: Test.Result.fail("exec")
+        ok:
+          open o.value
+          Test.string(o.value.stdout, "hi")
+      }
+    }),
+    Test.group("Http.App", [
+      Test.unit("get id", Test.string(Http.App.hit(Http.Method.get, "/user/:id", "GET", "/user/7", "id"), "7")),
+      Test.unit("method miss", Test.string(Http.App.hit(Http.Method.get, "/x", "POST", "/x", "id"), "")),
+      Test.unit("empty url", Test.string(Http.App.hit(Http.Method.get, "/user/:id", "GET", "", "id"), "")),
+      Test.unit("get is GET",
+        Test.assert(Http.Method.eql(Http.App.get("/x", Http.App.dummy)@method, Http.Method.get), "not GET")),
+    ]),
+    Test.group("Http.Method", [
+      Test.unit("read GET",
+        case Http.Method.read("GET") {
+          some: Test.assert(true, "ok")
+          none: Test.Result.fail("read GET")
+        }),
+      Test.unit("read get",
+        case Http.Method.read("get") {
+          some: Test.assert(true, "ok")
+          none: Test.Result.fail("read get")
+        }),
+      Test.unit("read FOO", Test.bool(Maybe.is_none<Http.Method>(Http.Method.read("FOO")), true)),
+      Test.unit("read empty", Test.bool(Maybe.is_none<Http.Method>(Http.Method.read("")), true)),
+      Test.unit("read space", Test.bool(Maybe.is_none<Http.Method>(Http.Method.read("GET ")), true)),
+      Test.unit("eql diff", Test.bool(Http.Method.eql(Http.Method.get, Http.Method.post), false)),
+      Test.unit("eql self", Test.bool(Http.Method.eql(Http.Method.get, Http.Method.get), true)),
+    ]),
+    Test.group("Http.Path.more", [
+      Test.unit("two params", Test.string(Http.Path.bound("/u/:a/p/:b", "/u/1/p/2", "b"), "2")),
+      Test.unit("query", Test.string(Http.Path.bound("/user/:id", "/user/42?x=1", "id"), "42")),
+      Test.unit("trail slash", Test.string(Http.Path.bound("/user/:id", "/user/42/", "id"), "42")),
+    ]),
+    Test.group("Http.Server.parse.more", [
+      Test.unit("id", Test.string(Http.Server.parse.id("0\nabc\nGET\n/ping\n"), "abc")),
+      Test.unit("method", Test.string(Http.Server.parse.method("0\nabc\nGET\n/ping\n"), "GET")),
+      Test.unit("body", Test.string(Http.Server.parse.body("0\nabc\nPOST\n/x\nhi"), "hi")),
+      Test.unit("cookie empty", Test.string(Http.Server.parse.cookie("0\nabc\nGET\n/ping\n"), "")),
+      Test.unit("cookie junk", Test.string(Http.Server.parse.cookie("0\nabc\nGET\n/ping\nsure_sid=nope\n"), "sure_sid=nope")),
+      Test.unit("cookie hit", Test.string(Http.Server.parse.cookie("0\nabc\nGET\n/me\nsure_sid=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\n"), "sure_sid=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")),
+      Test.unit("bad tag", Test.bool(Maybe.is_none<Http.Server.Req>(Http.Server.parse("nope")), true)),
+    ]),
+    Test.group("Db.decode", [
+      Test.unit("ok",
+        case Db.decode_text("0\nada") as o {
+          err: Test.Result.fail("decode")
+          ok: Test.string(o.value, "ada")
+        }),
+      Test.unit("missing", Test.bool(Outcome.is_ok<Db.Err, String>(Db.decode_text("1\nmissing")), false)),
+    ]),
+    Test.group("Sure.Agent.fill", [
+      Test.unit("replace implement", Test.string(Sure.Agent.fill("?implement", "0"), "0")),
+      Test.unit("fill first one", Test.string(Sure.Agent.fill.first("?implement", "0"), "0")),
+      Test.unit("names Nat", Test.string(Sure.Agent.names_head("Nat"), "Nat")),
+    ]),
+    Test.group("Email", [
+      Test.unit("a@b", Test.string(Email.raw_of("a@b"), "a@b")),
+      Test.unit("no at", Test.bool(Outcome.is_ok<Email.Err, Email>(Email.from_string("ada")), false)),
+      Test.unit("empty", Test.bool(Outcome.is_ok<Email.Err, Email>(Email.from_string("")), false)),
+      Test.unit("only at", Test.string(Email.raw_of("@"), "@")),
+      Test.unit("a@", Test.string(Email.raw_of("a@"), "a@")),
+      Test.unit("@b", Test.string(Email.raw_of("@b"), "@b")),
+      Test.unit("raw of empty", Test.string(Email.raw_of(""), "")),
+    ]),
+    Test.group("Dir.names", [
+      Test.unit("head a",
+        case Dir.names("a;b") as xs {
+          nil: Test.Result.fail("nil")
+          cons: Test.string(xs.head, "a")
+        }),
+      Test.unit("empty", Test.nat(List.length<String>(Dir.names("")), 0)),
+      Test.unit("semi only", Test.nat(List.length<String>(Dir.names(";")), 0)),
+    ]),
+    Test.group("Bytes.hex", [
+      Test.unit("empty", Test.string(Bytes.to_hex(Bytes.from_hex("")), "")),
+    ]),
+    Test.io("file.bytes.roundtrip", IO {
+      File.with_temp<Test.Result>((p)
+        IO {
+          let payload = Bytes.from_str("hi")
+          get w = File.write_bytes(p, payload)
+          get r = File.read_bytes(p)
+          return case w r {
+            ok ok: Test.string(Bytes.to_hex(r.value), Bytes.to_hex(payload))
+          } default Test.Result.fail("bytes")
+        })
+    }),
+    Test.io("dir.read.cwd", IO {
+      get r = Dir.read(Path.unsafe("."))
+      return case r {
+        err: Test.Result.fail("dir")
+        ok: Test.assert(Bool.not(List.is_empty<String>(r.value)), "empty dir")
+      }
+    }),
+    Test.io("dir.read.missing", IO {
+      get r = Dir.read(Path.unsafe(".cache/kind_no_such_dir_zz"))
+      return case r {
+        err:
+          case r.error {
+            missing: Test.Result.pass
+          } default Test.Result.fail("expected missing")
+        ok: Test.Result.fail("should be missing")
+      }
+    }),
+    Test.io("proc.signal", IO {
+      get s = Proc.spawn("node -e \"setInterval(()=>{},1e9)\"")
+      case s {
+        err: IO { return Test.Result.fail("spawn") }
+        ok: IO {
+          get k = Proc.kill(s.value, Proc.Signal.term)
+          get w = Proc.wait(s.value)
+          return case k w {
+            ok ok: Test.assert(true, "ok")
+          } default Test.Result.fail("kill/wait")
+        }
+      }
+    }),
+    Test.group("Db.Row", [
+      Test.unit("row get", Test.string(Db.Row.get("email", [{"name", "ada"}, {"email", "a@b"}]), "a@b")),
+      Test.unit("missing key", Test.string(Db.Row.get("nope", [{"name", "ada"}]), "")),
+    ]),
+    Test.io("db.memory.roundtrip", IO {
+      get c = Db.connect("suremem:t1")
+      case c {
+        err: IO { return Test.Result.fail("connect") }
+        ok: IO {
+          get w = Db.set(c.value, "1", "ada")
+          get u = Db.get(c.value, "1")
+          Db.close(c.value)
+          return case w u {
+            ok ok: Test.string(u.value, "ada")
+          } default Test.Result.fail("set/get")
+        }
+      }
+    }),
+    Test.io("db.connect.empty", IO {
+      get c = Db.connect("")
+      return case c as r {
+        err: Test.string(Db.Err.show(r.error), "empty_url")
+        ok: Test.Result.fail("ok")
+      }
+    }),
+    Test.io("db.connect.junk", IO {
+      get c = Db.connect("postgres://x")
+      return case c as r {
+        err: Test.string(Db.Err.show(r.error), "bad_url")
+        ok: Test.Result.fail("ok")
+      }
+    }),
+    Test.io("db.connect.filedot", IO {
+      get c = Db.connect("surefile:../x.json")
+      return case c as r {
+        err: Test.string(Db.Err.show(r.error), "bad_url")
+        ok: Test.Result.fail("ok")
+      }
+    }),
+    Test.io("db.get.empty_key", IO {
+      get c = Db.connect("suremem:tkey")
+      case c {
+        err: IO { return Test.Result.fail("connect") }
+        ok: IO {
+          get u = Db.get(c.value, "")
+          Db.close(c.value)
+          return case u as r {
+            err: Test.string(Db.Err.show(r.error), "empty_key")
+            ok: Test.Result.fail("ok")
+          }
+        }
+      }
+    }),
+    Test.io("db.get.missing", IO {
+      get c = Db.connect("suremem:tmiss")
+      case c {
+        err: IO { return Test.Result.fail("connect") }
+        ok: IO {
+          get u = Db.get(c.value, "nope")
+          Db.close(c.value)
+          return case u as r {
+            err: Test.string(Db.Err.show(r.error), "missing")
+            ok: Test.Result.fail("ok")
+          }
+        }
+      }
+    }),
+    Test.io("db.has.del.keys", IO {
+      get c = Db.connect("suremem:thas")
+      case c {
+        err: IO { return Test.Result.fail("connect") }
+        ok: IO {
+          get w = Db.set(c.value, "k", "v")
+          get h = Db.has(c.value, "k")
+          get ks = Db.keys(c.value)
+          get d = Db.del(c.value, "k")
+          get h2 = Db.has(c.value, "k")
+          get z = Db.clear(c.value)
+          Db.close(c.value)
+          return case w h ks d h2 z {
+            ok ok ok ok ok ok:
+              Test.assert(Bool.and(h.value, Bool.not(h2.value)), "has")
+          } default Test.Result.fail("ops")
+        }
+      }
+    }),
+    Test.io("db.query.empty", IO {
+      get c = Db.connect("suremem:tq")
+      case c {
+        err: IO { return Test.Result.fail("connect") }
+        ok: IO {
+          get q = Db.query(c.value, "")
+          Db.close(c.value)
+          return case q as r {
+            err: Test.string(Db.Err.show(r.error), "bad query")
+            ok: Test.Result.fail("ok")
+          }
+        }
+      }
+    }),
+    Test.io("db.closed", IO {
+      get c = Db.connect("suremem:tclose")
+      case c {
+        err: IO { return Test.Result.fail("connect") }
+        ok: IO {
+          Db.close(c.value)
+          get u = Db.get(c.value, "k")
+          return case u as r {
+            err: Test.string(Db.Err.show(r.error), "closed")
+            ok: Test.Result.fail("ok")
+          }
+        }
+      }
+    }),
+    Test.io("db.file.roundtrip", IO {
+      get c = Db.connect("surefile:sure-db-test.json")
+      case c {
+        err: IO { return Test.Result.fail(Db.Err.show(c.error)) }
+        ok: IO {
+          get w = Db.set(c.value, "n", "ada")
+          Db.close(c.value)
+          get c2 = Db.connect("surefile:sure-db-test.json")
+          case c2 {
+            err: IO { return Test.Result.fail("reopen") }
+            ok: IO {
+              get u = Db.get(c2.value, "n")
+              Db.close(c2.value)
+              File.delete(Path.unsafe("sure-db-test.json"))
+              return case w u {
+                ok ok: Test.string(u.value, "ada")
+              } default Test.Result.fail("file")
+            }
+          }
+        }
+      }
+    }),
+    Test.io("db.with", IO {
+      get o = Db.with<String>("suremem:twith", (c) IO {
+        get w = Db.set(c, "a", "b")
+        get u = Db.get(c, "a")
+        return case u {
+          err: Outcome.err<Db.Err, String>(u.error)
+          ok: Outcome.ok<Db.Err, String>(u.value)
+        }
+      })
+      return case o as r {
+        err: Test.Result.fail(Db.Err.show(r.error))
+        ok: Test.string(r.value, "b")
+      }
+    }),
+    Test.io("db.with.persist", IO {
+      get a = Db.with<Unit>("suremem:tpersist", (c) IO {
+        get w = Db.set(c, "u", "ada")
+        return w
+      })
+      get b = Db.with<String>("suremem:tpersist", (c) IO {
+        get u = Db.get(c, "u")
+        return u
+      })
+      return case a b {
+        ok ok: Test.string(b.value, "ada")
+      } default Test.Result.fail("persist")
+    }),
+    Test.io("db.with.empty", IO {
+      get o = Db.with<String>("", (c) IO { return Outcome.ok<Db.Err, String>("x") })
+      return case o as r {
+        err: Test.string(Db.Err.show(r.error), "empty_url")
+        ok: Test.Result.fail("ok")
+      }
+    }),
+    Test.io("db.set.empty_val", IO {
+      get c = Db.connect("suremem:temptyv")
+      case c {
+        err: IO { return Test.Result.fail("connect") }
+        ok: IO {
+          get w = Db.set(c.value, "k", "")
+          get u = Db.get(c.value, "k")
+          Db.close(c.value)
+          return case w u {
+            ok ok: Test.string(u.value, "")
+          } default Test.Result.fail("empty val")
+        }
+      }
+    }),
+    Test.io("db.overwrite", IO {
+      get c = Db.connect("suremem:tov")
+      case c {
+        err: IO { return Test.Result.fail("connect") }
+        ok: IO {
+          get w1 = Db.set(c.value, "k", "a")
+          get w2 = Db.set(c.value, "k", "b")
+          get u = Db.get(c.value, "k")
+          Db.close(c.value)
+          return case w1 w2 u {
+            ok ok ok: Test.string(u.value, "b")
+          } default Test.Result.fail("ov")
+        }
+      }
+    }),
+    Test.io("db.nl.value", IO {
+      get c = Db.connect("suremem:tnl")
+      case c {
+        err: IO { return Test.Result.fail("connect") }
+        ok: IO {
+          get w = Db.set(c.value, "k", "a\nb")
+          get u = Db.get(c.value, "k")
+          Db.close(c.value)
+          return case w u {
+            ok ok: Test.string(u.value, "a\nb")
+          } default Test.Result.fail("nl")
+        }
+      }
+    }),
+    Test.io("db.nl.key", IO {
+      get c = Db.connect("suremem:tnlk")
+      case c {
+        err: IO { return Test.Result.fail("connect") }
+        ok: IO {
+          get u = Db.set(c.value, "a\nb", "x")
+          Db.close(c.value)
+          return case u as r {
+            err: Test.string(Db.Err.show(r.error), "bad_key")
+            ok: Test.Result.fail("ok")
+          }
+        }
+      }
+    }),
+    Test.io("db.has.miss", IO {
+      get c = Db.connect("suremem:thmiss")
+      case c {
+        err: IO { return Test.Result.fail("connect") }
+        ok: IO {
+          get h = Db.has(c.value, "nope")
+          get ks = Db.keys(c.value)
+          Db.close(c.value)
+          return case h ks {
+            ok ok: Test.assert(Bool.and(Bool.not(h.value), Nat.eql(List.length<String>(ks.value), 0)), "miss")
+          } default Test.Result.fail("has")
+        }
+      }
+    }),
+    Test.io("db.del.missing", IO {
+      get c = Db.connect("suremem:tdel")
+      case c {
+        err: IO { return Test.Result.fail("connect") }
+        ok: IO {
+          get d = Db.del(c.value, "nope")
+          Db.close(c.value)
+          return case d as r {
+            err: Test.string(Db.Err.show(r.error), "missing")
+            ok: Test.Result.fail("ok")
+          }
+        }
+      }
+    }),
+    Test.io("db.query.get", IO {
+      get c = Db.connect("suremem:tqget")
+      case c {
+        err: IO { return Test.Result.fail("connect") }
+        ok: IO {
+          get w = Db.set(c.value, "k", "v")
+          get q = Db.query(c.value, "GET k")
+          Db.close(c.value)
+          return case w q {
+            ok ok: Test.string(q.value, "v")
+          } default Test.Result.fail("qget")
+        }
+      }
+    }),
+    Test.io("db.query.low", IO {
+      get c = Db.connect("suremem:tqlow")
+      case c {
+        err: IO { return Test.Result.fail("connect") }
+        ok: IO {
+          get q = Db.query(c.value, "get k")
+          Db.close(c.value)
+          return case q as r {
+            err: Test.string(Db.Err.show(r.error), "bad query")
+            ok: Test.Result.fail("ok")
+          }
+        }
+      }
+    }),
+    Test.io("db.mem.iso", IO {
+      get a = Db.connect("suremem:iso-a")
+      get b = Db.connect("suremem:iso-b")
+      case a b {
+        ok ok: IO {
+          get w = Db.set(a.value, "k", "A")
+          get u = Db.get(b.value, "k")
+          Db.close(a.value)
+          Db.close(b.value)
+          return case w u {
+            ok err: Test.string(Db.Err.show(u.error), "missing")
+          } default Test.Result.fail("iso")
+        }
+      } default IO { return Test.Result.fail("connect") }
+    }),
+    Test.io("db.file.corrupt", IO {
+      get w = File.write(Path.unsafe("sure-db-bad.json"), "{")
+      case w {
+        err: IO { return Test.Result.fail("write") }
+        ok: IO {
+          get c = Db.connect("surefile:sure-db-bad.json")
+          File.delete(Path.unsafe("sure-db-bad.json"))
+          return case c as r {
+            err: Test.string(Db.Err.show(r.error), "bad_file")
+            ok: Test.Result.fail("ok")
+          }
+        }
+      }
+    }),
+    Test.io("http.app.step", IO {
+      get l = Http.Server.listen(18766)
+      case l {
+        err: IO { return Test.Result.fail("listen") }
+        ok: IO {
+          get jid = IO.job_start("http\nGET http://127.0.0.1:18766/user/9\n\n")
+          get stepped = Http.App.step(18766, [
+            Http.App.get("/user/:id", (req, binds)
+              IO {
+                return Http.json(Http.Path.lookup("id", binds))
+              })
+          ])
+          get cres = IO.job_await(jid)
+          Http.Server.stop(18766)
+          if Bool.not(stepped) then
+            IO { return Test.Result.fail("step") }
+          else IO {
+            let dec = Http.decode(cres)
+            return case dec {
+              err: Test.Result.fail("client")
+              ok: Test.string(dec.value@body, "9")
+            }
+          }
+        }
+      }
+    }),
+    Test.io("http.server.roundtrip", IO {
+      get l = Http.Server.listen(18765)
+      case l {
+        err: IO {
+          return Test.Result.fail("listen")
+        }
+        ok: IO {
+          get jid = IO.job_start("http\nGET http://127.0.0.1:18765/ping\n\n")
+          get raw = Http.Server.recv(18765)
+          let parsed = Http.Server.parse(raw)
+          case parsed {
+            none: IO {
+              Http.Server.stop(18765)
+              return Test.Result.fail("recv")
+            }
+            some: IO {
+              open parsed.value
+              Http.Server.reply(parsed.value.id, 200, "pong")
+              get cres = IO.job_await(jid)
+              Http.Server.stop(18765)
+              let dec = Http.decode(cres)
+              return case dec {
+                err: Test.Result.fail("client")
+                ok: Test.string(dec.value@body, "pong")
+              }
+            }
+          }
+        }
+      }
+    }),
+    Test.group("Semver", [
+      Test.unit("major 1", Test.nat(Semver.major_of("1.2.3"), 1)),
+      Test.unit("lt patch", Test.bool(Semver.lt(Semver.new(1, 0, 0), Semver.new(1, 0, 1)), true)),
+      Test.unit("lt eq", Test.bool(Semver.lt(Semver.new(1, 0, 0), Semver.new(1, 0, 0)), false)),
+      Test.unit("parse empty", Test.bool(Maybe.is_none<Semver>(Semver.parse("")), true)),
+      Test.unit("parse one", Test.bool(Maybe.is_none<Semver>(Semver.parse("1")), true)),
+      Test.unit("parse two", Test.bool(Maybe.is_none<Semver>(Semver.parse("1.2")), true)),
+    ]),
+    Test.group("Stream", [
+      Test.unit("take 0", Test.nat(List.length<Nat>(Stream.take<Nat>(0, [1, 2])), 0)),
+      Test.unit("take past", Test.nat(List.length<Nat>(Stream.take<Nat>(3, [])), 0)),
+    ]),
+    Test.group("Nat.add", [
+      Test.unit("0+0", Test.nat(Nat.add(0, 0), 0)),
+      Test.unit("0+7", Test.nat(Nat.add(0, 7), 7)),
+      Test.unit("7+0", Test.nat(Nat.add(7, 0), 7)),
+    ]),
+    Test.group("List.length", [
+      Test.unit("nil", Test.nat(List.length<Nat>([]), 0)),
+      Test.unit("one", Test.nat(List.length<Nat>([0]), 1)),
+    ]),
+    Test.io("task.par.ends", IO {
+      get p = Task.par<Nat, Nat>(IO.end<Nat>(1), IO.end<Nat>(2))
+      open p
+      return Test.nat(Nat.add(p.fst, p.snd), 3)
+    }),
+    Test.io("task.all.empty", IO {
+      get xs = Task.all<Nat>([])
+      return Test.nat(List.length<Nat>(xs), 0)
+    }),
+    Test.io("task.all.two", IO {
+      get xs = Task.all<Nat>([IO.end<Nat>(1), IO.end<Nat>(2)])
+      return case xs {
+        nil: Test.Result.fail("nil")
+        cons:
+          case xs.tail {
+            nil: Test.Result.fail("one")
+            cons: Test.nat(Nat.add(xs.head, xs.tail.head), 3)
+          }
+      }
+    }),
+    Test.io("task.race.ends", IO {
+      get x = Task.race<Nat>(IO.end<Nat>(7), IO.end<Nat>(7))
+      return Test.nat(x, 7)
+    }),
+    Test.io("task.race.fast", IO {
+      get x = Task.race<Nat>(IO.end<Nat>(3), IO {
+        IO.sleep(80)
+        return 9
+      })
+      return Test.nat(x, 3)
+    }),
+    Test.io("par.map.empty", IO {
+      get xs = Sure.Par.map<Nat, Nat>(Nat.succ, [])
+      return Test.nat(List.length<Nat>(xs), 0)
+    }),
+    Test.io("par.map.one", IO {
+      get xs = Sure.Par.map<Nat, Nat>(Nat.succ, [0])
+      return case xs {
+        nil: Test.Result.fail("nil")
+        cons: Test.nat(xs.head, 1)
+      }
+    }),
+    Test.io("par.pair", IO {
+      get p = Sure.Par.pair<Nat, Nat>((u) 1, (u) 2)
+      open p
+      return Test.nat(Nat.add(p.fst, p.snd), 3)
+    }),
+    Test.io("job.all.empty", IO {
+      get w = IO.job_all("")
+      return Test.string(w, "0\n")
+    }),
+    Test.io("job.race.empty", IO {
+      get w = IO.job_race("")
+      return Test.string(w, "1")
+    }),
+    Test.io("compress.gzip", IO {
+      get z = Compress.gzip("hi")
+      case z {
+        err: IO { return Test.Result.fail("gzip") }
+        ok: IO {
+          get p = Compress.gunzip(z.value)
+          return case p {
+            err: Test.Result.fail("gunzip")
+            ok: Test.string(p.value, "hi")
+          }
+        }
+      }
+    }),
+    Test.io("net.tcp.refused", IO {
+      get r = Net.connect("127.0.0.1", 1, false)
+      return case r {
+        err: Test.Result.pass
+        ok: Test.Result.fail("expected refuse")
+      }
+    }),
+    Test.io("net.dns.localhost", IO {
+      get r = Net.dns("localhost")
+      return case r {
+        ok: Test.assert(Bool.not(String.is_empty(r.value)), "empty dns")
+        err: Test.Result.fail("dns")
+      }
+    }),
+    Test.io("host.env", IO {
+      get p = IO.get_env("PATH")
+      return case p {
+        none: Test.Result.fail("PATH unset")
+        some: Test.assert(Bool.not(String.is_empty(p.value)), "PATH empty")
+      }
+    }),
+    Test.io("host.env.missing", IO {
+      get p = IO.get_env("SURE_NO_SUCH_ENV_ZZ")
+      return case p {
+        none: Test.Result.pass
+        some: Test.Result.fail("expected unset")
+      }
+    }),
+    Test.io("file.empty", IO {
+      File.with_temp<Test.Result>((p)
+        IO {
+          get w = File.write(p, "")
+          get r = File.read(p)
+          return case w r {
+            ok ok: Test.string(r.value, "")
+          } default Test.Result.fail("empty file")
+        })
+    }),
+    Test.io("proc.exec.fail", IO {
+      get o = Proc.exec("node -e \"process.exit(2)\"")
+      return case o {
+        ok: Test.Result.fail("expected fail")
+        err: Test.Result.pass
+      }
+    }),
+    Test.io("ffi.empty", IO {
+      get o = Ffi.call("", JSON.null)
+      return case o as r {
+        err: Test.string(Ffi.Err.show(r.error), "empty_name")
+        ok: Test.Result.fail("ok")
+      }
+    }),
+    Test.io("ffi.missing", IO {
+      get o = Ffi.call("Sure.NoSuch.Ffi", JSON.null)
+      return case o as r {
+        err: Test.string(Ffi.Err.show(r.error), "missing")
+        ok: Test.Result.fail("ok")
+      }
+    }),
+    Test.io("ffi.add", IO {
+      get o = Ffi.call_nat("Sure.ffi.add", [2, 3])
+      return case o as r {
+        err: Test.Result.fail(Ffi.Err.show(r.error))
+        ok: Test.nat(r.value, 5)
+      }
+    }),
+    Test.io("ffi.boom", IO {
+      get o = Ffi.call("Sure.ffi.boom", JSON.null)
+      return case o as r {
+        err: Test.string(Ffi.Err.show(r.error), "throw:boom")
+        ok: Test.Result.fail("ok")
+      }
+    }),
+    Test.io("ffi.bad_json", IO {
+      get raw = IO.ask<String>("ffi", "Sure.ffi.add\n{", (t) IO.end<String>(t))
+      return case Ffi.decode(raw) as r {
+        err: Test.string(Ffi.Err.show(r.error), "bad_json")
+        ok: Test.Result.fail("ok")
+      }
+    }),
+    Test.io("ffi.bad_name", IO {
+      get o = Ffi.call("a/b", JSON.null)
+      return case o as r {
+        err: Test.string(Ffi.Err.show(r.error), "bad_name")
+        ok: Test.Result.fail("ok")
+      }
+    }),
+    Test.io("worker.empty", IO {
+      get o = Worker.run("", JSON.null)
+      return case o as r {
+        err: Test.string(Worker.Err.show(r.error), "empty_name")
+        ok: Test.Result.fail("ok")
+      }
+    }),
+    Test.io("worker.bad_name", IO {
+      get o = Worker.run("a/b", JSON.null)
+      return case o as r {
+        err: Test.string(Worker.Err.show(r.error), "bad_name")
+        ok: Test.Result.fail("ok")
+      }
+    }),
+    Test.io("worker.missing", IO {
+      get o = Worker.run("Sure.NoSuch.Worker", JSON.null)
+      return case o as r {
+        err: Test.string(Worker.Err.show(r.error), "missing")
+        ok: Test.Result.fail("ok")
+      }
+    }),
+    Test.io("worker.add", IO {
+      get o = Worker.run_nat("Sure.ffi.add", [2, 3])
+      return case o as r {
+        err: Test.Result.fail(Worker.Err.show(r.error))
+        ok: Test.nat(r.value, 5)
+      }
+    }),
+    Test.io("worker.double", IO {
+      get o = Worker.run_nat("Sure.worker.double", [21])
+      return case o as r {
+        err: Test.Result.fail(Worker.Err.show(r.error))
+        ok: Test.nat(r.value, 42)
+      }
+    }),
+    Test.io("worker.boom", IO {
+      get o = Worker.run("Sure.ffi.boom", JSON.null)
+      return case o as r {
+        err: Test.string(Worker.Err.show(r.error), "throw:boom")
+        ok: Test.Result.fail("ok")
+      }
+    }),
+    Test.io("worker.bad_json", IO {
+      get raw = IO.ask<String>("worker_run", "Sure.ffi.add\n{", (t) IO.end<String>(t))
+      return case Worker.decode(raw) as r {
+        err: Test.string(Worker.Err.show(r.error), "bad_json")
+        ok: Test.Result.fail("ok")
+      }
+    }),
+    Test.io("worker.map.empty", IO {
+      get o = Worker.map("Sure.worker.double", [])
+      return case o as r {
+        err: Test.Result.fail(Worker.Err.show(r.error))
+        ok: Test.nat(List.length<JSON>(r.value), 0)
+      }
+    }),
+    Test.io("worker.map.two", IO {
+      get o = Worker.map("Sure.worker.double", [JSON.enc.nat(1), JSON.enc.nat(2)])
+      return case o as r {
+        err: Test.Result.fail(Worker.Err.show(r.error))
+        ok: Test.nat(List.length<JSON>(r.value), 2)
+      }
+    }),
+    Test.group("Net.tcp.decode", [
+      Test.unit("conn err", Test.bool(Outcome.is_ok<Net.Err, Net.Conn>(Net.decode_conn("1\nbad host")), false)),
+      Test.unit("conn empty", Test.bool(Outcome.is_ok<Net.Err, Net.Conn>(Net.decode_conn("")), false)),
+      Test.unit("conn untagged", Test.bool(Outcome.is_ok<Net.Err, Net.Conn>(Net.decode_conn("nope")), false)),
+      Test.unit("conn tls", Test.bool(Outcome.is_ok<Net.Err, Net.Conn>(Net.decode_conn("1\nnot implemented")), false)),
+      Test.unit("conn ok id",
+        case Net.decode_conn("0\n1") as o {
+          err: Test.Result.fail("err")
+          ok: Test.string(o.value@id, "1")
+        }),
+      Test.unit("closed", Test.bool(Outcome.is_ok<Net.Err, Unit>(Net.decode_unit("1\nclosed")), false)),
+      Test.unit("unit empty", Test.bool(Outcome.is_ok<Net.Err, Unit>(Net.decode_unit("")), false)),
+      Test.unit("param plain", Test.string("127.0.0.1" | "\n" | "80" | "\n" | "0", "127.0.0.1\n80\n0")),
+    ]),
+    Test.group("Net.udp.parse", [
+      Test.unit("empty one", Test.bool(Maybe.is_none<Net.Udp.Msg>(Net.udp.parse_one("")), true)),
+      Test.unit("short", Test.bool(Maybe.is_none<Net.Udp.Msg>(Net.udp.parse_one("1.2.3.4,1")), true)),
+      Test.unit("ok", Test.bool(Maybe.is_none<Net.Udp.Msg>(Net.udp.parse_one("127.0.0.1,9,68")), false)),
+      Test.unit("all empty", Test.nat(List.length<Net.Udp.Msg>(Net.udp.parse_all("")), 0)),
+      Test.unit("decode err", Test.bool(Outcome.is_ok<Net.Err, List<Net.Udp.Msg>>(Net.udp.decode("1\nbad")), false)),
+      Test.unit("decode bad tag", Test.bool(Outcome.is_ok<Net.Err, List<Net.Udp.Msg>>(Net.udp.decode("nope")), false)),
+      Test.unit("decode closed", Test.bool(Outcome.is_ok<Net.Err, List<Net.Udp.Msg>>(Net.udp.decode("1\nclosed")), false)),
+      Test.unit("decode bad port", Test.bool(Outcome.is_ok<Net.Err, List<Net.Udp.Msg>>(Net.udp.decode("1\nbad port")), false)),
+    ]),
+    Test.io("udp.empty", IO {
+      get b = Net.udp.bind(18780)
+      case b {
+        err: IO { return Test.Result.fail("bind") }
+        ok: IO {
+          get r = Net.udp.recv(18780)
+          Net.udp.close(18780)
+          return case r {
+            err: Test.Result.fail("recv")
+            ok: Test.nat(List.length<Net.Udp.Msg>(r.value), 0)
+          }
+        }
+      }
+    }),
+    Test.io("udp.loopback", IO {
+      get b = Net.udp.bind(18781)
+      case b {
+        err: IO { return Test.Result.fail("bind") }
+        ok: IO {
+          get s = Net.udp.send_text(18781, "127.0.0.1", 18781, "hi")
+          IO.sleep(40)
+          get r = Net.udp.recv(18781)
+          Net.udp.close(18781)
+          return case s r {
+            err err: Test.Result.fail("send/recv")
+            err ok: Test.Result.fail("send")
+            ok err: Test.Result.fail("recv")
+            ok ok:
+              case r.value as xs {
+                nil: Test.Result.fail("empty mail")
+                cons: Test.string(xs.head@data, String.hex.encode.ascii("hi"))
+              }
+          }
+        }
+      }
+    }),
+    Test.io("udp.bad_port", IO {
+      get b = Net.udp.bind(70000)
+      return case b {
+        ok: Test.Result.fail("expected bad port")
+        err: Test.Result.pass
+      }
+    }),
+    Test.io("udp.bad_dest", IO {
+      get s = Net.udp.send(18782, "", 18782, "00")
+      return case s {
+        ok: Test.Result.fail("expected bad dest")
+        err: Test.Result.pass
+      }
+    }),
+    Test.io("udp.recv.closed", IO {
+      get r = Net.udp.recv(19991)
+      return case r {
+        ok: Test.Result.fail("expected closed")
+        err: Test.Result.pass
+      }
+    }),
+    Test.io("udp.send.closed", IO {
+      get s = Net.udp.send(19992, "127.0.0.1", 19992, "00")
+      return case s {
+        ok: Test.Result.fail("expected closed")
+        err: Test.Result.pass
+      }
+    }),
+    Test.group("Crypto", [
+      Test.unit("hex empty", Test.bool(Crypto.is_hex(""), true)),
+      Test.unit("hex bad", Test.bool(Crypto.is_hex("gg"), false)),
+      Test.unit("hex64 empty", Test.bool(Crypto.hex64(""), false)),
+      Test.unit("hex64 abc", Test.bool(Crypto.hex64(Crypto.sha256.abc_hex), true)),
+      Test.unit("decode err", Test.bool(Outcome.is_ok<Crypto.Err, String>(Crypto.decode("1\nbad")), false)),
+      Test.unit("decode short", Test.bool(Outcome.is_ok<Crypto.Err, String>(Crypto.decode("0\nab")), false)),
+    ]),
+    Test.io("crypto.sha256.abc", IO {
+      get h = Crypto.sha256("abc")
+      return case h {
+        err: Test.Result.fail("sha256")
+        ok: Test.string(h.value, Crypto.sha256.abc_hex)
+      }
+    }),
+    Test.io("crypto.sha256.empty", IO {
+      get h = Crypto.sha256("")
+      return case h {
+        err: Test.Result.fail("sha256 empty")
+        ok: Test.string(h.value, Crypto.sha256.empty_hex)
+      }
+    }),
+    Test.io("crypto.hmac.empty", IO {
+      get h = Crypto.hmac_sha256("", "")
+      return case h {
+        err: Test.Result.fail("hmac empty")
+        ok: Test.string(h.value, Crypto.hmac.empty_hex)
+      }
+    }),
+    Test.io("crypto.hmac.jefe", IO {
+      get h = Crypto.hmac_sha256("Jefe", "what do ya want for nothing?")
+      return case h {
+        err: Test.Result.fail("hmac jefe")
+        ok: Test.string(h.value, Crypto.hmac.jefe_hex)
+      }
+    }),
+    Test.io("compress.empty", IO {
+      get z = Compress.gzip("")
+      case z {
+        err: IO { return Test.Result.fail("gzip empty") }
+        ok: IO {
+          get p = Compress.gunzip(z.value)
+          return case p {
+            err: Test.Result.fail("gunzip empty")
+            ok: Test.string(p.value, "")
+          }
+        }
+      }
+    }),
+    Test.group("Cover.done", [
+      Test.unit("match junk method",
+        Test.bool(Maybe.is_none<List<Pair<String, String>>>(Http.App.match(Http.Method.get, "/", Http.Server.Req.new("", "NOPE", "/", "", ""))), true)),
+      Test.unit("match empty method",
+        Test.bool(Maybe.is_none<List<Pair<String, String>>>(Http.App.match(Http.Method.get, "/", Http.Server.Req.new("", "", "/", "", ""))), true)),
+      Test.unit("match miss post",
+        Test.bool(Maybe.is_none<List<Pair<String, String>>>(Http.App.match(Http.Method.get, "/", Http.Server.Req.new("", "POST", "/", "", ""))), true)),
+      Test.unit("match hit slash",
+        Test.bool(Maybe.is_none<List<Pair<String, String>>>(Http.App.match(Http.Method.get, "/", Http.Server.Req.new("", "GET", "/", "", ""))), false)),
+      Test.unit("match empty url",
+        Test.bool(Maybe.is_none<List<Pair<String, String>>>(Http.App.match(Http.Method.get, "/x", Http.Server.Req.new("", "GET", "", "", ""))), true)),
+      Test.unit("get miss post",
+        Test.bool(Maybe.is_none<List<Pair<String, String>>>(Http.Server.get("/", Http.Server.Req.new("", "POST", "/", "", ""))), true)),
+      Test.unit("get miss empty",
+        Test.bool(Maybe.is_none<List<Pair<String, String>>>(Http.Server.get("/", Http.Server.Req.new("", "", "/", "", ""))), true)),
+      Test.unit("get hit",
+        Test.bool(Maybe.is_none<List<Pair<String, String>>>(Http.Server.get("/", Http.Server.Req.new("", "GET", "/", "", ""))), false)),
+      Test.unit("get lowercase",
+        Test.bool(Maybe.is_none<List<Pair<String, String>>>(Http.Server.get("/", Http.Server.Req.new("", "get", "/", "", ""))), false)),
+      Test.unit("post miss get",
+        Test.bool(Maybe.is_none<List<Pair<String, String>>>(Http.Server.post("/", Http.Server.Req.new("", "GET", "/", "", ""))), true)),
+      Test.unit("post miss empty",
+        Test.bool(Maybe.is_none<List<Pair<String, String>>>(Http.Server.post("/", Http.Server.Req.new("", "", "/", "", ""))), true)),
+      Test.unit("post hit",
+        Test.bool(Maybe.is_none<List<Pair<String, String>>>(Http.Server.post("/", Http.Server.Req.new("", "POST", "/", "", ""))), false)),
+      Test.unit("post lowercase",
+        Test.bool(Maybe.is_none<List<Pair<String, String>>>(Http.Server.post("/", Http.Server.Req.new("", "post", "/", "", ""))), false)),
+      Test.unit("cfg pad parser", Test.nat(List.length<Parser<List<Unit>>>([Sure.Cfg.pad]), 1)),
+      Test.unit("reply html", Test.nat(List.length<(String) -> (String) -> IO<Unit>>([Http.Server.reply_html]), 1)),
+    ]),
+    Test.group("Sure.Web", [
+      Test.unit("draw 0", Test.nat(Sure.Web.html_draw(0), 0)),
+      Test.unit("step 0 keeps", Test.nat(Sure.Web.html_step(0, 7), 7)),
+      Test.unit("step 3 inc", Test.nat(Sure.Web.html_step(3, 0), 3)),
+      Test.unit("step junk keeps", Test.nat(Sure.Web.html_step_junk(5, 4), 4)),
+      Test.unit("ui step 0", Test.nat(Sure.Web.ui_step(0), 0)),
+      Test.unit("ui step 2", Test.nat(Sure.Web.ui_step(2), 2)),
+      Test.unit("ssr doc 0", Test.nat(Sure.Web.ssr_doc(0), 0)),
+      Test.unit("ssr nf 0", Test.nat(Sure.Web.ssr_nf(0), 0)),
+      Test.unit("escape empty 2", Test.nat(Sure.Web.escape_empty(2), 0)),
+      Test.unit("escape junk 1", Test.bool(Nat.gtn(Sure.Web.escape_junk(1), 0), true)),
+      Test.unit("match junk 3", Test.nat(Sure.Web.match_junk(3), 0)),
+      Test.unit("match hit 3", Test.nat(Sure.Web.match_hit(3), 3)),
+      Test.unit("sheet win 0", Test.nat(Sure.Web.sheet_win(0), 0)),
+      Test.unit("window empty", Test.nat(Sure.Web.window_count(0, 0), 0)),
+      Test.unit("window 10k is virtual", Test.bool(Nat.ltn(Sure.Web.window_count(0, Nat.read("10000")), Nat.read("10000")), true)),
+      Test.unit("show empty", Test.string(Sure.Web.show(Sure.Web.Sample.new("", 0, 0)), "  work=0  ms=0")),
+      Test.unit("draw 2 checksum", Test.bool(Nat.gtn(Sure.Web.html_draw(2), 0), true)),
+      Test.unit("ssr doc 1 checksum", Test.bool(Nat.gtn(Sure.Web.ssr_doc(1), 0), true)),
+    ]),
+    Test.io("web.fire.nil.1", IO {
+      get n = Sure.Web.fire_nil_n(1)
+      return Test.nat(n, 404)
+    }),
+    Test.io("web.ssr.fire.nil.1", IO {
+      get n = Sure.Web.ssr_fire_nil_n(1)
+      return Test.nat(n, 404)
+    }),
+    Test.io("web.sample.step", IO {
+      get s = Sure.Web.sample("html.step", 8, (n) Sure.Web.html_step(n, 0))
+      open s
+      return Test.nat(s.work, 8)
+    }),
+
+  ])

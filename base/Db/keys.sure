@@ -1,0 +1,6 @@
+Db.keys(conn: Db.Conn): IO<Outcome<Db.Err, List<String>>>
+  open conn
+  IO {
+    get raw = IO.ask<String>("db_keys", conn.id, (t) IO.end<String>(t))
+    return Db.decode_keys(raw)
+  }

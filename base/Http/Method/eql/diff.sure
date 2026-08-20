@@ -1,0 +1,2 @@
+Http.Method.eql.diff: Http.Method.eql(Http.Method.get, Http.Method.post) == false
+  refl

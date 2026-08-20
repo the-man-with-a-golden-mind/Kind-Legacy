@@ -1,0 +1,2 @@
+Sure.Build.dirty.hash: Sure.Build.dirty("a", "b", false) == true
+  refl

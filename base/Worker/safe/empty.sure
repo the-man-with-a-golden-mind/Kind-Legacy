@@ -1,0 +1,2 @@
+Worker.safe.empty: Worker.safe("") == false
+  refl

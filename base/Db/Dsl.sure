@@ -1,0 +1,190 @@
+// KV statement DSL on Db. Empty and junk are none. Empty prefix is not a prefix.
+// Table and id must be safe keys without '/'.
+
+type Db.Dsl {
+  get(key: String)
+  set(key: String, val: String)
+  del(key: String)
+  has(key: String)
+  keys
+  clear
+  prefix(pre: String)
+  count
+  row_get(table: String, id: String)
+  row_set(table: String, id: String, val: String)
+  row_del(table: String, id: String)
+}
+
+type Db.Dsl.Out {
+  unit
+  flag(value: Bool)
+  text(value: String)
+  list(value: List<String>)
+  nat(value: Nat)
+}
+
+Db.Dsl.part(s: String): Bool
+  if Bool.not(Db.safe_key(s)) then false
+  else if String.includes(s, "/") then false
+  else true
+
+Db.Dsl.row_key(table: String, id: String): Maybe<String>
+  if Bool.not(Db.Dsl.part(table)) then none
+  else if Bool.not(Db.Dsl.part(id)) then none
+  else some(table | "/" | id)
+
+Db.Dsl.word(s: String): Pair<String, String>
+  let w = String.take_while((c) Bool.not(Char.is_space(c)), s)
+  Pair.new<String, String>(w, String.trim_left(String.drop(String.length(w), s)))
+
+Db.Dsl.read_cmd(c: Db.Cmd): Db.Dsl
+  case c {
+    get: Db.Dsl.get(c.key)
+    set: Db.Dsl.set(c.key, c.val)
+    del: Db.Dsl.del(c.key)
+    has: Db.Dsl.has(c.key)
+    keys: Db.Dsl.keys
+    clear: Db.Dsl.clear
+  }
+
+Db.Dsl.read(s: String): Maybe<Db.Dsl>
+  let t = String.trim_left(String.trim_right(s))
+  if String.is_empty(t) then none
+  else if String.eql(t, "COUNT") then some(Db.Dsl.count)
+  else if String.starts_with(t, "PREFIX ") then
+    let pre = String.trim_left(String.trim_right(String.drop(7, t)))
+    if Bool.not(Db.safe_key(pre)) then none
+    else some(Db.Dsl.prefix(pre))
+  else if String.starts_with(t, "ROW GET ") then
+    let rest = String.trim_left(String.drop(8, t))
+    let table = Db.Dsl.word(rest)@fst
+    let id = String.trim_right(Db.Dsl.word(rest)@snd)
+    case Db.Dsl.row_key(table, id) as k {
+      none: none
+      some: some(Db.Dsl.row_get(table, id))
+    }
+  else if String.starts_with(t, "ROW DEL ") then
+    let rest = String.trim_left(String.drop(8, t))
+    let table = Db.Dsl.word(rest)@fst
+    let id = String.trim_right(Db.Dsl.word(rest)@snd)
+    case Db.Dsl.row_key(table, id) as k {
+      none: none
+      some: some(Db.Dsl.row_del(table, id))
+    }
+  else if String.starts_with(t, "ROW SET ") then
+    let rest = String.trim_left(String.drop(8, t))
+    let table = Db.Dsl.word(rest)@fst
+    let after = Db.Dsl.word(rest)@snd
+    let id = Db.Dsl.word(after)@fst
+    let val = Db.Dsl.word(after)@snd
+    case Db.Dsl.row_key(table, id) as k {
+      none: none
+      some: some(Db.Dsl.row_set(table, id, val))
+    }
+  else case Db.Cmd.read(s) as c {
+    none: none
+    some: some(Db.Dsl.read_cmd(c.value))
+  }
+
+Db.Dsl.show(s: Db.Dsl): String
+  case s {
+    get: "GET " | s.key
+    set:
+      if String.is_empty(s.val) then "SET " | s.key
+      else "SET " | s.key | " " | s.val
+    del: "DEL " | s.key
+    has: "HAS " | s.key
+    keys: "KEYS"
+    clear: "CLEAR"
+    prefix: "PREFIX " | s.pre
+    count: "COUNT"
+    row_get: "ROW GET " | s.table | " " | s.id
+    row_set:
+      if String.is_empty(s.val) then "ROW SET " | s.table | " " | s.id
+      else "ROW SET " | s.table | " " | s.id | " " | s.val
+    row_del: "ROW DEL " | s.table | " " | s.id
+  }
+
+Db.Dsl.keep_prefix(pre: String, xs: List<String>): List<String>
+  List.filter<String>((k) String.starts_with(k, pre), xs)
+
+Db.Dsl.run(conn: Db.Conn, s: Db.Dsl): IO<Outcome<Db.Err, Db.Dsl.Out>>
+  case s {
+    get: IO {
+      get r = Db.get(conn, s.key)
+      return case r {
+        err: Outcome.err<Db.Err, Db.Dsl.Out>(r.error)
+        ok: Outcome.ok<Db.Err, Db.Dsl.Out>(Db.Dsl.Out.text(r.value))
+      }
+    }
+    set: IO {
+      get r = Db.set(conn, s.key, s.val)
+      return case r {
+        err: Outcome.err<Db.Err, Db.Dsl.Out>(r.error)
+        ok: Outcome.ok<Db.Err, Db.Dsl.Out>(Db.Dsl.Out.unit)
+      }
+    }
+    del: IO {
+      get r = Db.del(conn, s.key)
+      return case r {
+        err: Outcome.err<Db.Err, Db.Dsl.Out>(r.error)
+        ok: Outcome.ok<Db.Err, Db.Dsl.Out>(Db.Dsl.Out.unit)
+      }
+    }
+    has: IO {
+      get r = Db.has(conn, s.key)
+      return case r {
+        err: Outcome.err<Db.Err, Db.Dsl.Out>(r.error)
+        ok: Outcome.ok<Db.Err, Db.Dsl.Out>(Db.Dsl.Out.flag(r.value))
+      }
+    }
+    keys: IO {
+      get r = Db.keys(conn)
+      return case r {
+        err: Outcome.err<Db.Err, Db.Dsl.Out>(r.error)
+        ok: Outcome.ok<Db.Err, Db.Dsl.Out>(Db.Dsl.Out.list(r.value))
+      }
+    }
+    clear: IO {
+      get r = Db.clear(conn)
+      return case r {
+        err: Outcome.err<Db.Err, Db.Dsl.Out>(r.error)
+        ok: Outcome.ok<Db.Err, Db.Dsl.Out>(Db.Dsl.Out.unit)
+      }
+    }
+    prefix: IO {
+      get r = Db.keys(conn)
+      return case r {
+        err: Outcome.err<Db.Err, Db.Dsl.Out>(r.error)
+        ok: Outcome.ok<Db.Err, Db.Dsl.Out>(Db.Dsl.Out.list(Db.Dsl.keep_prefix(s.pre, r.value)))
+      }
+    }
+    count: IO {
+      get r = Db.keys(conn)
+      return case r {
+        err: Outcome.err<Db.Err, Db.Dsl.Out>(r.error)
+        ok: Outcome.ok<Db.Err, Db.Dsl.Out>(Db.Dsl.Out.nat(List.length<String>(r.value)))
+      }
+    }
+    row_get:
+      case Db.Dsl.row_key(s.table, s.id) as k {
+        none: IO.end<Outcome<Db.Err, Db.Dsl.Out>>(Outcome.err<Db.Err, Db.Dsl.Out>(Db.Err.empty_key))
+        some: Db.Dsl.run(conn, Db.Dsl.get(k.value))
+      }
+    row_set:
+      case Db.Dsl.row_key(s.table, s.id) as k {
+        none: IO.end<Outcome<Db.Err, Db.Dsl.Out>>(Outcome.err<Db.Err, Db.Dsl.Out>(Db.Err.empty_key))
+        some: Db.Dsl.run(conn, Db.Dsl.set(k.value, s.val))
+      }
+    row_del:
+      case Db.Dsl.row_key(s.table, s.id) as k {
+        none: IO.end<Outcome<Db.Err, Db.Dsl.Out>>(Outcome.err<Db.Err, Db.Dsl.Out>(Db.Err.empty_key))
+        some: Db.Dsl.run(conn, Db.Dsl.del(k.value))
+      }
+  }
+
+Db.Dsl.exec(conn: Db.Conn, src: String): IO<Outcome<Db.Err, Db.Dsl.Out>>
+  case Db.Dsl.read(src) as s {
+    none: IO.end<Outcome<Db.Err, Db.Dsl.Out>>(Outcome.err<Db.Err, Db.Dsl.Out>(Db.Err.io("bad query")))
+    some: Db.Dsl.run(conn, s.value)
+  }

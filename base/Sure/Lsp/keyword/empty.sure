@@ -1,0 +1,2 @@
+Sure.Lsp.keyword.empty: Sure.Lsp.keyword("") == false
+  refl

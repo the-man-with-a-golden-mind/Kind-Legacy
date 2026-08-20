@@ -1,0 +1,10 @@
+Sure.Pipe.scan.go<A: Type, B: Type>(f: B -> A -> B, acc: B, xs: List<A>): List<B>
+  case xs {
+    nil: []
+    cons:
+      let n = f(acc, xs.head)
+      List.cons<B>(n, Sure.Pipe.scan.go<A, B>(f, n, xs.tail))
+  }
+
+Sure.Pipe.scan<A: Type, B: Type>(f: B -> A -> B, acc: B, xs: List<A>): List<B>
+  List.cons<B>(acc, Sure.Pipe.scan.go<A, B>(f, acc, xs))

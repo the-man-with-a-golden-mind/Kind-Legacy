@@ -1,0 +1,17 @@
+type Html.Event.Data {
+  new(
+    kind: Html.Event
+    msg: String
+    target: String
+    value: String
+    key: String
+    button: Nat
+    x: Nat
+    y: Nat
+    alt: Bool
+    ctrl: Bool
+    meta: Bool
+    shift: Bool
+    checked: Bool
+  )
+}

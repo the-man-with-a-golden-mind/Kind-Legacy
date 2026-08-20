@@ -1,0 +1,2 @@
+Sure.Agent.fill.two: Sure.Agent.fill("a?implementb?implementc", "0") == "a0b0c"
+  refl

@@ -1,0 +1,2 @@
+Host.decode.not_found: Host.decode("1\nnot found") == Host.err(Host.Err.missing)
+  refl

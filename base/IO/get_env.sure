@@ -1,0 +1,7 @@
+// Missing and empty names are none. An empty value is some("").
+IO.get_env(name: String): IO<Maybe<String>>
+  IO.ask<Maybe<String>>("get_env", name, (val)
+    case IO.tagged.read(val) as tag {
+      err: IO.end<Maybe<String>>(none)
+      ok: IO.end<Maybe<String>>(some(tag.value))
+    })

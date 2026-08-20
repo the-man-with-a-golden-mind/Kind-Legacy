@@ -1,0 +1,2 @@
+String.take.nil(n: Nat): String.take(n, "") == ""
+  refl

@@ -1,0 +1,2 @@
+Host.decode.empty: Host.decode("") == Host.ok_unit
+  refl

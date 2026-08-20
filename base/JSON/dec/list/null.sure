@@ -1,0 +1,2 @@
+JSON.dec.list.null: JSON.dec.list<Bool>(JSON.dec.bool, JSON.null) == none
+  refl

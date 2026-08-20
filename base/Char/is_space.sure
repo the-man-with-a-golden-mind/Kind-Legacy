@@ -1,0 +1,5 @@
+Char.is_space(c: Char): Bool
+  if U16.eql(c, ' ') then true
+  else if U16.eql(c, '\t') then true
+  else if U16.eql(c, '\n') then true
+  else U16.eql(c, '\r')

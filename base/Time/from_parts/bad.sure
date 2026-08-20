@@ -1,0 +1,2 @@
+Time.from_parts.bad: Maybe.is_none<Time.Stamp>(Time.from_parts(Time.Parts.new(1970, 13, 1, 0, 0, 0, 0))) == true
+  refl

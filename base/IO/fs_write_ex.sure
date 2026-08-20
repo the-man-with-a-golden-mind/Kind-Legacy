@@ -1,0 +1,3 @@
+IO.fs_write_ex(name: String, content: String): IO<String>
+  IO.ask<String>("fs_write_ex", name | "\n" | content, (text)
+  IO.end<String>(text))

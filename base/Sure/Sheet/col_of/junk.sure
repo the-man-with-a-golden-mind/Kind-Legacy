@@ -1,0 +1,2 @@
+Sure.Sheet.col_of.junk: Maybe.is_none<Nat>(Sure.Sheet.col_of("nope")) == true
+  refl

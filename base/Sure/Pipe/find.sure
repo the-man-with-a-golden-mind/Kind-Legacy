@@ -1,0 +1,2 @@
+Sure.Pipe.find<A: Type>(f: A -> Bool, xs: List<A>): Maybe<A>
+  List.find<A>(f, xs)

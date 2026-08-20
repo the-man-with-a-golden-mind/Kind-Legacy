@@ -1,0 +1,9 @@
+JSON.path(j: JSON, keys: List<String>): Maybe<JSON>
+  case keys {
+    nil: some(j)
+    cons:
+      case JSON.get(j, keys.head) as v {
+        none: none
+        some: JSON.path(v.value, keys.tail)
+      }
+  }

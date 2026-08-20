@@ -1,0 +1,142 @@
+// Serves the compiled client and streams 10000 rows on /sheet/rows.
+// Missing dist file is a page, not a crash. Empty id is rejected by SSE open.
+// Junk URLs are 404.
+
+Sure.Sheet.missing_html: String
+  Sure.Ssr.document(
+    "Sure.Sheet",
+    Html.p([Html.text("Build the client first: sure build --html Sure.Sheet.client")])
+  )
+
+Sure.Sheet.feed(i: Nat, bus: String): IO<Unit>
+  let total = Nat.read("10000")
+  let size = Nat.read("100")
+  if Nat.lte(total, i) then
+    IO {
+      Sure.Sse.send(bus, "", "done " | Nat.show(total))
+      return unit
+    }
+  else
+    let n = Nat.min(size, Nat.sub(total, i))
+    IO {
+      Sure.Sse.send(bus, "", "rows;" | Sure.Sheet.chunk(i, n))
+      Sure.Sheet.feed(Nat.add(i, n), bus)
+    }
+
+Sure.Sheet.stream(bus: String): IO<Unit>
+  IO {
+    Sure.Sse.send(bus, "", "meta " | Nat.show(Nat.read("10000")))
+    Sure.Sheet.feed(0, bus)
+    return unit
+  }
+
+Sure.Sheet.page_path: String
+  "dist/Sure.Sheet.client.html"
+
+Sure.Sheet.send_page(id: String): IO<Unit>
+  case Path.from_string(Sure.Sheet.page_path) as p {
+    err: Http.Server.reply_ex(id, Nat.read("200"), "text/html; charset=utf-8", Sure.Sheet.missing_html)
+    ok: IO {
+      get f = File.read(p.value)
+      case f {
+        err: Http.Server.reply_ex(id, Nat.read("200"), "text/html; charset=utf-8", Sure.Sheet.missing_html)
+        ok: Http.Server.reply_ex(id, Nat.read("200"), "text/html; charset=utf-8", f.value)
+      }
+    }
+  }
+
+Sure.Sheet.db_url: String
+  "surefile:sheet-cols.json"
+
+Sure.Sheet.load_state: IO<String>
+  IO {
+    get o = Db.with<String>(Sure.Sheet.db_url, (c) IO {
+      get w = Db.get(c, "w")
+      get n = Db.get(c, "n")
+      let ws = case w {
+        err: ""
+        ok: w.value
+      }
+      let ns = case n {
+        err: ""
+        ok: n.value
+      }
+      return Outcome.ok<Db.Err, String>("w=" | ws | "&n=" | ns)
+    })
+    case o {
+      err: IO {
+        return "w=&n="
+      }
+      ok: IO {
+        return o.value
+      }
+    }
+  }
+
+Sure.Sheet.save_state(w: String, n: String): IO<Unit>
+  if Bool.and(String.is_empty(w), String.is_empty(n)) then IO.end<Unit>(unit)
+  else IO {
+    Db.with<Unit>(Sure.Sheet.db_url, (c) IO {
+      if String.is_empty(w) then
+        if String.is_empty(n) then IO.end<Outcome<Db.Err, Unit>>(Outcome.ok<Db.Err, Unit>(unit))
+        else Db.set(c, "n", n)
+      else IO {
+        get sw = Db.set(c, "w", w)
+        if String.is_empty(n) then IO {
+          return sw
+        } else Db.set(c, "n", n)
+      }
+    })
+    return unit
+  }
+
+Sure.Sheet.handle(req: Http.Server.Req): IO<Unit>
+  open req
+  if Sure.Sheet.is_page(req.url) then Sure.Sheet.send_page(req.id)
+  else if Sure.Sheet.is_state(req.url) then
+    IO {
+      get body = Sure.Sheet.load_state
+      Http.Server.reply_ex(req.id, Nat.read("200"), "text/plain; charset=utf-8", body)
+    }
+  else if Sure.Sheet.is_save(req.url) then
+    let q = Sure.Sheet.query(req.url)
+    IO {
+      Sure.Sheet.save_state(Sure.Sheet.qget(q, "w"), Sure.Sheet.qget(q, "n"))
+      Http.Server.reply_ex(req.id, Nat.read("200"), "text/plain; charset=utf-8", "ok")
+    }
+  else if Sure.Sheet.is_rows(req.url) then
+    IO {
+      get o = Sure.Sse.open(req.id, "sheet")
+      case o {
+        err: Http.Server.reply_ex(req.id, Nat.read("400"), "text/plain; charset=utf-8", Sure.Sse.Err.show(o.error))
+        ok: Sure.Sheet.stream("sheet")
+      }
+    }
+  else Http.Server.reply_ex(req.id, Nat.read("404"), "text/plain; charset=utf-8", "not found")
+
+Sure.Sheet.serve.go(port: Nat): IO<Unit>
+  IO {
+    get raw = Http.Server.recv(port)
+    case Http.Server.parse(raw) as req {
+      none: Sure.Sheet.serve.go(port)
+      some: IO {
+        Sure.Sheet.handle(req.value)
+        Sure.Sheet.serve.go(port)
+      }
+    }
+  }
+
+Sure.Sheet.serve: IO<Outcome<Http.Err, Unit>>
+  let port = Nat.read("8765")
+  IO {
+    get l = Http.Server.listen(port)
+    case l {
+      err: IO {
+        return l
+      }
+      ok: IO {
+        Sure.Sheet.serve.go(port)
+        return Http.Server.ok
+      }
+    }
+  }

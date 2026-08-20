@@ -1,0 +1,2 @@
+Sure.Cli.parse_line.empty: Sure.Cli.count(Sure.Cli.parse_line("")) == 0
+  refl

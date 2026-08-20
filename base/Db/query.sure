@@ -1,0 +1,9 @@
+Db.query(conn: Db.Conn, sql: String): IO<Outcome<Db.Err, String>>
+  open conn
+  case Db.Cmd.read(sql) as cmd {
+    none: IO.end<Outcome<Db.Err, String>>(Outcome.err<Db.Err, String>(Db.Err.io("bad query")))
+    some: IO {
+      get raw = IO.ask<String>("db_query", conn.id | "\n" | Db.Cmd.show(cmd.value), (t) IO.end<String>(t))
+      return Db.decode_text(raw)
+    }
+  }

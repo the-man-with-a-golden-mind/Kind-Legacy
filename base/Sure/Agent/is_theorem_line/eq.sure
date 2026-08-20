@@ -1,0 +1,2 @@
+Sure.Agent.is_theorem_line.eq: Sure.Agent.is_theorem_line("Foo: 1 == 1") == true
+  refl

@@ -1,0 +1,2 @@
+File.from_tagged.ok: File.from_tagged("0\nhi") == Outcome.ok<File.Err, String>("hi")
+  refl

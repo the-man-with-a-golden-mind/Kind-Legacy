@@ -1,0 +1,2 @@
+Sure.Mod.allows.empty: Sure.Mod.allows("Foo", Sure.Mod.Exposing.all, "") == false
+  refl

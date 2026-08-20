@@ -1,0 +1,2 @@
+Sure.Agent.deps.dup: List.length<String>(Sure.Agent.deps("Nat.add Nat.add")) == 1
+  refl

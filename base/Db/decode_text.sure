@@ -1,0 +1,5 @@
+Db.decode_text(raw: String): Outcome<Db.Err, String>
+  case IO.tagged.read(raw) as tag {
+    err: Outcome.err<Db.Err, String>(Db.err_of(tag.error))
+    ok: Outcome.ok<Db.Err, String>(tag.value)
+  }

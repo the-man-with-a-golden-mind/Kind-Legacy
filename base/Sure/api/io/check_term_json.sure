@@ -1,0 +1,14 @@
+Sure.api.io.check_term_json(name: String): IO<Unit>
+  IO {
+    get defs = Sure.Synth.one(name, Sure.Map.new!)
+    case defs {
+      none:
+        let notfound = "Term not found: '" | name | "'."
+        IO.print("{\"ok\":false,\"diagnostics\":[{\"error\":{\"code\":\"undefined_reference\",\"name\":"
+          | Sure.Json.string(name) | ",\"message\":" | Sure.Json.string(notfound) | "}}]}")
+      some: IO {
+        IO.print(Sure.Defs.report_json(defs.value, [name]))
+        Sure.Defs.cache(defs.value)
+      }
+    }
+  }

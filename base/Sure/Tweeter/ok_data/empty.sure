@@ -1,0 +1,2 @@
+Sure.Tweeter.ok_data.empty: Sure.Tweeter.ok_data("") == false
+  refl

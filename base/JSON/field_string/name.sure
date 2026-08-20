@@ -1,0 +1,5 @@
+JSON.field_string.name:
+  JSON.field_string(
+    JSON.object(Map.from_list<JSON>([{"name", JSON.string("ada")}])),
+    "name") == "ada"
+  refl

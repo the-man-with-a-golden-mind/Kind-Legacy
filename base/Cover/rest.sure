@@ -1,0 +1,197 @@
+Cover.rest.byte_length_empty: String.byte_length("") == 0
+  refl
+
+Cover.rest.from_list_nil: String.from_list([]) == ""
+  refl
+
+Cover.rest.to_char_empty: String.to_char("") == 0
+  refl
+
+Cover.rest.pad_left_exact_0: String.pad_left_exact(0, 'x', "") == ""
+  refl
+
+Cover.rest.pad_right_exact_0: String.pad_right_exact(0, 'x', "") == ""
+  refl
+
+Cover.rest.json_arr_nil: JSON.stringify.array([]) == "[]"
+  refl
+
+Cover.rest.lsp_crlf: Sure.Lsp.crlf == "\r\n"
+  refl
+
+Cover.rest.lsp_letter_a: Sure.Lsp.is_letter('a') == true
+  refl
+
+Cover.rest.lsp_letter_0: Sure.Lsp.is_letter('0') == false
+  refl
+
+Cover.rest.lsp_ident_dot: Sure.Lsp.is_ident('.') == true
+  refl
+
+Cover.rest.lsp_take_empty: Sure.Lsp.take_ident("") == ""
+  refl
+
+Cover.rest.debug_rank_off: Sure.Debug.Level.rank(Sure.Debug.Level.off) == 0
+  refl
+
+Cover.rest.month_show_jan: Time.Month.show(Time.Month.jan) == "Jan"
+  refl
+
+Cover.rest.csv_escape_empty: Sure.Csv.escape("") == ""
+  refl
+
+Cover.rest.csv_row_nil: Sure.Csv.row.show([]) == ""
+  refl
+
+Cover.rest.cfg_str_of: Sure.Cfg.str_of(JSON.string("a")) == "a"
+  refl
+
+Cover.rest.cfg_parse_empty: Maybe.is_none<JSON>(Sure.Cfg.parse("")) == true
+  refl
+
+Cover.rest.nat_show_list_nil: Nat.show_list([]) == "[]"
+  refl
+
+Cover.rest.db_decode_bool_empty: Outcome.is_ok<Db.Err, Bool>(Db.decode_bool("")) == false
+  refl
+
+Cover.rest.db_decode_bool_1: Db.decode_bool("0\n1") == Outcome.ok<Db.Err, Bool>(true)
+  refl
+
+Cover.rest.db_decode_unit_ok: Db.decode_unit("0\n") == Outcome.ok<Db.Err, Unit>(unit)
+  refl
+
+Cover.rest.bytes_inc_nil: Bytes.inc([]) == [1#8]
+  refl
+
+Cover.rest.proc_argv: Proc.argv == IO.get_args
+  refl
+
+Cover.rest.proc_env: Proc.env("") == IO.get_env("")
+  refl
+
+Cover.rest.regex_rem_eps: Regex.remainders(Regex.eps, "") == [""]
+  refl
+
+Cover.rest.regex_star_rest_never: Regex.star_rest(Regex.never, "") == []
+  refl
+
+Cover.rest.time_read_width_empty: Maybe.is_none<Pair<Nat, String>>(Time.read_width(1, "")) == true
+  refl
+
+Cover.rest.time_days_before_jan: Time.days_before_month(1970, 1) == 0
+  refl
+
+Cover.rest.sse_decode_unit_empty: Outcome.is_ok<Sure.Sse.Err, Unit>(Sure.Sse.decode_unit("")) == false
+  refl
+
+Cover.rest.sse_decode_nat_empty: Outcome.is_ok<Sure.Sse.Err, Nat>(Sure.Sse.decode_nat("")) == false
+  refl
+
+Cover.rest.cli_long_empty: Sure.Cli.long("", [], [], []) == Sure.Cli.empty
+  refl
+
+Cover.rest.repl_split_empty: Sure.Repl.split("") == Pair.new<String, String>("", "")
+  refl
+
+Cover.rest.hash_code_empty: String.hash_code("") == U32.zero
+  refl
+
+Cover.rest.eql_no_sens_empty: String.eql_no_sensitive("", "") == true
+  refl
+
+Cover.rest.show_clean_empty: String.show_clean("") == ""
+  refl
+
+Cover.rest.remove_start_miss: String.remove_start_with("ab", "x") == "ab"
+  refl
+
+Cover.rest.chunks_0: String.chunks_of(1, "") == [""]
+  refl
+
+Cover.rest.take_pair_empty: String.take_pair(0, "") == Pair.new<String, String>("", "")
+  refl
+
+Cover.rest.imap_empty: String.imap((n) (c) c, "") == ""
+  refl
+
+Cover.rest.length32_empty: String.length32("") == 0#32
+  refl
+
+Cover.rest.from_bytes_empty: String.from_bytes([]) == ""
+  refl
+
+Cover.rest.nat_from_base_nil: Nat.from_base(10, []) == 0
+  refl
+
+Cover.rest.nat_unary_0: Nat.to_string_unary(0) == ""
+  refl
+
+Cover.rest.nat_sub_rem_00: Nat.sub_rem(0, 0) == Either.left<Nat, Nat>(0)
+  refl
+
+Cover.rest.nat_read_base_digit: Nat.read_base.digit('0') == some(0)
+  refl
+
+Cover.rest.cfg_nat_of_junk: Maybe.is_none<Nat>(Sure.Cfg.nat_of(JSON.null)) == true
+  refl
+
+Cover.rest.cfg_bool_of_true: Sure.Cfg.bool_of(JSON.bool(true)) == some(true)
+  refl
+
+Cover.rest.debug_tok: Sure.Debug.tok([], "host") == false
+  refl
+
+Cover.rest.word_left_empty: Sure.Lsp.word_left("") == ""
+  refl
+
+Cover.rest.csv_flush: Sure.Csv.flush("a", []) == ["a"]
+  refl
+
+Cover.rest.csv_parse_empty: Sure.Csv.parse("", "", [], false) == []
+  refl
+
+Cover.rest.sse_data_block: Sure.Sse.data_block("") == "data:\n"
+  refl
+
+Cover.rest.ssr_ctype_text: Sure.Ssr.ctype.text == "text/plain; charset=utf-8"
+  refl
+
+Cover.rest.ssr_not_found: Sure.Ssr.not_found == Sure.Ssr.page(404, "Not found", Html.p([Html.text("Not found")]))
+  refl
+
+Cover.rest.ssr_bad: Sure.Ssr.bad == Sure.Ssr.page(400, "Bad request", Html.p([Html.text("Bad request")]))
+  refl
+
+Cover.rest.ssr_port_of_empty: Sure.Ssr.port_of(1) == 1
+  refl
+
+Cover.rest.bench_sum_nil: Sure.Bench.sum([]) == 0
+  refl
+
+Cover.rest.qc_shrink_0: Sure.Qc.shrink(Sure.Qc.Val.nat(0)) == []
+  refl
+
+Cover.rest.http_decode_payload_empty: Http.decode.payload("") == Outcome.ok<Http.Err, Http.Response>(Http.Response.new(0, ""))
+  refl
+
+Cover.rest.dsl_word_empty: Db.Dsl.word("") == Pair.new<String, String>("", "")
+  refl
+
+Cover.rest.mig_drop_last_nil: Db.Mig.drop_last<String>([]) == []
+  refl
+
+Cover.rest.mig_last_nil: Maybe.is_none<String>(Db.Mig.last<String>([])) == true
+  refl
+
+Cover.rest.event_bit_empty: Html.Event.Data.bit("") == false
+  refl
+
+Cover.rest.event_at_empty: Html.Event.Data.at([], 0) == ""
+  refl
+
+Cover.rest.server_parse_lines_empty: Http.Server.parse.lines("i", "GET", []) == Http.Server.Req.new("i", "GET", "", "", "")
+  refl
+
+Cover.rest.parts_month_jan: Time.Parts.month(Time.Parts.new(1970, 1, 1, 0, 0, 0, 0)) == 1
+  refl

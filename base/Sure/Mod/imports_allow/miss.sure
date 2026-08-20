@@ -1,0 +1,2 @@
+Sure.Mod.imports_allow.miss: Sure.Mod.imports_allow([Sure.Mod.Use.new("Nat", Sure.Mod.Exposing.names(["add"]))], "Nat.sub") == false
+  refl

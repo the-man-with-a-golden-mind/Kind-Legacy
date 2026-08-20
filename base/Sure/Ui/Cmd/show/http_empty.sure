@@ -1,0 +1,2 @@
+Sure.Ui.Cmd.show.http_empty: Sure.Ui.Cmd.show(Sure.Ui.Cmd.http("", "m")) == ""
+  refl

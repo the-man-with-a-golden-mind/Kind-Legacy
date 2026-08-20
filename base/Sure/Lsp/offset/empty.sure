@@ -1,0 +1,2 @@
+Sure.Lsp.offset.empty: Sure.Lsp.offset("", 0, 0) == 0
+  refl

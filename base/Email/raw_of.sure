@@ -1,0 +1,5 @@
+Email.raw_of(s: String): String
+  case Email.from_string(s) as o {
+    err: ""
+    ok: Email.show(o.value)
+  }

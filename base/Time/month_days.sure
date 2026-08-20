@@ -1,0 +1,15 @@
+Time.month_days(year: Nat, month: Nat): Nat
+  if Nat.eql(month, 1) then 31
+  else if Nat.eql(month, 2) then
+    if Time.leap(year) then 29 else 28
+  else if Nat.eql(month, 3) then 31
+  else if Nat.eql(month, 4) then 30
+  else if Nat.eql(month, 5) then 31
+  else if Nat.eql(month, 6) then 30
+  else if Nat.eql(month, 7) then 31
+  else if Nat.eql(month, 8) then 31
+  else if Nat.eql(month, 9) then 30
+  else if Nat.eql(month, 10) then 31
+  else if Nat.eql(month, 11) then 30
+  else if Nat.eql(month, 12) then 31
+  else 0

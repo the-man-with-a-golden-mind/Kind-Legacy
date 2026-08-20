@@ -1,0 +1,2 @@
+Parse.bool.true: Parse.bool("true") == some(true)
+  refl

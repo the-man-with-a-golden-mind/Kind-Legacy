@@ -1,0 +1,2 @@
+Sure.Bench.mean.two: Sure.Bench.mean([2, 4]) == 3
+  refl

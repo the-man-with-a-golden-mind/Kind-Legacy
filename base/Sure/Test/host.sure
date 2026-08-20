@@ -1,0 +1,15 @@
+Sure.Test.host: IO<Unit>
+  IO {
+    IO.set_state("k", "v")
+    get got = IO.get_state("k")
+    get rnd = IO.get("get_random", "")
+    get args = IO.get_args
+    get env = IO.get_env("PATH")
+    let ok_state = case got { some: String.eql(got.value, "v"), none: false }
+    let ok_rnd = Bool.not(String.is_empty(rnd))
+    let ok_env = case env { some: true, none: false }
+    IO.print(if ok_state then "state: pass" else "state: fail")
+    IO.print(if ok_rnd then "random: pass" else "random: fail")
+    IO.print(if ok_env then "env: pass" else "env: fail")
+    IO.print("args: [" | args | "]")
+  }

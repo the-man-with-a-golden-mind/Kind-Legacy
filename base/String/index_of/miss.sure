@@ -1,0 +1,2 @@
+String.index_of.miss: Maybe.is_none<Nat>(String.index_of("ab", "c")) == true
+  refl

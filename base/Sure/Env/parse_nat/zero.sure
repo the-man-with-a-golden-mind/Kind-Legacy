@@ -1,0 +1,6 @@
+Sure.Env.parse_nat.zero:
+  case Sure.Env.parse_nat("0") as o {
+    err: 1
+    ok: o.value
+  } == 0
+  refl

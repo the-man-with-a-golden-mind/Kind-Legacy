@@ -1,0 +1,2 @@
+Sure.Sheet.is_state.empty: Sure.Sheet.is_state("") == false
+  refl

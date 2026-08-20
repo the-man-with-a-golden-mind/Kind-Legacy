@@ -1,0 +1,2 @@
+Sure.Sse.ok_bus.x: Sure.Sse.ok_bus("ticks") == true
+  refl

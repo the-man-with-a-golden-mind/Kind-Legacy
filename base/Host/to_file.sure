@@ -1,0 +1,6 @@
+Host.to_file(e: Host.Event): Outcome<File.Err, String>
+  case e {
+    ok_string: Outcome.ok<File.Err, String>(e.value)
+    ok_unit: Outcome.ok<File.Err, String>("")
+    err: Outcome.err<File.Err, String>(Host.to_file_err(e.error))
+  }

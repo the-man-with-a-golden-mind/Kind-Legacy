@@ -1,0 +1,13 @@
+Parse.all: Unit
+  let n0 = Parse.nat.empty
+  let n1 = Parse.nat.junk
+  let n2 = Parse.nat.zero
+  let b0 = Parse.bool.empty
+  let b1 = Parse.bool.true
+  let b2 = Parse.bool.junk
+  let h0 = Parse.hex.empty
+  let h1 = Parse.hex.junk
+  let f0 = Parser.f64.all
+  let n0 = Nat.parse_decimal.all
+  unit
+

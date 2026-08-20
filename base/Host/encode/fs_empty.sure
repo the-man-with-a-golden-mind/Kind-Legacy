@@ -1,0 +1,2 @@
+Host.encode.fs_empty: Host.encode(Host.Op.fs_read("")) == Pair.new<String, String>("fs_read_ex", "")
+  refl

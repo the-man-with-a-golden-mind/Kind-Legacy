@@ -1,0 +1,2 @@
+Sure.Pipe.fold_nil: Sure.Pipe.fold<Nat, Nat>(9, Nat.add, []) == 9
+  refl

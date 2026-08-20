@@ -1,0 +1,7 @@
+Date.all: Unit
+  let a = Date.is_leap.zero
+  let b = Date.is_leap.one
+  let c = Date.is_leap.four
+  let d = Date.is_leap.century
+  let e = Date.is_leap.quad
+  unit

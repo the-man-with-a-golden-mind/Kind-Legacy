@@ -1,0 +1,2 @@
+Sure.Env.decode.empty: Outcome.is_ok<Sure.Env.Err, String>(Sure.Env.decode("")) == false
+  refl

@@ -1,0 +1,2 @@
+Sure.Doc.body.tight: Sure.Doc.body("//hi") == "hi"
+  refl

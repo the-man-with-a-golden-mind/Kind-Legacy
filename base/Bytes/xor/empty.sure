@@ -1,0 +1,2 @@
+Bytes.xor.empty: Bytes.xor([], []) == []
+  refl

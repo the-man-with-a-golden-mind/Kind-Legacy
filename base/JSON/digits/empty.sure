@@ -1,0 +1,2 @@
+JSON.digits.empty: JSON.digits("") == false
+  refl

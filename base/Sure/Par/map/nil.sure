@@ -1,0 +1,2 @@
+Sure.Par.map.nil: Sure.Par.map<Nat, Nat>(Nat.succ, []) == IO.end<List<Nat>>([])
+  refl

@@ -1,0 +1,2 @@
+String.ok.empty: String.ok("", [" "]) == false
+  refl

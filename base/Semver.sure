@@ -1,0 +1,37 @@
+type Semver {
+  new(major: Nat, minor: Nat, patch: Nat)
+}
+
+Semver.parse(s: String): Maybe<Semver>
+  let parts = String.split(s, ".")
+  case parts {
+    nil: none
+    cons:
+      case parts.tail {
+        nil: none
+        cons:
+          case parts.tail.tail {
+            nil: none
+            cons: some(Semver.new(
+              Nat.read(parts.head),
+              Nat.read(parts.tail.head),
+              Nat.read(parts.tail.tail.head)))
+          }
+      }
+  }
+
+Semver.cmp(a: Semver, b: Semver): Cmp
+  open a
+  open b
+  if Nat.ltn(a.major, b.major) then Cmp.ltn
+  else if Nat.ltn(b.major, a.major) then Cmp.gtn
+  else if Nat.ltn(a.minor, b.minor) then Cmp.ltn
+  else if Nat.ltn(b.minor, a.minor) then Cmp.gtn
+  else if Nat.ltn(a.patch, b.patch) then Cmp.ltn
+  else if Nat.ltn(b.patch, a.patch) then Cmp.gtn
+  else Cmp.eql
+
+Semver.lt(a: Semver, b: Semver): Bool
+  case Semver.cmp(a, b) {
+    ltn: true
+  } default false

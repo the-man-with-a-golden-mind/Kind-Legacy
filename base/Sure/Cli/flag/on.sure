@@ -1,0 +1,2 @@
+Sure.Cli.flag.on: Sure.Cli.flag(Sure.Cli.parse(["--x"]), "x") == true
+  refl

@@ -1,0 +1,9 @@
+Time.all: Unit
+  let d0 = Time.div.zero
+  let m0 = Time.mod.zero
+  let n0 = Time.Month.read.empty
+  let n2 = Time.Month.of_nat.zero
+  let e0 = Time.Duration.read.empty
+  let e2 = Time.Duration.show.zero
+  let s0 = Time.Stamp.read.empty
+  unit

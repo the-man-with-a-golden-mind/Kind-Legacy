@@ -1,0 +1,5 @@
+Crypto.hmac_sha256(key: String, msg: String): IO<Outcome<Crypto.Err, String>>
+  IO {
+    get raw = IO.ask<String>("hmac_sha256", key | "\n" | msg, (t) IO.end<String>(t))
+    return Crypto.decode(raw)
+  }

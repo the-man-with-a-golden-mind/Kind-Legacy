@@ -1,0 +1,5 @@
+Bits.to_string.all: Unit
+  let e0 = Bits.to_string.empty
+  let o0 = Bits.to_string.o
+  let i0 = Bits.to_string.i
+  unit

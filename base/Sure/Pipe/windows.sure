@@ -1,0 +1,12 @@
+Sure.Pipe.windows.go<A: Type>(n: Nat, xs: List<A>): List<List<A>>
+  case xs {
+    nil: []
+    cons:
+      let w = List.take<A>(n, xs)
+      if Nat.ltn(List.length<A>(w), n) then []
+      else List.cons<List<A>>(w, Sure.Pipe.windows.go<A>(n, xs.tail))
+  }
+
+Sure.Pipe.windows<A: Type>(n: Nat, xs: List<A>): List<List<A>>
+  if Nat.is_zero(n) then []
+  else Sure.Pipe.windows.go<A>(n, xs)

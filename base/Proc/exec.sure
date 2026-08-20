@@ -1,0 +1,13 @@
+Proc.exec(cmd: String): IO<Outcome<Proc.Err, Proc.Out>>
+  IO {
+    get o = Proc.run(cmd)
+    return case o {
+      err: o
+      ok:
+        open o.value
+        if Nat.eql(o.value.code, 0) then
+          o
+        else
+          Outcome.err<Proc.Err, Proc.Out>(Proc.Err.failed(o.value.code, o.value.stdout))
+    }
+  }

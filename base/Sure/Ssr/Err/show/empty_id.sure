@@ -1,0 +1,2 @@
+Sure.Ssr.Err.show.empty_id: Sure.Ssr.Err.show(Sure.Ssr.Err.empty_id) == "empty_id"
+  refl

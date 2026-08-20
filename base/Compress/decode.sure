@@ -1,0 +1,5 @@
+Compress.decode(raw: String): Outcome<Compress.Err, String>
+  case IO.tagged.read(raw) as tag {
+    err: Outcome.err<Compress.Err, String>(Compress.Err.io(tag.error))
+    ok: Outcome.ok<Compress.Err, String>(tag.value)
+  }

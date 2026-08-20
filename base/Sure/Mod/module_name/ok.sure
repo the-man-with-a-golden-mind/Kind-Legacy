@@ -1,0 +1,2 @@
+Sure.Mod.module_name.ok: Sure.Mod.module_name("module Foo exposing (bar)") == "Foo"
+  refl

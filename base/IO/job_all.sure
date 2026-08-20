@@ -1,0 +1,3 @@
+// Await many jobs at once (newline-separated ids). Host Promise.all.
+IO.job_all(ids: String): IO<String>
+  IO.ask<String>("job_all", ids, (text) IO.end<String>(text))

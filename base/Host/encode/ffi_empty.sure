@@ -1,0 +1,2 @@
+Host.encode.ffi_empty: Host.encode(Host.Op.ffi("", "")) == Pair.new<String, String>("ffi", "\n")
+  refl

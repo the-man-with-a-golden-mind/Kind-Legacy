@@ -1,0 +1,8 @@
+File.write.decode(raw: String): Outcome<File.Err, Unit>
+  Host.to_file_unit(Host.decode(raw))
+
+File.write(path: Path, body: String): IO<Outcome<File.Err, Unit>>
+  IO {
+    get e = Host.perform(Host.Op.fs_write(Path.text(path), body))
+    return Host.to_file_unit(e)
+  }

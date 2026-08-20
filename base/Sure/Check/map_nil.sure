@@ -1,0 +1,2 @@
+Sure.Check.map_nil: Map.from_list<Nat>([]) == Map.from_list<Nat>([])
+  refl

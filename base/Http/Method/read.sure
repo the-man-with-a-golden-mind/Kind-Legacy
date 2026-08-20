@@ -1,0 +1,15 @@
+Http.Method.read(s: String): Maybe<Http.Method>
+  if Bool.or(String.eql(s, "GET"), String.eql(s, "get")) then
+    some(Http.Method.get)
+  else if Bool.or(String.eql(s, "POST"), String.eql(s, "post")) then
+    some(Http.Method.post)
+  else if Bool.or(String.eql(s, "PUT"), String.eql(s, "put")) then
+    some(Http.Method.put)
+  else if Bool.or(String.eql(s, "DELETE"), String.eql(s, "delete")) then
+    some(Http.Method.delete)
+  else if Bool.or(String.eql(s, "PATCH"), String.eql(s, "patch")) then
+    some(Http.Method.patch)
+  else if Bool.or(String.eql(s, "HEAD"), String.eql(s, "head")) then
+    some(Http.Method.head)
+  else
+    none

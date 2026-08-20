@@ -1,0 +1,2 @@
+Host.to_file_unit.ok: Host.to_file_unit(Host.decode("0\n")) == Outcome.ok<File.Err, Unit>(unit)
+  refl

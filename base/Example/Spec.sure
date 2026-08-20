@@ -1,0 +1,28 @@
+// Compile-time specs. A well-typed equality is a proof the program
+// computes this way. `sure prove Example.Spec` checks every lemma here.
+// People write the same shape in a project `src/Spec.sure`.
+// AI checks the same terms with `kind.prove`.
+
+Example.Spec.add2: Nat.add(2, 2) == 4
+  refl
+
+Example.Spec.not_true: Bool.not(true) == false
+  refl
+
+Example.Spec.len: List.length<Nat>([1, 2, 3]) == 3
+  refl
+
+Example.Spec.path: Http.Path.bound("/user/:id", "/user/1", "id") == "1"
+  refl
+
+Example.Spec.email: Email.raw_of("a@b") == "a@b"
+  refl
+
+Example.Spec: Unit
+  let a0 = Example.Spec.add2
+  let a1 = Example.Spec.not_true
+  let a2 = Example.Spec.len
+  let a3 = Example.Spec.path
+  let a4 = Example.Spec.email
+  let a5 = Example.Spec.edge
+  unit

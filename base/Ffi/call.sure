@@ -1,0 +1,9 @@
+Ffi.call(name: String, args: JSON): IO<Outcome<Ffi.Err, JSON>>
+  if String.is_empty(name) then
+    IO.end<Outcome<Ffi.Err, JSON>>(Outcome.err<Ffi.Err, JSON>(Ffi.Err.empty_name))
+  else if Bool.not(Ffi.safe(name)) then
+    IO.end<Outcome<Ffi.Err, JSON>>(Outcome.err<Ffi.Err, JSON>(Ffi.Err.bad_name))
+  else IO {
+    get raw = IO.ask<String>("ffi", name | "\n" | JSON.stringify(args), (t) IO.end<String>(t))
+    return Ffi.decode(raw)
+  }

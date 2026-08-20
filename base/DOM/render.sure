@@ -1,0 +1,14 @@
+DOM.render_kids(xs: List<DOM>): String
+  String.flatten(List.map<DOM, String>(DOM.render, xs))
+
+DOM.render(n: DOM): String
+  case n {
+    text: Html.escape(n.value)
+    fragment: DOM.render_kids(n.children)
+    node:
+      let open_tag = "<" | n.tag | DOM.prop_attr(n.props) | DOM.style_attr(n.style)
+      if Html.void_name(n.tag) then
+        open_tag | ">"
+      else
+        open_tag | ">" | DOM.render_kids(n.children) | "</" | n.tag | ">"
+  }

@@ -1,0 +1,2 @@
+Sure.Mod.pkg.empty: Sure.Mod.pkg("") == false
+  refl

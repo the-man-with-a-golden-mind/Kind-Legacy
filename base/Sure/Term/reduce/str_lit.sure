@@ -1,0 +1,33 @@
+Sure.Term.reduce.str_lit(term: Sure.Term): Maybe<String>
+  case term {
+    str: some(term.strx)
+    ref:
+      if String.eql(term.name, "String.nil") then some("") else none
+    ori: Sure.Term.reduce.str_lit(term.expr)
+    imp: Sure.Term.reduce.str_lit(term.expr)
+    ann: Sure.Term.reduce.str_lit(term.term)
+    app:
+      let sp = Sure.Term.reduce.spine(term)
+      open sp
+      case sp.fst {
+        ref:
+          if String.eql(sp.fst.name, "String.cons") then
+            case sp.snd {
+              cons:
+                case sp.snd.tail {
+                  cons:
+                    case sp.snd.head {
+                      chr:
+                        case Sure.Term.reduce.str_lit(sp.snd.tail.head) as rest {
+                          none: none
+                          some: some(String.cons(sp.snd.head.chrx, rest.value))
+                        }
+                    } default none
+                  nil: none
+                }
+              nil: none
+            }
+          else none
+        _: none
+      }
+  } default none

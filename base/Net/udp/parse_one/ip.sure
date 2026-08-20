@@ -1,0 +1,6 @@
+Net.udp.parse_one.ip:
+  case Net.udp.parse_one("127.0.0.1,9,68") as m {
+    none: ""
+    some: m.value@ip
+  } == "127.0.0.1"
+  refl

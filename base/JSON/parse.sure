@@ -1,0 +1,2 @@
+JSON.parse(code: String): Maybe<JSON>
+  Parser.run<JSON>(Parser.JSON, code)

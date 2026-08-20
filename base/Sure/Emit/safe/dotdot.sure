@@ -1,0 +1,2 @@
+Sure.Emit.safe.dotdot: Sure.Emit.safe("../x") == false
+  refl

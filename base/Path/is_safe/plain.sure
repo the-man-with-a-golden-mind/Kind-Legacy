@@ -1,0 +1,2 @@
+Path.is_safe.plain: Path.is_safe("foo.txt") == true
+  refl

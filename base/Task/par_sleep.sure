@@ -1,0 +1,8 @@
+Task.par_sleep(a: Nat, b: Nat): IO<Unit>
+  IO {
+    get i = IO.job_start("sleep\n" | Nat.show(a))
+    get j = IO.job_start("sleep\n" | Nat.show(b))
+    IO.job_await(i)
+    IO.job_await(j)
+    return unit
+  }

@@ -1,0 +1,2 @@
+Sure.Pipe.once_zero: Sure.Pipe.once<Nat>(0) == [0]
+  refl

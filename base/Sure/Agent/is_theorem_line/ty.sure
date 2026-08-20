@@ -1,0 +1,2 @@
+Sure.Agent.is_theorem_line.ty: Sure.Agent.is_theorem_line("Foo: Nat") == false
+  refl

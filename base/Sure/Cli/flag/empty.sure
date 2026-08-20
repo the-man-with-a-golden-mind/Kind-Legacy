@@ -1,0 +1,2 @@
+Sure.Cli.flag.empty: Sure.Cli.flag(Sure.Cli.empty, "") == false
+  refl

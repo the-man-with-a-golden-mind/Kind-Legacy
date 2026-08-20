@@ -1,0 +1,2 @@
+F64.is_finite(x: F64): Bool
+  Bool.not(F64.bits_ones(Bits.drop(52, F64.word_bits(x)), 11))

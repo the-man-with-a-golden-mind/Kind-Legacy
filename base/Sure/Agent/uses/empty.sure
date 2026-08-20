@@ -1,0 +1,2 @@
+Sure.Agent.uses.empty: Sure.Agent.uses("", "Nat") == false
+  refl

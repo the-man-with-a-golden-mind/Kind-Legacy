@@ -1,0 +1,2 @@
+Sure.Pipe.intersperse<A: Type>(sep: A, xs: List<A>): List<A>
+  List.intersperse<A>(sep, xs)

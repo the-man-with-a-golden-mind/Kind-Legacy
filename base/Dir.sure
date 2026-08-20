@@ -1,0 +1,2 @@
+Dir.names(raw: String): List<String>
+  List.filter<String>(String.not_empty, String.split(raw, ";"))

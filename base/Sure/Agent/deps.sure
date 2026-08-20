@@ -1,0 +1,6 @@
+// Capitalized names in a source snippet, unique, in first-seen order.
+Sure.Agent.deps(src: String): List<String>
+  Sure.Agent.uniq(Sure.Agent.names_of(src))
+
+Sure.Agent.deps.drop(src: String, self: String): List<String>
+  List.filter<String>((n) Bool.not(String.eql(n, self)), Sure.Agent.deps(src))

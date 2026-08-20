@@ -1,0 +1,14 @@
+Db.connect(url: String): IO<Outcome<Db.Err, Db.Conn>>
+  if String.is_empty(url) then
+    IO.end<Outcome<Db.Err, Db.Conn>>(Outcome.err<Db.Err, Db.Conn>(Db.Err.empty_url))
+  else if String.starts_with(url, "surefile:") then
+    if Db.file_path(String.drop(9, url)) then IO {
+      get raw = IO.ask<String>("db_connect", url, (t) IO.end<String>(t))
+      return Db.decode_conn(raw)
+    } else
+      IO.end<Outcome<Db.Err, Db.Conn>>(Outcome.err<Db.Err, Db.Conn>(Db.Err.bad_url))
+  else if String.starts_with(url, "suremem:") then IO {
+    get raw = IO.ask<String>("db_connect", url, (t) IO.end<String>(t))
+    return Db.decode_conn(raw)
+  } else
+    IO.end<Outcome<Db.Err, Db.Conn>>(Outcome.err<Db.Err, Db.Conn>(Db.Err.bad_url))

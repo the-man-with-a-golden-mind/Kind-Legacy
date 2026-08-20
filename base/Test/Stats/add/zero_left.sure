@@ -1,0 +1,3 @@
+Test.Stats.add.zero_left(p: Nat, f: Nat):
+  Test.Stats.add(Test.Stats.zero, Test.Stats.new(p, f)) == Test.Stats.new(p, f)
+  refl

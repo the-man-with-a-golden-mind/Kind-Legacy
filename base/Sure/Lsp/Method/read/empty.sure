@@ -1,0 +1,2 @@
+Sure.Lsp.Method.read.empty: Maybe.is_none<Sure.Lsp.Method>(Sure.Lsp.Method.read("")) == true
+  refl

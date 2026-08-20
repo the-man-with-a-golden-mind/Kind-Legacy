@@ -1,0 +1,14 @@
+Sure.Ssr.demo: IO<Unit>
+  let html = Sure.Ssr.html(Sure.Ssr.ok("T", Html.p([Html.text("<")])))
+  let h = if String.includes(html, "&lt;") then "html" else "-"
+  let fr = case Sure.Sse.frame("", "hi") as f {
+    none: "-"
+    some:
+      if String.includes(f.value, "event: message") then "sse" else "-"
+  }
+  let d = case Db.Dsl.read("") as s {
+    none: "none"
+    some: "x"
+  }
+  let m = if Db.Mig.ok_name("") then "x" else "-"
+  IO.print(h | " " | fr | " " | d | " " | m)

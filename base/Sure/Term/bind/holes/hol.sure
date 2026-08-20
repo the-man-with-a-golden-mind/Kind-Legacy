@@ -1,0 +1,4 @@
+// A hole is given the builder path.
+Sure.Term.bind.holes.hol:
+  Sure.Term.bind.holes(List.nil<Pair<Sure.Name,Sure.Term>>, Sure.Path.Builder.nil, Sure.Term.hol(Bits.e)) == Sure.Term.hol(Bits.e)
+  refl

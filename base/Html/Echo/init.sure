@@ -1,0 +1,2 @@
+Html.Echo.init: Html.Client.init_of<String>(Html.Echo.client) == ""
+  refl

@@ -1,0 +1,2 @@
+Sure.Check.json_obj: JSON.object(Map.from_list<JSON>([])) == JSON.object(Map.from_list<JSON>([]))
+  refl

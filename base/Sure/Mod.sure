@@ -1,0 +1,277 @@
+// Elm-style modules: a name is a path. Headers are `// module` / `// import`.
+// Packages expose modules. Empty names and junk are not modules.
+
+type Sure.Mod.Sort {
+  application
+  package
+}
+
+type Sure.Mod.Exposing {
+  all
+  names(xs: List<String>)
+}
+
+type Sure.Mod.Use {
+  new(name: String, exposing: Sure.Mod.Exposing)
+}
+
+type Sure.Mod {
+  new(name: String, exposing: Sure.Mod.Exposing, imports: List<Sure.Mod.Use>)
+}
+
+Sure.Mod.Sort.show(k: Sure.Mod.Sort): String
+  case k {
+    application: "application"
+    package: "package"
+  }
+
+Sure.Mod.Sort.read(s: String): Maybe<Sure.Mod.Sort>
+  if String.eql(s, "application") then some(Sure.Mod.Sort.application)
+  else if String.eql(s, "package") then some(Sure.Mod.Sort.package)
+  else none
+
+Sure.Mod.pkg_char(c: Char): Bool
+  if U16.btw('a', c, 'z') then true
+  else if U16.btw('0', c, '9') then true
+  else U16.eql(c, '-')
+
+Sure.Mod.pkg_rest(s: String): Bool
+  case s {
+    nil: true
+    cons:
+      if Sure.Mod.pkg_char(s.head) then Sure.Mod.pkg_rest(s.tail)
+      else false
+  }
+
+Sure.Mod.pkg_part(s: String): Bool
+  case s {
+    nil: false
+    cons:
+      if U16.eql(s.head, '-') then false
+      else Sure.Mod.pkg_rest(s)
+  }
+
+Sure.Mod.pkg(s: String): Bool
+  let parts = String.split(s, "/")
+  case parts {
+    cons:
+      case parts.tail {
+        cons:
+          case parts.tail.tail {
+            nil: Bool.and(Sure.Mod.pkg_part(parts.head), Sure.Mod.pkg_part(parts.tail.head))
+            cons: false
+          }
+        nil: false
+      }
+    nil: false
+  }
+
+Sure.Mod.ident_rest(s: String): Bool
+  case s {
+    nil: true
+    cons:
+      if U16.btw('A', s.head, 'Z') then Sure.Mod.ident_rest(s.tail)
+      else if U16.btw('a', s.head, 'z') then Sure.Mod.ident_rest(s.tail)
+      else if U16.btw('0', s.head, '9') then Sure.Mod.ident_rest(s.tail)
+      else if U16.eql(s.head, '_') then Sure.Mod.ident_rest(s.tail)
+      else false
+  }
+
+Sure.Mod.part_ok(s: String): Bool
+  case s {
+    nil: false
+    cons:
+      if U16.btw('A', s.head, 'Z') then Sure.Mod.ident_rest(s.tail)
+      else false
+  }
+
+Sure.Mod.name(s: String): Bool
+  if String.is_empty(s) then false
+  else if String.starts_with(s, ".") then false
+  else if String.ends_with(s, ".") then false
+  else if String.includes(s, "..") then false
+  else if String.includes(s, "/") then false
+  else List.all<String>(Sure.Mod.part_ok, String.split(s, "."))
+
+Sure.Mod.prefix(mod: String, name: String): Bool
+  if String.is_empty(mod) then false
+  else if String.is_empty(name) then false
+  else if String.eql(name, mod) then true
+  else String.starts_with(name, mod | ".")
+
+Sure.Mod.allows(mod: String, exposing: Sure.Mod.Exposing, qual: String): Bool
+  if String.is_empty(qual) then false
+  else if String.is_empty(mod) then false
+  else
+    case exposing {
+      all: Sure.Mod.prefix(mod, qual)
+      names:
+        if String.eql(qual, mod) then true
+        else List.any<String>((n) Sure.Mod.prefix(mod | "." | n, qual), exposing.xs)
+    }
+
+Sure.Mod.line(s: String): String
+  let b = Sure.Doc.body(s)
+  if String.is_empty(b) then String.trim(s)
+  else String.trim(b)
+
+Sure.Mod.paren(s: String): String
+  if Bool.and(String.starts_with(s, "("), String.ends_with(s, ")")) then
+    String.slice(1, Nat.sub(String.length(s), 1), s)
+  else s
+
+Sure.Mod.Exposing.read(s: String): Maybe<Sure.Mod.Exposing>
+  let t = String.trim(s)
+  if String.eql(t, "..") then some(Sure.Mod.Exposing.all)
+  else
+    some(Sure.Mod.Exposing.names(
+      List.filter<String>(String.not_empty,
+        List.mapped<String>(String.split(t, ","))<String>(String.trim))))
+
+Sure.Mod.read_module(src: String): Maybe<Sure.Mod>
+  let s = Sure.Mod.line(src)
+  if String.starts_with(s, "module ") then
+    let rest = String.drop(7, s)
+    let bits = String.split(rest, " exposing ")
+    case bits {
+      cons:
+        case bits.tail {
+          cons:
+            case bits.tail.tail {
+              nil:
+                let nam = String.trim(bits.head)
+                if Sure.Mod.name(nam) then
+                  case Sure.Mod.Exposing.read(Sure.Mod.paren(String.trim(bits.tail.head))) as e {
+                    none: none
+                    some: some(Sure.Mod.new(nam, e.value, []))
+                  }
+                else none
+              cons: none
+            }
+          nil: none
+        }
+      nil: none
+    }
+  else none
+
+Sure.Mod.module_name(src: String): String
+  case Sure.Mod.read_module(src) as m {
+    none: ""
+    some:
+      open m.value
+      m.value.name
+  }
+
+Sure.Mod.read_import(src: String): Maybe<Sure.Mod.Use>
+  let s = Sure.Mod.line(src)
+  if String.starts_with(s, "import ") then
+    let rest = String.drop(7, s)
+    let bits = String.split(rest, " exposing ")
+    case bits {
+      cons:
+        let left = String.trim(bits.head)
+        let asbits = String.split(left, " as ")
+        let nam = case asbits {
+          cons: String.trim(asbits.head)
+        } default left
+        if Sure.Mod.name(nam) then
+          case bits.tail {
+            nil: some(Sure.Mod.Use.new(nam, Sure.Mod.Exposing.all))
+            cons:
+              case Sure.Mod.Exposing.read(Sure.Mod.paren(String.trim(bits.tail.head))) as e {
+                none: none
+                some: some(Sure.Mod.Use.new(nam, e.value))
+              }
+          }
+        else none
+      nil: none
+    }
+  else none
+
+Sure.Mod.import_name(src: String): String
+  case Sure.Mod.read_import(src) as u {
+    none: ""
+    some:
+      open u.value
+      u.value.name
+  }
+
+Sure.Mod.use_allows(u: Sure.Mod.Use, qual: String): Bool
+  open u
+  Sure.Mod.allows(u.name, u.exposing, qual)
+
+Sure.Mod.imports_allow(imports: List<Sure.Mod.Use>, qual: String): Bool
+  case imports {
+    nil: true
+    cons: List.any<Sure.Mod.Use>((u) Sure.Mod.use_allows(u, qual), imports)
+  }
+
+// Qualify a definition name for `module M`. The module's own type stays `M`.
+Sure.Mod.qual(mod: String, name: String): String
+  if String.is_empty(mod) then name
+  else if String.is_empty(name) then name
+  else if String.eql(name, mod) then name
+  else if String.starts_with(name, mod | ".") then name
+  else mod | "." | name
+
+Sure.Mod.has(name: String, xs: List<String>): Bool
+  List.elem<String>(String.eql, name, xs)
+
+Sure.Mod.from_imp(
+  imps: List<Pair<String, List<String>>>,
+  name: String
+): Maybe<String>
+  case imps {
+    nil: none
+    cons:
+      open imps.head
+      if Sure.Mod.has(name, imps.head.snd) then
+        some(imps.head.fst | "." | name)
+      else Sure.Mod.from_imp(imps.tail, name)
+  }
+
+// Local short name, then import alias, else leave (Nat.add, String, …).
+Sure.Mod.resolve(
+  mod: String,
+  locals: List<String>,
+  imps: List<Pair<String, List<String>>>,
+  name: String
+): String
+  if Sure.Mod.has(name, locals) then name
+  else if Bool.not(String.is_empty(mod)) then
+    let q = mod | "." | name
+    if Sure.Mod.has(q, locals) then q
+    else case Sure.Mod.from_imp(imps, name) as a {
+      some: a.value
+      none: name
+    }
+  else case Sure.Mod.from_imp(imps, name) as a {
+    some: a.value
+    none: name
+  }
+
+Sure.Mod.qual.empty: Sure.Mod.qual("", "ok") == "ok"
+  refl
+
+Sure.Mod.qual.short: Sure.Mod.qual("Tweeter", "ok") == "Tweeter.ok"
+  refl
+
+Sure.Mod.qual.same: Sure.Mod.qual("Boxes", "Boxes") == "Boxes"
+  refl
+
+Sure.Mod.qual.done: Sure.Mod.qual("Tweeter", "Tweeter.ok") == "Tweeter.ok"
+  refl
+
+Sure.Mod.resolve.short: Sure.Mod.resolve("Tweeter", ["Tweeter.ok"], [], "ok") == "Tweeter.ok"
+  refl
+
+Sure.Mod.resolve.nat: Sure.Mod.resolve("Tweeter", ["Tweeter.ok"], [], "Nat.add") == "Nat.add"
+  refl
+
+Sure.Mod.resolve.imp: Sure.Mod.resolve(
+  "Audit",
+  ["Audit.report"],
+  [Pair.new<String, List<String>>("Boxes", ["len"])],
+  "len"
+) == "Boxes.len"
+  refl

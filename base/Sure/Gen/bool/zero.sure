@@ -1,0 +1,2 @@
+Sure.Gen.bool.zero: Sure.Gen.bool(0) == false
+  refl

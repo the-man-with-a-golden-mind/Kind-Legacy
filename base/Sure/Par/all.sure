@@ -1,0 +1,8 @@
+Sure.Par.all: Unit
+  let m0 = Sure.Par.map.nil
+  let a0 = Task.all.nil
+  let p0 = Task.par.def
+  let r0 = Task.race.def
+  let j0 = IO.job_all.empty
+  let j1 = IO.job_race.empty
+  unit

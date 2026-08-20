@@ -1,0 +1,6 @@
+Sure.Log.demo: IO<Unit>
+  IO {
+    Sure.Log.put(Sure.Debug.Level.off, Sure.Debug.Level.info, "t", "hidden")
+    Sure.Log.put(Sure.Debug.Level.info, Sure.Debug.Level.info, "t", "shown")
+    IO.end<Unit>(unit)
+  }

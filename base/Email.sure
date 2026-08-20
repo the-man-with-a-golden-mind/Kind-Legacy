@@ -1,0 +1,23 @@
+type Email.Err {
+  empty
+  no_at
+}
+
+type Email {
+  new(raw: String)
+}
+
+Email.show(e: Email): String
+  open e
+  e.raw
+
+Email.has_at(s: String): Bool
+  String.includes(s, "@")
+
+Email.from_string(s: String): Outcome<Email.Err, Email>
+  if String.is_empty(s) then
+    Outcome.err<Email.Err, Email>(Email.Err.empty)
+  else if Bool.not(Email.has_at(s)) then
+    Outcome.err<Email.Err, Email>(Email.Err.no_at)
+  else
+    Outcome.ok<Email.Err, Email>(Email.new(s))

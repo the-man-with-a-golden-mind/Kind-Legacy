@@ -1,0 +1,12 @@
+Time.from_parts(p: Time.Parts): Maybe<Time.Stamp>
+  if Bool.not(Time.Parts.ok(p)) then none
+  else
+    open p
+    let days = Nat.add(
+      Time.days_before_year(p.year),
+      Nat.add(Time.days_before_month(p.year, p.month), Nat.sub(p.day, 1))
+    )
+    let mins = Nat.add(Nat.mul(p.hour, 60), p.minute)
+    let secs = Nat.add(Nat.mul(mins, 60), p.second)
+    let ms = Nat.add(Nat.mul(secs, Time.ms_sec), p.milli)
+    some(Time.Stamp.new(Nat.add(Nat.mul(days, Nat.read("86400000")), ms)))

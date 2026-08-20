@@ -1,0 +1,99 @@
+// Off-thread work. Values cross as JSON. The worker cannot see main-thread objects.
+type Worker.Err {
+  empty_name
+  bad_name
+  missing
+  bad_json
+  decode
+  bad_tag
+  no_thread
+  throw(message: String)
+}
+
+Worker.Err.show(e: Worker.Err): String
+  case e {
+    empty_name: "empty_name"
+    bad_name: "bad_name"
+    missing: "missing"
+    bad_json: "bad_json"
+    decode: "decode"
+    bad_tag: "bad_tag"
+    no_thread: "no_thread"
+    throw: "throw:" | e.message
+  }
+
+Worker.safe(name: String): Bool
+  Ffi.safe(name)
+
+Worker.err_of(s: String): Worker.Err
+  if String.eql(s, "empty_name") then Worker.Err.empty_name
+  else if String.eql(s, "bad_name") then Worker.Err.bad_name
+  else if String.eql(s, "missing") then Worker.Err.missing
+  else if String.eql(s, "bad_json") then Worker.Err.bad_json
+  else if String.eql(s, "decode") then Worker.Err.decode
+  else if String.eql(s, "no_thread") then Worker.Err.no_thread
+  else if String.eql(s, "bad host tag") then Worker.Err.bad_tag
+  else if String.starts_with(s, "throw\n") then Worker.Err.throw(String.drop(6, s))
+  else if String.eql(s, "throw") then Worker.Err.throw("")
+  else Worker.Err.throw(s)
+
+Worker.decode(raw: String): Outcome<Worker.Err, JSON>
+  case IO.tagged.read(raw) as tag {
+    err: Outcome.err<Worker.Err, JSON>(Worker.err_of(tag.error))
+    ok:
+      case JSON.parse(tag.value) as j {
+        none: Outcome.err<Worker.Err, JSON>(Worker.Err.decode)
+        some: Outcome.ok<Worker.Err, JSON>(j.value)
+      }
+  }
+
+Worker.from_json<A: Type>(dec: JSON -> Maybe<A>, o: Outcome<Worker.Err, JSON>): Outcome<Worker.Err, A>
+  case o {
+    err: Outcome.err<Worker.Err, A>(o.error)
+    ok:
+      case dec(o.value) as v {
+        none: Outcome.err<Worker.Err, A>(Worker.Err.decode)
+        some: Outcome.ok<Worker.Err, A>(v.value)
+      }
+  }
+
+Worker.join_list(
+  h: Outcome<Worker.Err, JSON>,
+  t: Outcome<Worker.Err, List<JSON>>
+): Outcome<Worker.Err, List<JSON>>
+  case h {
+    err: Outcome.err<Worker.Err, List<JSON>>(h.error)
+    ok: case t {
+      err: Outcome.err<Worker.Err, List<JSON>>(t.error)
+      ok: Outcome.ok<Worker.Err, List<JSON>>(List.cons<JSON>(h.value, t.value))
+    }
+  }
+
+Worker.run(name: String, args: JSON): IO<Outcome<Worker.Err, JSON>>
+  if String.is_empty(name) then
+    IO.end<Outcome<Worker.Err, JSON>>(Outcome.err<Worker.Err, JSON>(Worker.Err.empty_name))
+  else if Bool.not(Worker.safe(name)) then
+    IO.end<Outcome<Worker.Err, JSON>>(Outcome.err<Worker.Err, JSON>(Worker.Err.bad_name))
+  else IO {
+    get raw = IO.ask<String>("worker_run", name | "\n" | JSON.stringify(args), (t) IO.end<String>(t))
+    return Worker.decode(raw)
+  }
+
+Worker.run_nat(name: String, args: List<Nat>): IO<Outcome<Worker.Err, Nat>>
+  IO {
+    get o = Worker.run(name, JSON.enc.list<Nat>(JSON.enc.nat, args))
+    return Worker.from_json<Nat>(Ffi.read_nat, o)
+  }
+
+Worker.map(name: String, args: List<JSON>): IO<Outcome<Worker.Err, List<JSON>>>
+  case args {
+    nil: IO.end<Outcome<Worker.Err, List<JSON>>>(Outcome.ok<Worker.Err, List<JSON>>([]))
+    cons: IO {
+      get p = Task.par<Outcome<Worker.Err, JSON>, Outcome<Worker.Err, List<JSON>>>(
+        Worker.run(name, args.head),
+        Worker.map(name, args.tail)
+      )
+      open p
+      return Worker.join_list(p.fst, p.snd)
+    }
+  }

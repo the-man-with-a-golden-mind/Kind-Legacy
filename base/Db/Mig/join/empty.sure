@@ -1,0 +1,2 @@
+Db.Mig.join.empty: Db.Mig.join([]) == ""
+  refl

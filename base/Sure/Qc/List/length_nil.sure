@@ -1,0 +1,2 @@
+Sure.Qc.List.length_nil: List.length<Nat>([]) == 0
+  refl

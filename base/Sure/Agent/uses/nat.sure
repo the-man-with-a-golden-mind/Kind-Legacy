@@ -1,0 +1,2 @@
+Sure.Agent.uses.nat: Sure.Agent.uses("Nat.add(1, 1)", "Nat.add") == true
+  refl

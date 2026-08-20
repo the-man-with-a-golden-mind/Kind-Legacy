@@ -1,0 +1,2 @@
+Sure.Pipe.filter<A: Type>(f: A -> Bool, xs: List<A>): List<A>
+  List.filter<A>(f, xs)

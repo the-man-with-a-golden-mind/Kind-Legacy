@@ -1,0 +1,2 @@
+Sure.Runtime.pick.junk: Sure.Runtime.pick(false, "xyz", false) == Sure.Runtime.node
+  refl

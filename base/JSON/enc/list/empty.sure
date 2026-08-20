@@ -1,0 +1,2 @@
+JSON.enc.list.empty: JSON.enc.list<Bool>(JSON.enc.bool, []) == JSON.array([])
+  refl

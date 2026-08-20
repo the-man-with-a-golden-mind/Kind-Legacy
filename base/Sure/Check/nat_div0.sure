@@ -1,0 +1,2 @@
+Sure.Check.nat_div0: Nat.div(Nat.read("86400000"), 0) == 0
+  refl

@@ -1,0 +1,20 @@
+JSON.stringify(j: JSON): String
+  case j {
+    null: "null"
+    bool: if j.value then "true" else "false"
+    number: F64.show(j.value)
+    string: Sure.Json.string(j.value)
+    array: JSON.stringify.array(j.value)
+    object: JSON.stringify.object(j.value)
+  }
+
+JSON.stringify.array(xs: List<JSON>): String
+  "[" | String.join(",", List.map!!(JSON.stringify, xs)) | "]"
+
+JSON.stringify.object(map: Map<JSON>): String
+  let pairs = Map.to_list<JSON>(map)
+  let fields = List.map!!((kv)
+    case kv {
+      new: Sure.Json.string(kv.fst) | ":" | JSON.stringify(kv.snd)
+    }, pairs)
+  "{" | String.join(",", fields) | "}"

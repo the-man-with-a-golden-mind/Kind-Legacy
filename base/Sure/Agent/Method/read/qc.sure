@@ -1,0 +1,2 @@
+Sure.Agent.Method.read.qc: Sure.Agent.Method.read("sure.qc") == some(Sure.Agent.Method.qc)
+  refl

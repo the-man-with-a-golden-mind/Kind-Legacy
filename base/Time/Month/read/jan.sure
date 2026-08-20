@@ -1,0 +1,2 @@
+Time.Month.read.jan: Time.Month.read("Jan") == some(Time.Month.jan)
+  refl

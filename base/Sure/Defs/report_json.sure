@@ -1,0 +1,40 @@
+Sure.Defs.report_json(defs: Sure.Defs, names: List<Sure.Name>): String
+  let types = Sure.Defs.report_json.types(defs, names)
+  let errors = Sure.Defs.report_json.errors(defs)
+  let ok = case errors { nil: "true", cons: "false" }
+  "{\"ok\":" | ok
+  | ",\"types\":[" | String.join(",", types) | "]"
+  | ",\"diagnostics\":[" | String.join(",", errors) | "]}"
+
+Sure.Defs.report_json.types(defs: Sure.Defs, names: List<Sure.Name>): List<String>
+  let out = []
+  let out = for name in names:
+    case Sure.Map.get!(name, defs) as got {
+      none:
+        out
+      some:
+        open got.value
+        let item = "{\"name\":" | Sure.Json.string(name)
+          | ",\"type\":" | Sure.Json.string(Sure.Term.show(got.value.type)) | "}"
+        out ++ [item]
+    }
+  out
+
+Sure.Defs.report_json.errors(defs: Sure.Defs): List<String>
+  let out = []
+  let out = for key in BitsMap.keys!(defs):
+    let name = Sure.Name.from_bits(key)
+    let defn = Sure.Map.get!(name, defs)
+    without defn: out
+    open defn
+    case defn.stat {
+      fail:
+        let rel = Sure.Error.relevant(defn.stat.errors)
+        let out = for err in rel:
+          let item = "{\"def\":" | Sure.Json.string(defn.name)
+            | ",\"file\":" | Sure.Json.string(defn.file)
+            | ",\"error\":" | Sure.Error.to_json(err) | "}"
+          out ++ [item]
+        out
+    } default out
+  out

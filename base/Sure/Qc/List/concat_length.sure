@@ -1,0 +1,4 @@
+Sure.Qc.List.concat_length(n: Nat, m: Nat):
+  Nat.add(List.length<Nat>(Sure.Qc.List.sing(n)), List.length<Nat>(Sure.Qc.List.sing(m))) ==
+    List.length<Nat>(List.concat<Nat>(Sure.Qc.List.sing(n), Sure.Qc.List.sing(m)))
+  List.concat.length<Nat>(Sure.Qc.List.sing(n), Sure.Qc.List.sing(m))

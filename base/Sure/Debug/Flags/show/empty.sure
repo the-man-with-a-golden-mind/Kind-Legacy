@@ -1,0 +1,2 @@
+Sure.Debug.Flags.show.empty: Sure.Debug.Flags.show(Sure.Debug.Flags.read("")) == ""
+  refl

@@ -1,0 +1,17 @@
+type Proc.Err {
+  io(message: String)
+  failed(code: Nat, stdout: String)
+}
+
+type Proc.Out {
+  new(code: Nat, stdout: String)
+}
+
+Proc.cwd: IO<String>
+  IO.cwd
+
+Proc.env(name: String): IO<Maybe<String>>
+  IO.get_env(name)
+
+Proc.argv: IO<String>
+  IO.get_args

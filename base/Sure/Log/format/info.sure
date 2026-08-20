@@ -1,0 +1,2 @@
+Sure.Log.format.info: Sure.Log.format(Sure.Debug.Level.info, Sure.Debug.Level.info, "t", "m") == some("info t m")
+  refl

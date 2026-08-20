@@ -1,0 +1,2 @@
+Sure.Cfg.of.null: Maybe.is_none<Sure.Cfg>(Sure.Cfg.of(JSON.null)) == true
+  refl

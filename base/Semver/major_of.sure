@@ -1,0 +1,7 @@
+Semver.major_of(s: String): Nat
+  case Semver.parse(s) as v {
+    none: 99
+    some:
+      open v.value
+      v.value.major
+  }

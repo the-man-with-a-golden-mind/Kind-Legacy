@@ -1,0 +1,3 @@
+type Http.Server.Req {
+  new(id: String, method: String, url: String, cookie: String, body: String)
+}

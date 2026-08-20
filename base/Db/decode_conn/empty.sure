@@ -1,0 +1,2 @@
+Db.decode_conn.empty: Outcome.is_ok<Db.Err, Db.Conn>(Db.decode_conn("")) == false
+  refl

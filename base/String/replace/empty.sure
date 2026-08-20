@@ -1,0 +1,2 @@
+String.replace.empty: String.replace("a", "", "x") == "a"
+  refl

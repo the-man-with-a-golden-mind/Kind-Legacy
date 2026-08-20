@@ -1,0 +1,2 @@
+Parse.hex.empty: Maybe.is_none<Nat>(Parse.hex("")) == true
+  refl

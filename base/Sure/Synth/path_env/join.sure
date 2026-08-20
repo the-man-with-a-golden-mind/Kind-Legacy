@@ -1,0 +1,4 @@
+Sure.Synth.path_env.join(a: String, b: String): String
+  if String.is_empty(a) then b
+  else if String.is_empty(b) then a
+  else a | ":" | b

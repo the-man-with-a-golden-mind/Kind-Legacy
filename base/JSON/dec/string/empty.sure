@@ -1,0 +1,2 @@
+JSON.dec.string.empty: JSON.dec.string(JSON.string("")) == some("")
+  refl

@@ -1,0 +1,2 @@
+Sure.Env.ok_name.eq: Sure.Env.ok_name("A=B") == false
+  refl

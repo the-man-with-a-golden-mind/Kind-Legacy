@@ -1,0 +1,2 @@
+Worker.decode.junk: Worker.decode("nope") == Outcome.err<Worker.Err, JSON>(Worker.Err.bad_tag)
+  refl

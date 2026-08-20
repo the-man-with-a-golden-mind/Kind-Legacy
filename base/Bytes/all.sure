@@ -1,0 +1,10 @@
+Bytes.all: Unit
+  let l0 = Bytes.length.empty
+  let e0 = Bytes.is_empty.empty
+  let q0 = Bytes.eql.empty
+  let c0 = Bytes.concat.empty
+  let g0 = Bytes.get.empty
+  let x0 = Bytes.xor.empty
+  let s0 = Bytes.slice.empty
+  let r0 = Bytes.roundtrip.empty
+  unit

@@ -1,0 +1,5 @@
+Http.Server.reply(id: String, status: Nat, body: String): IO<Unit>
+  IO {
+    IO.ask<Unit>("http_reply", id | "\n" | Nat.show(status) | "\n" | body, (t) IO.end<Unit>(unit))
+    return unit
+  }

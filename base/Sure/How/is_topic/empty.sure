@@ -1,0 +1,2 @@
+Sure.How.is_topic.empty: Sure.How.is_topic("") == false
+  refl

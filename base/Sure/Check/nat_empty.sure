@@ -1,0 +1,2 @@
+Sure.Check.nat_empty: Nat.read("") == 0
+  refl

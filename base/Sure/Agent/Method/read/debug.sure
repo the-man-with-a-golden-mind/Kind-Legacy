@@ -1,0 +1,2 @@
+Sure.Agent.Method.read.debug: Sure.Agent.Method.read("sure.debug") == some(Sure.Agent.Method.debug)
+  refl

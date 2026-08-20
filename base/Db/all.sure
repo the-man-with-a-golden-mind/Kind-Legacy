@@ -1,0 +1,30 @@
+Db.all: Unit
+  let c0 = Db.Cmd.read.empty
+  let c1 = Db.Cmd.read.junk
+  let c2 = Db.Cmd.read.get
+  let c3 = Db.Cmd.read.keys
+  let c4 = Db.Cmd.read.get_empty
+  let c5 = Db.Cmd.read.set
+  let c6 = Db.Cmd.read.clear
+  let c7 = Db.Cmd.read.low
+  let g0 = Db.Cmd.show.get
+  let e0 = Db.Err.show.missing
+  let e1 = Db.Err.show.empty_url
+  let e2 = Db.Err.show.bad_key
+  let e3 = Db.Err.show.bad_file
+  let k0 = Db.safe_key.empty
+  let k1 = Db.safe_key.nl
+  let k2 = Db.safe_key.ok
+  let f0 = Db.file_path.empty
+  let f1 = Db.file_path.abs
+  let f2 = Db.file_path.ok
+  let d0 = Db.decode_text.missing
+  let d1 = Db.decode_text.ok
+  let d2 = Db.decode_text.empty
+  let d3 = Db.decode_text.junk
+  let d4 = Db.decode_keys.empty
+  let n0 = Db.decode_conn.empty
+  let r0 = Db.Row.get.name
+  let r1 = Db.Row.get.empty
+  unit
+

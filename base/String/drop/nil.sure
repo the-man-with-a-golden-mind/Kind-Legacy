@@ -1,0 +1,5 @@
+String.drop.nil(n: Nat): String.drop(n, "") == ""
+  case n {
+    zero: refl
+    succ: refl
+  }!

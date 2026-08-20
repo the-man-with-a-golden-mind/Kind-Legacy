@@ -1,0 +1,2 @@
+Http.Server.recv(port: Nat): IO<String>
+  IO.ask<String>("http_recv", Nat.show(port), (t) IO.end<String>(t))

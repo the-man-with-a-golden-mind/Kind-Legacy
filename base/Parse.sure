@@ -1,0 +1,16 @@
+// Total parsers. Empty and junk are none; they never become 0.
+Parse.nat(s: String): Maybe<Nat>
+  if JSON.digits(s) then some(Nat.read_base(10, s))
+  else none
+
+Parse.bool(s: String): Maybe<Bool>
+  if String.eql(s, "true") then some(true)
+  else if String.eql(s, "false") then some(false)
+  else none
+
+Parse.hex(s: String): Maybe<Nat>
+  if Bool.and(String.not_empty(s), Crypto.is_hex(s)) then some(Nat.read_base(16, s))
+  else none
+
+Parse.f64(s: String): Maybe<F64>
+  F64.read_dec(s)

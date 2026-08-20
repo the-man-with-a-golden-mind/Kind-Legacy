@@ -1,0 +1,35 @@
+Html.App.run.go<M: Type>(port: Nat, app: Html.App<M>, model: M): IO<Unit>
+  IO {
+    get raw = Http.Server.recv(port)
+    case Http.Server.parse(raw) as req {
+      none: Html.App.run.go<M>(port, app, model)
+      some:
+        let r = req.value
+        open r
+        if String.starts_with(r.url, "/sure/event") then
+          let ev = Html.Event.Data.parse(r.body)
+          open ev
+          let next = Html.App.step<M>(app, ev.msg, ev, model)
+          IO {
+            Http.Server.reply_ex(r.id, 204, "text/plain", "")
+            Html.App.run.go<M>(port, app, next)
+          }
+        else IO {
+          Http.Server.reply_html(r.id, Html.App.draw<M>(app, model))
+          Html.App.run.go<M>(port, app, model)
+        }
+    }
+  }
+
+Html.App.run<M: Type>(port: Nat, app: Html.App<M>): IO<Outcome<Http.Err, Unit>>
+  IO {
+    get l = Http.Server.listen(port)
+    case l {
+      err: IO { return l }
+      ok: IO {
+        open app
+        Html.App.run.go<M>(port, app, app.init)
+        return Http.Server.ok
+      }
+    }
+  }

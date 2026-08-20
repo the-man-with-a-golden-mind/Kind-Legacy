@@ -1,0 +1,2 @@
+Html.escape.lt: Html.escape("<") == "&lt;"
+  refl

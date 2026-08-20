@@ -1,0 +1,2 @@
+Sure.Emit.file.slash: Sure.Emit.file("../x") == ""
+  refl

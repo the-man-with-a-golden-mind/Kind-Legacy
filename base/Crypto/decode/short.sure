@@ -1,0 +1,2 @@
+Crypto.decode.short: Outcome.is_ok<Crypto.Err, String>(Crypto.decode("0\nab")) == false
+  refl

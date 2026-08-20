@@ -1,0 +1,2 @@
+Sure.Emit.ready.ok: Sure.Emit.ready(true, true) == true
+  refl

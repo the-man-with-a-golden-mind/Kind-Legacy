@@ -1,0 +1,23 @@
+// Typed success/error. Prefer this over Result<A> (stringly errors).
+type Outcome <E: Type, A: Type> {
+  err(error: E)
+  ok(value: A)
+}
+
+Outcome.map<E: Type, A: Type, B: Type>(o: Outcome<E, A>, f: A -> B): Outcome<E, B>
+  case o {
+    err: Outcome.err<E, B>(o.error)
+    ok: Outcome.ok<E, B>(f(o.value))
+  }
+
+Outcome.bind<E: Type, A: Type, B: Type>(o: Outcome<E, A>, f: A -> Outcome<E, B>): Outcome<E, B>
+  case o {
+    err: Outcome.err<E, B>(o.error)
+    ok: f(o.value)
+  }
+
+Outcome.is_ok<E: Type, A: Type>(o: Outcome<E, A>): Bool
+  case o {
+    err: false
+    ok: true
+  }

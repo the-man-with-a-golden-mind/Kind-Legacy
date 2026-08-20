@@ -1,0 +1,2 @@
+Sure.Qc.Nat.add_comm(n: Nat, m: Nat): Nat.add(n, m) == Nat.add(m, n)
+  Nat.add.comm(n, m)

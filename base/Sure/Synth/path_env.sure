@@ -1,0 +1,15 @@
+// Extra .sure roots: SURE_PATH first, then KIND_PATH (compat).
+Sure.Synth.path_env: IO<String>
+  IO {
+    get sure = IO.get_env("SURE_PATH")
+    get kind = IO.get_env("KIND_PATH")
+    let a = sure <> ""
+    let b = kind <> ""
+    if String.is_empty(a) then IO {
+      return b
+    } else if String.is_empty(b) then IO {
+      return a
+    } else IO {
+      return a | ":" | b
+    }
+  }

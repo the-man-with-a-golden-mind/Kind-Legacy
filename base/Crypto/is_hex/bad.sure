@@ -1,0 +1,2 @@
+Crypto.is_hex.bad: Crypto.is_hex("gg") == false
+  refl

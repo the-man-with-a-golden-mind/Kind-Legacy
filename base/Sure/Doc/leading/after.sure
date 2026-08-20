@@ -1,0 +1,3 @@
+// A comment after a definition is not a leading doc.
+Sure.Doc.leading.after: Sure.Doc.leading("Foo: Nat\n// later") == ""
+  refl

@@ -1,0 +1,2 @@
+Sure.Agent.hole_count.zero: Sure.Agent.hole_count("no hole") == 0
+  refl

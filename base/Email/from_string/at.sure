@@ -1,0 +1,2 @@
+Email.from_string.at: Email.raw_of("a@b") == "a@b"
+  refl

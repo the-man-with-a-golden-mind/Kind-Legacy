@@ -1,0 +1,34 @@
+// Documentation lines. A `//` comment immediately above a definition is its doc.
+// `sure doc` / `kind.docs` collect these; the type checker still owns the type.
+
+Sure.Doc.is_comment(s: String): Bool
+  String.starts_with(s, "//")
+
+Sure.Doc.body(s: String): String
+  if Sure.Doc.is_comment(s) then
+    let rest = String.drop(2, s)
+    if String.starts_with(rest, " ") then
+      String.drop(1, rest)
+    else
+      rest
+  else
+    ""
+
+Sure.Doc.leading.go(lines: List<String>, acc: List<String>, started: Bool): String
+  case lines {
+    nil:
+      String.join("\n", List.reverse<String>(acc))
+    cons:
+      if Sure.Doc.is_comment(lines.head) then
+        Sure.Doc.leading.go(lines.tail, List.cons<String>(Sure.Doc.body(lines.head), acc), true)
+      else if String.is_empty(lines.head) then
+        case started {
+          true: String.join("\n", List.reverse<String>(acc))
+          false: Sure.Doc.leading.go(lines.tail, acc, false)
+        }
+      else
+        String.join("\n", List.reverse<String>(acc))
+  }
+
+Sure.Doc.leading(src: String): String
+  Sure.Doc.leading.go(String.split(src, "\n"), [], false)

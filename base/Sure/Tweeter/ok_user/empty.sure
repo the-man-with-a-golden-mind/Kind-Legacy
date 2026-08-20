@@ -1,0 +1,2 @@
+Sure.Tweeter.ok_user.empty: Sure.Tweeter.ok_user("") == false
+  refl

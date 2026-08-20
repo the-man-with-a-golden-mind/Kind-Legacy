@@ -1,0 +1,2 @@
+JSON.digits.junk: JSON.digits("abc") == false
+  refl

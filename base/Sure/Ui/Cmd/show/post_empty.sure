@@ -1,0 +1,2 @@
+Sure.Ui.Cmd.show.post_empty: Sure.Ui.Cmd.show(Sure.Ui.Cmd.post("", "b", "ok")) == ""
+  refl

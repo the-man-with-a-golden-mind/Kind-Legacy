@@ -1,0 +1,4 @@
+IO.set_file.def(name: String, content: String):
+  IO.set_file(name, content) ==
+    IO.ask<Unit>("set_file2", name | "\n" | content, (ok) IO.end<Unit>(Unit.new))
+  refl

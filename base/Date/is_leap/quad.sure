@@ -1,0 +1,2 @@
+Date.is_leap.quad: Date.is_leap(400) == true
+  refl

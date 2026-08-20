@@ -1,0 +1,2 @@
+Sure.Pipe.drop_while<A: Type>(f: A -> Bool, xs: List<A>): List<A>
+  List.drop_while<A>(f, xs)

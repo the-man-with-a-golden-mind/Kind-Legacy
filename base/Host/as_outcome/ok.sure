@@ -1,0 +1,2 @@
+Host.as_outcome.ok: Host.as_outcome(Host.ok_string("a")) == Outcome.ok<Host.Err, String>("a")
+  refl

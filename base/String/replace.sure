@@ -1,0 +1,10 @@
+// Empty needle does not loop: the subject is unchanged.
+String.replace(xs: String, match: String, to: String): String
+  if String.is_empty(match) then xs
+  else if String.starts_with(xs, match) then
+    to | String.drop(String.length(match), xs)
+  else
+    case xs {
+      nil: ""
+      cons: Char.to_string(xs.head) | String.replace(xs.tail, match, to)
+    }

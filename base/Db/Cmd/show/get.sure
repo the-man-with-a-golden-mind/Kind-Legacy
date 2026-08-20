@@ -1,0 +1,2 @@
+Db.Cmd.show.get: Db.Cmd.show(Db.Cmd.get("k")) == "GET k"
+  refl

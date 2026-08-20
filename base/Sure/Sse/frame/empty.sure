@@ -1,0 +1,6 @@
+Sure.Sse.frame.empty:
+  case Sure.Sse.frame("", "") as f {
+    none: ""
+    some: f.value
+  } == "event: message\ndata:\n\n"
+  refl

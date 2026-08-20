@@ -1,0 +1,2 @@
+File.from_tagged.missing: File.from_tagged("1\nENOENT") == Outcome.err<File.Err, String>(File.Err.missing)
+  refl

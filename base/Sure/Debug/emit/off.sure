@@ -1,0 +1,2 @@
+Sure.Debug.emit.off: Sure.Debug.emit(Sure.Debug.Level.off, Sure.Debug.Level.info, Sure.Debug.Flags.read(""), Sure.Debug.Channel.host) == false
+  refl

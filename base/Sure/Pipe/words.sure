@@ -1,0 +1,2 @@
+Sure.Pipe.words(s: String): List<String>
+  String.words(s)

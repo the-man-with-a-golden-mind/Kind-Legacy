@@ -1,0 +1,2 @@
+Sure.Debug.Channel.read.empty: Maybe.is_none<Sure.Debug.Channel>(Sure.Debug.Channel.read("")) == true
+  refl

@@ -1,0 +1,5 @@
+Sure.Pipe.from_maybe<A: Type>(m: Maybe<A>): List<A>
+  case m {
+    none: []
+    some: Sure.Pipe.once<A>(m.value)
+  }

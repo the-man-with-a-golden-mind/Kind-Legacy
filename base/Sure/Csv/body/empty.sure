@@ -1,0 +1,2 @@
+Sure.Csv.body.empty: Sure.Csv.body([]) == []
+  refl

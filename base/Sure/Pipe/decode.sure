@@ -1,0 +1,9 @@
+Sure.Pipe.decode<A: Type>(f: String -> Maybe<A>, xs: List<String>): List<A>
+  case xs {
+    nil: []
+    cons:
+      case f(xs.head) as r {
+        none: Sure.Pipe.decode<A>(f, xs.tail)
+        some: List.cons<A>(r.value, Sure.Pipe.decode<A>(f, xs.tail))
+      }
+  }

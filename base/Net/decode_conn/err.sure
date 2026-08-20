@@ -1,0 +1,2 @@
+Net.decode_conn.err: Outcome.is_ok<Net.Err, Net.Conn>(Net.decode_conn("1\nbad host")) == false
+  refl

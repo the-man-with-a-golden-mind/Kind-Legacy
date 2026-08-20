@@ -1,0 +1,2 @@
+Db.safe_key.nl: Db.safe_key("a\nb") == false
+  refl

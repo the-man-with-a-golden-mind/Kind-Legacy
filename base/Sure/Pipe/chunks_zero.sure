@@ -1,0 +1,2 @@
+Sure.Pipe.chunks_zero: Sure.Pipe.chunks<Nat>(0, [1, 2]) == []
+  refl

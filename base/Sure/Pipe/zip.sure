@@ -1,0 +1,2 @@
+Sure.Pipe.zip<A: Type, B: Type>(xs: List<A>, ys: List<B>): List<Pair<A, B>>
+  List.zip<A, B>(xs, ys)

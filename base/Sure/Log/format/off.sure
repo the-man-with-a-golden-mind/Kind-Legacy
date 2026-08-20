@@ -1,0 +1,2 @@
+Sure.Log.format.off: Maybe.is_none<String>(Sure.Log.format(Sure.Debug.Level.off, Sure.Debug.Level.info, "t", "m")) == true
+  refl

@@ -1,0 +1,2 @@
+Sure.Pipe.bind<A: Type, B: Type>(xs: List<A>, f: A -> List<B>): List<B>
+  List.bind<A, B>(xs, f)

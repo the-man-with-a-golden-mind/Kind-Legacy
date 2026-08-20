@@ -1,0 +1,3 @@
+// A top-level name prints as itself.
+Sure.Fmt.ref: Sure.Name.show("Nat.add") == "Nat.add"
+  refl

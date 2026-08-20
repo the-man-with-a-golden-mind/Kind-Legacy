@@ -1,0 +1,2 @@
+Regex.ok.junk: Maybe.is_none<Regex>(Regex.read("[")) == true
+  refl

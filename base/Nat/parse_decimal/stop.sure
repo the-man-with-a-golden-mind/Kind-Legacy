@@ -1,0 +1,2 @@
+Nat.parse_decimal.stop: Nat.parse_decimal("12x") == 12
+  refl

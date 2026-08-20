@@ -1,0 +1,2 @@
+Sure.Pipe.nats_junk: Sure.Pipe.nats(["", "x"]) == []
+  refl

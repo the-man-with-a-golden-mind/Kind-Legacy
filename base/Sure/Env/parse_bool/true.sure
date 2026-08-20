@@ -1,0 +1,6 @@
+Sure.Env.parse_bool.true:
+  case Sure.Env.parse_bool("true") as o {
+    err: false
+    ok: o.value
+  } == true
+  refl

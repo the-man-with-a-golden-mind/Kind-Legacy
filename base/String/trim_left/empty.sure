@@ -1,0 +1,2 @@
+String.trim_left.empty: String.trim_left("") == ""
+  refl

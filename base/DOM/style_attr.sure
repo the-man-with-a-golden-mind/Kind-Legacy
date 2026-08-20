@@ -1,0 +1,10 @@
+DOM.style_pair(p: Pair<String, String>): String
+  open p
+  p.fst | ":" | p.snd | ";"
+
+DOM.style_attr(style: Map<String>): String
+  let xs = Map.to_list<String>(style)
+  case xs {
+    nil: ""
+    cons: " style=\"" | String.flatten(List.map<Pair<String,String>, String>(DOM.style_pair, xs)) | "\""
+  }

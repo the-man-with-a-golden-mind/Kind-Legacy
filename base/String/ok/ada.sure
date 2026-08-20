@@ -1,0 +1,2 @@
+String.ok.ada: String.ok("ada", [" ", "\n", "&", "="]) == true
+  refl

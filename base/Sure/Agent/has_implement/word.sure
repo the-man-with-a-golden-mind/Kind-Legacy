@@ -1,0 +1,2 @@
+Sure.Agent.has_implement.word: Sure.Agent.has_implement("implement") == false
+  refl

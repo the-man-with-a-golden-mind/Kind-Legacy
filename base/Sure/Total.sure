@@ -1,0 +1,14 @@
+// Impossible states are Empty: no constructors, so no value, so no case branch.
+// Runtime errors are Outcome/Maybe, never a JS exception.
+Sure.Total.never<A: Type>(x: Empty): A
+  Empty.absurd<A>(x)
+
+Sure.Total.needs_qc(proof: Bool, arity: Nat): Bool
+  case proof {
+    false: false
+    true:
+      case arity {
+        zero: false
+        succ: true
+      }
+  }

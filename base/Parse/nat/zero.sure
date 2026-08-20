@@ -1,0 +1,2 @@
+Parse.nat.zero: Parse.nat("0") == some(0)
+  refl

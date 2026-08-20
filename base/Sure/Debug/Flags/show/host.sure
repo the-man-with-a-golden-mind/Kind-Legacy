@@ -1,0 +1,2 @@
+Sure.Debug.Flags.show.host: Sure.Debug.Flags.show(Sure.Debug.Flags.read("host")) == "host"
+  refl

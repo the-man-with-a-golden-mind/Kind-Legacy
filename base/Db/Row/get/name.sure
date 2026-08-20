@@ -1,0 +1,2 @@
+Db.Row.get.name: Db.Row.get("name", [{"name", "ada"}, {"email", "a@b"}]) == "ada"
+  refl

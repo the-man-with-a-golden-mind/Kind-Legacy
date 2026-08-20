@@ -1,0 +1,2 @@
+Outcome.http.ok_body: Outcome.http<String, String>(Outcome.ok<String, String>("hi"), (x) x)@body == "hi"
+  refl

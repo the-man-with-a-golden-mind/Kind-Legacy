@@ -1,0 +1,2 @@
+String.hex.decode.utf8.A: String.hex.decode.utf8("41") == "A"
+  refl

@@ -1,0 +1,2 @@
+Sure.Total.needs_qc.law: Sure.Total.needs_qc(true, 2) == true
+  refl

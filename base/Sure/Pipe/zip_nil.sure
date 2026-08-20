@@ -1,0 +1,2 @@
+Sure.Pipe.zip_nil: Sure.Pipe.zip<Nat, Nat>([], [1]) == []
+  refl

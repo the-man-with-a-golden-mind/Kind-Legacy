@@ -1,0 +1,2 @@
+Sure.Lsp.keyword.junk: Sure.Lsp.keyword("TYPE") == false
+  refl

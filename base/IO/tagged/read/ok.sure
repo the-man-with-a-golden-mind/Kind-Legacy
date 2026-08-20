@@ -1,0 +1,2 @@
+IO.tagged.read.ok: IO.tagged.read("0\nhi") == Outcome.ok<String, String>("hi")
+  refl

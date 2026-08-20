@@ -1,0 +1,21 @@
+type Proc.Signal {
+  term
+  kill
+  int
+  hup
+}
+
+Proc.Signal.show(s: Proc.Signal): String
+  case s {
+    term: "SIGTERM"
+    kill: "SIGKILL"
+    int: "SIGINT"
+    hup: "SIGHUP"
+  }
+
+Proc.Signal.read(s: String): Maybe<Proc.Signal>
+  if String.eql(s, "SIGTERM") then some(Proc.Signal.term)
+  else if String.eql(s, "SIGKILL") then some(Proc.Signal.kill)
+  else if String.eql(s, "SIGINT") then some(Proc.Signal.int)
+  else if String.eql(s, "SIGHUP") then some(Proc.Signal.hup)
+  else none

@@ -1,0 +1,2 @@
+Sure.Doc.body.empty: Sure.Doc.body("") == ""
+  refl

@@ -1,0 +1,2 @@
+Http.Method.show.get: Http.Method.show(Http.Method.get) == "GET"
+  refl

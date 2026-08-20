@@ -1,0 +1,2 @@
+Sure.Lsp.Severity.of_code.junk: Sure.Lsp.Severity.of_code("nope") == Sure.Lsp.Severity.error
+  refl

@@ -1,0 +1,2 @@
+Sure.Csv.need_quote.empty: Sure.Csv.need_quote("") == false
+  refl

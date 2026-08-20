@@ -1,0 +1,21 @@
+Db.Cmd.read(s: String): Maybe<Db.Cmd>
+  let t = String.trim_left(String.trim_right(s))
+  if String.is_empty(t) then none
+  else if String.eql(t, "KEYS") then some(Db.Cmd.keys)
+  else if String.eql(t, "CLEAR") then some(Db.Cmd.clear)
+  else if String.starts_with(t, "GET ") then
+    let key = String.trim_left(String.trim_right(String.drop(4, t)))
+    if Bool.not(Db.safe_key(key)) then none else some(Db.Cmd.get(key))
+  else if String.starts_with(t, "DEL ") then
+    let key = String.trim_left(String.trim_right(String.drop(4, t)))
+    if Bool.not(Db.safe_key(key)) then none else some(Db.Cmd.del(key))
+  else if String.starts_with(t, "HAS ") then
+    let key = String.trim_left(String.trim_right(String.drop(4, t)))
+    if Bool.not(Db.safe_key(key)) then none else some(Db.Cmd.has(key))
+  else if String.starts_with(t, "SET ") then
+    let rest = String.trim_left(String.drop(4, t))
+    let key = String.take_while((c) Bool.not(Char.is_space(c)), rest)
+    if Bool.not(Db.safe_key(key)) then none
+    else some(Db.Cmd.set(key, String.trim_left(String.drop(String.length(key), rest))))
+  else none
+

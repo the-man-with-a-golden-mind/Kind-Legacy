@@ -1,0 +1,20 @@
+// Text field + clear. `sure build --html Html.Echo.client` then type in the box.
+Html.Echo.view(s: String): DOM
+  Html.div(Map.new<String>, [
+    Html.input(s, "set"),
+    Html.button("clear", [Html.text("clear")]),
+    Html.p([Html.text(s)])
+  ])
+
+Html.Echo.update(msg: String, ev: Html.Event.Data, s: String): String
+  if String.eql(msg, "clear") then ""
+  else if String.eql(msg, "set") then
+    open ev
+    ev.value
+  else s
+
+Html.Echo: Html.App<String>
+  Html.App.new<String>("", Html.Echo.view, Html.Echo.update)
+
+Html.Echo.client: Html.Client<String>
+  Html.Client.of<String>(Html.Echo)

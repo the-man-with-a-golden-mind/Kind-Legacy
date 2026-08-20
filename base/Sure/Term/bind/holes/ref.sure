@@ -1,0 +1,3 @@
+// bind.holes must not turn a top-level ref into a var.
+Sure.Term.bind.holes.ref: Sure.Term.bind.holes(List.nil<Pair<Sure.Name,Sure.Term>>, Sure.Path.Builder.nil, Sure.Term.ref("size")) == Sure.Term.ref("size")
+  refl

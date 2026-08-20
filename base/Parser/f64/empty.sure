@@ -1,0 +1,2 @@
+Parser.f64.empty: Maybe.is_none<F64>(Parser.run<F64>(Parser.f64, "")) == true
+  refl

@@ -1,0 +1,2 @@
+Sure.Debug.Flags.read.term: Sure.Debug.Flags.term(Sure.Debug.Flags.read("term")) == true
+  refl

@@ -1,0 +1,9 @@
+Sure.Build.all: Unit
+  let f0 = Sure.Build.fresh.same
+  let f1 = Sure.Build.fresh.diff
+  let f2 = Sure.Build.fresh.empty
+  let d0 = Sure.Build.dirty.hash
+  let d1 = Sure.Build.dirty.dep
+  let d2 = Sure.Build.dirty.clean
+  let e0 = Sure.Emit.all
+  unit

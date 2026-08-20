@@ -1,0 +1,2 @@
+Sure.Emit.js_name.dot: Sure.Emit.js_name("Foo.Bar") == "Foo.Bar.js"
+  refl

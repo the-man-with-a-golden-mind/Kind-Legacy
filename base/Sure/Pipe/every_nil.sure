@@ -1,0 +1,2 @@
+Sure.Pipe.every_nil: Sure.Pipe.every<Nat>((n) Bool.false, []) == true
+  refl

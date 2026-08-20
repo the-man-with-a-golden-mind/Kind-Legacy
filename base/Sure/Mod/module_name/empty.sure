@@ -1,0 +1,2 @@
+Sure.Mod.module_name.empty: Sure.Mod.module_name("") == ""
+  refl

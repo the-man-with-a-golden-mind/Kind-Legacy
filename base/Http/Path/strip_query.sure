@@ -1,0 +1,6 @@
+Http.Path.strip_query(url: String): String
+  let parts = String.split(url, "?")
+  case parts {
+    nil: url
+    cons: parts.head
+  }

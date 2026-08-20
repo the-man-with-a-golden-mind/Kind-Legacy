@@ -1,0 +1,2 @@
+Sure.Qc.Val.show.unit: Sure.Qc.Val.show(Sure.Qc.Val.unit) == "unit"
+  refl

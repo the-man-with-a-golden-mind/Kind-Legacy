@@ -1,0 +1,2 @@
+Sure.Env.ok_name.empty: Sure.Env.ok_name("") == false
+  refl

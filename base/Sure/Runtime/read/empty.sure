@@ -1,0 +1,2 @@
+Sure.Runtime.read.empty: Maybe.is_none<Sure.Runtime>(Sure.Runtime.read("")) == true
+  refl

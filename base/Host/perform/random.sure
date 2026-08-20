@@ -1,0 +1,2 @@
+Host.perform.random: Host.perform(Host.Op.random) == IO.ask<Host.Event>("get_random", "", (raw) IO.end<Host.Event>(Host.decode(raw)))
+  refl

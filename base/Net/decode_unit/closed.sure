@@ -1,0 +1,2 @@
+Net.decode_unit.closed: Outcome.is_ok<Net.Err, Unit>(Net.decode_unit("1\nclosed")) == false
+  refl

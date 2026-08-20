@@ -1,0 +1,2 @@
+Proc.Signal.read.bad: Proc.Signal.read("NOPE") == none
+  refl

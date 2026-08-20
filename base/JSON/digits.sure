@@ -1,0 +1,18 @@
+// Entire string is one or more decimal digits. Empty and junk are false.
+JSON.digits.go(s: String): Bool
+  case s {
+    nil: true
+    cons:
+      case Nat.read_base.digit(s.head) as d {
+        none: false
+        some:
+          if Nat.ltn(d.value, 10) then JSON.digits.go(s.tail)
+          else false
+      }
+  }
+
+JSON.digits(s: String): Bool
+  case s {
+    nil: false
+    cons: JSON.digits.go(s)
+  }

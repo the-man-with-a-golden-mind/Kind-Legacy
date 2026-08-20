@@ -1,0 +1,2 @@
+Sure.Ui.Sub.show.batch_nil: Sure.Ui.Sub.show(Sure.Ui.Sub.batch([])) == ""
+  refl

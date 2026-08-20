@@ -1,0 +1,2 @@
+Sure.Cfg.has.empty: Sure.Cfg.has(Sure.Cfg.empty, "") == false
+  refl

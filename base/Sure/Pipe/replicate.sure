@@ -1,0 +1,5 @@
+Sure.Pipe.replicate<A: Type>(n: Nat, x: A): List<A>
+  case n {
+    zero: []
+    succ: List.cons<A>(x, Sure.Pipe.replicate<A>(n.pred, x))
+  }

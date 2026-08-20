@@ -1,0 +1,11 @@
+Regex.all: Unit
+  let e0 = Regex.ok.empty
+  let e1 = Regex.ok.junk
+  let e2 = Regex.ok.lit
+  let e3 = Regex.ok.miss
+  let e4 = Regex.ok.star
+  let e5 = Regex.ok.star2
+  let e6 = Regex.ok.empty_s
+  let e7 = Regex.ok.alt
+  let e8 = Regex.ok.dot
+  unit

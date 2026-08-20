@@ -1,0 +1,2 @@
+Sure.Tweeter.is_page.client: Sure.Tweeter.is_page("/Sure.Tweeter.client.html") == true
+  refl

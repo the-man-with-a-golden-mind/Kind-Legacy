@@ -1,0 +1,2 @@
+Sure.Pipe.map<A: Type, B: Type>(f: A -> B, xs: List<A>): List<B>
+  List.map<A, B>(f, xs)

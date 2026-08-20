@@ -1,0 +1,293 @@
+Cover.next.hash_empty: Bytes.hash([]) == Bytes.hash.offset
+  refl
+
+Cover.next.file_bracket_release: File.bracket.release == File.bracket.release
+  refl
+
+Cover.next.string_has_none_nil: String.has_none("x", []) == true
+  refl
+
+Cover.next.string_has_none_hit: String.has_none("a b", [" "]) == false
+  refl
+
+Cover.next.string_ok_empty: String.ok("", [" "]) == false
+  refl
+
+Cover.next.string_ok_ada: String.ok("ada", [" ", "\n"]) == true
+  refl
+
+Cover.next.dsl_read_cmd_keys: Db.Dsl.read_cmd(Db.Cmd.keys) == Db.Dsl.keys
+  refl
+
+Cover.next.dsl_read_cmd_clear: Db.Dsl.read_cmd(Db.Cmd.clear) == Db.Dsl.clear
+  refl
+
+Cover.next.dsl_keep_nil: Db.Dsl.keep_prefix("a", []) == []
+  refl
+
+Cover.next.dsl_keep_empty_pre: Db.Dsl.keep_prefix("", ["x"]) == ["x"]
+  refl
+
+Cover.next.mig_find_nil: Maybe.is_none<Db.Mig>(Db.Mig.find("", [])) == true
+  refl
+
+Cover.next.mig_run_list_nil: Db.Mig.run_list(Db.Conn.new(""), []) == IO.end<Outcome<Db.Err, Unit>>(Outcome.ok<Db.Err, Unit>(unit))
+  refl
+
+Cover.next.app_fire_nil: Http.App.fire([], Http.Server.Req.new("", "GET", "/", "", "")) == IO.end<Http.Response>(Http.Response.new(404, "not found"))
+  refl
+
+Cover.next.server_decode_empty: Http.Server.decode("") == Http.Server.fail("bad host tag")
+  refl
+
+Cover.next.server_decode_ok: Http.Server.decode("0\n") == Http.Server.ok
+  refl
+
+Cover.next.parse_payload_empty: Maybe.is_none<Http.Server.Req>(Http.Server.parse.payload("")) == true
+  refl
+
+Cover.next.parse_payload_two: Maybe.is_none<Http.Server.Req>(Http.Server.parse.payload("id\nGET")) == false
+  refl
+
+Cover.next.http_err_io: Http.Err.show(Http.Err.io("busy")) == "busy"
+  refl
+
+Cover.next.http_err_url: Http.Err.show(Http.Err.bad_url) == "bad url"
+  refl
+
+Cover.next.http_get: Http.get("") == Http.request(Http.Request.new(Http.Method.get, "", "", ""))
+  refl
+
+Cover.next.http_post: Http.post("", "") == Http.request(Http.Request.new(Http.Method.post, "", "", ""))
+  refl
+
+Cover.next.decode_payload_empty: Http.decode.payload("") == Outcome.ok<Http.Err, Http.Response>(Http.Response.new(0, ""))
+  refl
+
+Cover.next.json_enc_f64: JSON.enc.f64(F64.0) == JSON.number(F64.0)
+  refl
+
+Cover.next.json_obj_empty: JSON.stringify.object(Map.new<JSON>) == "{}"
+  refl
+
+Cover.next.nat_egcd_00: Nat.egcd(0, 0) == Pair.new<Nat, Pair<Int, Int>>(0, Pair.new<Int, Int>(+0, +1))
+  refl
+
+Cover.next.nat_log_0: Nat.log(10, 0) == 0
+  refl
+
+Cover.next.nat_lcm_11: Nat.lcm(1, 1) == 1
+  refl
+
+Cover.next.nat_sqrt_0: Nat.sqrt(0) == 0
+  refl
+
+Cover.next.net_send: Net.send(Net.Conn.new(""), "") == IO {
+    get raw = IO.ask<String>("tcp_send", "\n", (t) IO.end<String>(t))
+    return Net.decode_unit(raw)
+  }
+  refl
+
+Cover.next.net_recv: Net.recv(Net.Conn.new("")) == IO {
+    get raw = IO.ask<String>("tcp_recv", "", (t) IO.end<String>(t))
+    return Net.decode_str(raw)
+  }
+  refl
+
+Cover.next.net_close: Net.close(Net.Conn.new("")) == IO {
+    IO.ask<Unit>("tcp_close", "", (t) IO.end<Unit>(unit))
+    return unit
+  }
+  refl
+
+Cover.next.net_ws: Net.ws_connect("") == IO {
+    get raw = IO.ask<String>("ws_connect", "", (t) IO.end<String>(t))
+    return Net.decode_conn(raw)
+  }
+  refl
+
+Cover.next.string_to_bits_empty: String.to_bits("") == Bits.e
+  refl
+
+Cover.next.string_fold_empty: String.fold("")<Nat>(0, (c) (n) n) == 0
+  refl
+
+Cover.next.cfg_merge_json: Sure.Cfg.merge_json(JSON.null, JSON.null) == JSON.null
+  refl
+
+Cover.next.debug_bit_off: Sure.Debug.Flags.bit(false, "host", "") == ""
+  refl
+
+Cover.next.debug_bit_on: Sure.Debug.Flags.bit(true, "host", "") == "host"
+  refl
+
+Cover.next.qc_show_list_nil: Sure.Qc.Val.show_list([]) == "[]"
+  refl
+
+Cover.next.qc_gen_string_0: Sure.Qc.gen.string(0) == ""
+  refl
+
+Cover.next.qc_gen_list_0: Sure.Qc.gen.list(Sure.Qc.Sort.nat, 0) == []
+  refl
+
+Cover.next.ssr_hdr_redirect: Sure.Ssr.hdr_redirect("/") == Sure.Ssr.hdr(Sure.Ssr.ctype.text) | "\nLocation: /"
+  refl
+
+Cover.next.ssr_decode_unit_ok: Sure.Ssr.decode_unit("0\n") == Outcome.ok<Sure.Ssr.Err, Unit>(unit)
+  refl
+
+Cover.next.ssr_decode_unit_empty: Outcome.is_ok<Sure.Ssr.Err, Unit>(Sure.Ssr.decode_unit("")) == false
+  refl
+
+Cover.next.ssr_from_page_bad: Sure.Ssr.from_page(Sure.Ssr.bad) == Sure.Ssr.Reply.html(400, Sure.Ssr.html(Sure.Ssr.bad))
+  refl
+
+Cover.next.ssr_fire_nil: Sure.Ssr.fire([], Http.Server.Req.new("", "GET", "/", "", "")) == IO.end<Sure.Ssr.Reply>(Sure.Ssr.from_page(Sure.Ssr.not_found))
+  refl
+
+Cover.next.ssr_port_empty: Sure.Ssr.port(Sure.Cfg.empty) == Sure.Ssr.port_of(0)
+  refl
+
+Cover.next.task_timeout_err: Task.timeout_err == Outcome.err<Task.Err, Unit>(Task.Err.timeout)
+  refl
+
+Cover.next.task_timeout_ok: Task.timeout_ok == Outcome.ok<Task.Err, Unit>(unit)
+  refl
+
+Cover.next.task_pick_0: Task.timeout_pick(0) == Task.timeout_ok
+  refl
+
+Cover.next.task_pick_1: Task.timeout_pick(1) == Task.timeout_err
+  refl
+
+Cover.next.crypto_hash: Crypto.hash("") == Crypto.sha256("")
+  refl
+
+Cover.next.crypto_random: Crypto.random == IO.ask<F64>("get_random", "", (value) IO.end<F64>(F64.read(value)))
+  refl
+
+Cover.next.time_parts_show: List.length<(Time.Parts) -> String>([Time.Parts.show]) == 1
+  refl
+
+Cover.next.time_read_time_empty: Maybe.is_none<Time.Parts>(Time.Parts.read_time("", 1970, 1, 1)) == true
+  refl
+
+Cover.next.days_before_year_0: Time.days_before_year(0) == 0
+  refl
+
+Cover.next.days_before_year_epoch: Time.days_before_year(1970) == 0
+  refl
+
+Cover.next.proc_run: Proc.run("") == IO {
+    get raw = IO.ask<String>("proc_exec", "", (t) IO.end<String>(t))
+    return Proc.decode(raw)
+  }
+  refl
+
+Cover.next.task_sleep_0: Task.sleep(0) == IO {
+    get id = IO.job_start("sleep\n" | Nat.show(0))
+    IO.job_await(id)
+    return unit
+  }
+  refl
+
+Cover.next.task_cancel: Task.cancel(Task.Id.new("")) == IO {
+    IO.job_cancel("")
+    return unit
+  }
+  refl
+
+Cover.next.app_run: Http.App.run(0, []) == IO {
+    get l = Http.Server.listen(0)
+    case l {
+      err: IO {
+        return l
+      }
+      ok: IO {
+        Http.App.run.go(0, [])
+        return Http.Server.ok
+      }
+    }
+  }
+  refl
+
+Cover.next.ssr_run: Sure.Ssr.run(0, []) == IO {
+    get l = Http.Server.listen(0)
+    case l {
+      err: IO {
+        return l
+      }
+      ok: IO {
+        Sure.Ssr.run.go(0, [])
+        return Http.Server.ok
+      }
+    }
+  }
+  refl
+
+Cover.next.ssr_step: Sure.Ssr.step(0, []) == IO {
+    get raw = Http.Server.recv(0)
+    let parsed = Http.Server.parse(raw)
+    case parsed {
+      none: IO {
+        return false
+      }
+      some: IO {
+        get r = Sure.Ssr.fire([], parsed.value)
+        open parsed.value
+        Sure.Ssr.send(parsed.value.id, r)
+        return true
+      }
+    }
+  }
+  refl
+
+Cover.next.reply_ex: Http.Server.reply_ex("", 0, "", "") == IO {
+    IO.ask<Unit>("http_reply_ex", "\n0\n\n", (t) IO.end<Unit>(unit))
+    return unit
+  }
+  refl
+
+Cover.next.reply_hdr: Http.Server.reply_hdr("", 0, "", "") == IO {
+    IO.ask<Unit>("http_reply_hdr", "\n0\n\n\n", (t) IO.end<Unit>(unit))
+    return unit
+  }
+  refl
+
+Cover.next.serve_one: Http.Server.serve_one(0, (req) IO.end<Unit>(unit)) == IO {
+    get raw = Http.Server.recv(0)
+    let parsed = Http.Server.parse(raw)
+    case parsed {
+      none: IO {
+        return false
+      }
+      some: IO {
+        IO.end<Unit>(unit)
+        return true
+      }
+    }
+  }
+  refl
+
+Cover.next.env_bool: Sure.Env.bool("") == IO {
+    get r = Sure.Env.get("")
+    return case r {
+      err: Outcome.err<Sure.Env.Err, Bool>(r.error)
+      ok: Sure.Env.parse_bool(r.value)
+    }
+  }
+  refl
+
+Cover.next.cfg_merge_map: Sure.Cfg.merge_map(Map.new<JSON>, Map.new<JSON>) == Map.new<JSON>
+  refl
+
+Cover.next.ssr_document_empty: String.starts_with(Sure.Ssr.document("", Html.text("")), "<!DOCTYPE html>") == true
+  refl
+
+Cover.next.io_random: IO.random(1) == IO {
+    get seed = IO.get_time
+    let seed = Nat.random(seed)
+    return Nat.mod(seed, 1)
+  }
+  refl
+

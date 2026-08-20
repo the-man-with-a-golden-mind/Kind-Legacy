@@ -1,0 +1,2 @@
+Sure.Ssr.ok_url.slash: Sure.Ssr.ok_url("/") == true
+  refl

@@ -1,0 +1,2 @@
+Sure.Cfg.flag.empty: Sure.Cfg.flag(Sure.Cfg.empty, "") == false
+  refl

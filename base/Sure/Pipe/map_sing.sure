@@ -1,0 +1,2 @@
+Sure.Pipe.map_sing(n: Nat): Sure.Pipe.map<Nat, Nat>(Nat.succ, Sure.Qc.List.sing(n)) == Sure.Qc.List.sing(Nat.succ(n))
+  refl

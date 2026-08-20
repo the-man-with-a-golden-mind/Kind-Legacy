@@ -1,0 +1,2 @@
+Bytes.is_empty(b: Bytes): Bool
+  List.is_empty<U8>(b)

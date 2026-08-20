@@ -1,0 +1,2 @@
+JSON.dec.list.empty: JSON.dec.list<Bool>(JSON.dec.bool, JSON.array([])) == some([])
+  refl

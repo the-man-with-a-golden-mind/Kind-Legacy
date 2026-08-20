@@ -1,0 +1,2 @@
+DOM.prop_attr.click: DOM.prop_attr.one(Pair.new<String, String>("on-click", "inc")) == " data-sure-on-click=\"inc\""
+  refl

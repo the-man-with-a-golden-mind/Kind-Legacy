@@ -1,0 +1,2 @@
+Sure.Debug.Flags.read.upper: Sure.Debug.Flags.host(Sure.Debug.Flags.read("HOST")) == false
+  refl

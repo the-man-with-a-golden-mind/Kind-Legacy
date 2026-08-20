@@ -1,0 +1,2 @@
+Sure.Check.nat_junk: Nat.read("x") == 0
+  refl

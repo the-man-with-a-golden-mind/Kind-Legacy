@@ -1,0 +1,6 @@
+Net.decode_conn.ok:
+  case Net.decode_conn("0\n1") as o {
+    err: ""
+    ok: o.value@id
+  } == "1"
+  refl

@@ -1,0 +1,2 @@
+Sure.Mod.module_name.comment: Sure.Mod.module_name("// module Foo exposing (..)") == "Foo"
+  refl

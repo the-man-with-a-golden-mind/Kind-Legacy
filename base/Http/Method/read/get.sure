@@ -1,0 +1,2 @@
+Http.Method.read.get: Http.Method.read("GET") == some(Http.Method.get)
+  refl

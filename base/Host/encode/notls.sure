@@ -1,0 +1,2 @@
+Host.encode.notls: Host.encode(Host.Op.tcp_connect("", 0, false)) == Pair.new<String, String>("tcp_connect", "\n0\n0")
+  refl

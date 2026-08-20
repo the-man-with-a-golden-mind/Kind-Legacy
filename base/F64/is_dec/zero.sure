@@ -1,0 +1,2 @@
+F64.is_dec.zero: F64.is_dec("0") == true
+  refl

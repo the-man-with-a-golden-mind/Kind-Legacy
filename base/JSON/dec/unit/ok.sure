@@ -1,0 +1,2 @@
+JSON.dec.unit.ok: JSON.dec.unit(JSON.null) == some(unit)
+  refl

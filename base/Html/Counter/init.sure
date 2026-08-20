@@ -1,0 +1,2 @@
+Html.Counter.init: Html.Client.init_of<Nat>(Html.Counter.client) == 0
+  refl

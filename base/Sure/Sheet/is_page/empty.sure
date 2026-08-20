@@ -1,0 +1,2 @@
+Sure.Sheet.is_page.empty: Sure.Sheet.is_page("") == true
+  refl

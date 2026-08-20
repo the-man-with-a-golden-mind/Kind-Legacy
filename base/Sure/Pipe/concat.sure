@@ -1,0 +1,2 @@
+Sure.Pipe.concat<A: Type>(xs: List<A>, ys: List<A>): List<A>
+  List.concat<A>(xs, ys)

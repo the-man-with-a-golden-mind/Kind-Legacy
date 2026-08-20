@@ -1,0 +1,13 @@
+Date.is_leap(year: Nat): Bool
+  case (year % 4) {
+    zero:
+      case (year % 100) {
+        zero:
+          case (year % 400) {
+            zero: true
+            succ: false
+          }
+        succ: true
+      }
+    succ: false
+  }

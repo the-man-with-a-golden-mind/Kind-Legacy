@@ -1,0 +1,2 @@
+Sure.Sse.Err.show.empty_bus: Sure.Sse.Err.show(Sure.Sse.Err.empty_bus) == "empty_bus"
+  refl

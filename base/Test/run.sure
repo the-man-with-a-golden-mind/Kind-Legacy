@@ -1,0 +1,39 @@
+Test.run(t: Test): IO<Test.Stats>
+  case t {
+    unit:
+      case t.result {
+        pass:
+          IO {
+            IO.print("ok   " | t.name)
+            return Test.Stats.new(1, 0)
+          }
+        fail:
+          IO {
+            IO.print("FAIL " | t.name | ": " | t.result.message)
+            return Test.Stats.new(0, 1)
+          }
+      }
+    io:
+      IO {
+        get result = t.act
+        Test.run(Test.unit(t.name, result))
+      }
+    group:
+      IO {
+        IO.print(t.name)
+        Test.run_list(t.tests, Test.Stats.zero)
+      }
+  }
+
+Test.run_list(ts: List<Test>, acc: Test.Stats): IO<Test.Stats>
+  case ts {
+    nil:
+      IO {
+        return acc
+      }
+    cons:
+      IO {
+        get s = Test.run(ts.head)
+        Test.run_list(ts.tail, Test.Stats.add(acc, s))
+      }
+  }

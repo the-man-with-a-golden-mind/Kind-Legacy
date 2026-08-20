@@ -1,0 +1,2 @@
+Host.unsafe.ask.def(query: String, param: String): Host.unsafe.ask(query, param) == IO.get(query, param)
+  refl

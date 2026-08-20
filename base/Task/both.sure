@@ -1,0 +1,6 @@
+Task.both<A: Type, B: Type>(a: IO<A>, b: IO<B>): IO<Pair<A, B>>
+  IO {
+    get x = a
+    get y = b
+    return Pair.new<A, B>(x, y)
+  }

@@ -1,0 +1,30 @@
+Html.all: Unit
+  let t0 = Html.Tag.show.div
+  let t1 = Html.Tag.show.br
+  let t2 = Html.Tag.void.br
+  let t3 = Html.Tag.void.div
+  let t4 = Html.Tag.read.empty
+  let t5 = Html.Tag.read.junk
+  let t6 = Html.Tag.read.div
+  let e0 = Html.Event.show.click
+  let e1 = Html.Event.show.submit
+  let e2 = Html.Event.show.visibilitychange
+  let e3 = Html.Event.read.empty
+  let e4 = Html.Event.read.junk
+  let e5 = Html.Event.read.click
+  let x0 = Html.escape.empty
+  let x1 = Html.escape.lt
+  let x2 = Html.escape.amp
+  let x3 = Html.escape.quot
+  let d0 = DOM.render.text_empty
+  let d1 = DOM.render.text_a
+  let d2 = DOM.prop_attr.click
+  let v0 = Html.void_name.empty
+  let v1 = Html.void_name.input
+  let c0 = Html.Client.wire.inc
+  let c1 = Html.Counter.init
+  let c2 = Html.Echo.init
+  let ev = Html.Event.Data.nat.junk
+  let p0 = Html.Event.Data.parse.empty
+  let j0 = JSON.all
+  unit

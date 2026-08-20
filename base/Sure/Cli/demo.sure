@@ -1,0 +1,11 @@
+Sure.Cli.demo: IO<Unit>
+  IO {
+    get c = Sure.Cli.load
+    let n = Nat.show(Sure.Cli.count(c))
+    let f = if Sure.Cli.flag(c, "x") then "x" else "-"
+    let v = case Sure.Cli.get(c, "x") as g {
+      none: ""
+      some: g.value
+    }
+    IO.print(n | " " | f | v)
+  }

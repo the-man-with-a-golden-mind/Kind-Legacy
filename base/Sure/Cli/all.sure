@@ -1,0 +1,14 @@
+Sure.Cli.all: Unit
+  let t0 = Sure.Cli.tokens.empty
+  let p0 = Sure.Cli.parse.empty
+  let p1 = Sure.Cli.parse_line.empty
+  let p2 = Sure.Cli.parse.rest
+  let p3 = Sure.Cli.parse.end
+  let p4 = Sure.Cli.parse.junk
+  let f0 = Sure.Cli.flag.empty
+  let f1 = Sure.Cli.flag.miss
+  let f2 = Sure.Cli.flag.on
+  let g0 = Sure.Cli.get.empty
+  let g1 = Sure.Cli.get.eq
+  let n0 = Sure.Cli.nth.empty
+  unit

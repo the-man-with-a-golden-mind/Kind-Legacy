@@ -1,0 +1,5 @@
+Test.main: IO<Unit>
+  IO {
+    get stats = Test.run(Test.suite)
+    Test.finish(stats)
+  }

@@ -1,0 +1,2 @@
+Sure.Pipe.first_nil: Maybe.is_none<Nat>(Sure.Pipe.first<Nat>([])) == true
+  refl

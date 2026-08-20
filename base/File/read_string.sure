@@ -1,0 +1,9 @@
+File.read_string(s: String): IO<Outcome<File.Err, String>>
+  case Path.from_string(s) as p {
+    err:
+      IO {
+        return File.bad_string(p.error)
+      }
+    ok:
+      File.read(p.value)
+  }

@@ -1,0 +1,4 @@
+// Exit the process with a numeric status. The host must honor the code.
+IO.exit_with(code: Nat): IO<Unit>
+  IO.ask<Unit>("exit", Nat.show(code), (ok)
+  IO.end<Unit>(Unit.new))

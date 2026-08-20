@@ -1,0 +1,2 @@
+Task.bind<A: Type, B: Type>(a: IO<A>, f: A -> IO<B>): IO<B>
+  IO.bind<A, B>(a, f)

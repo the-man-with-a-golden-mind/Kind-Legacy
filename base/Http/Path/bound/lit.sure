@@ -1,0 +1,2 @@
+Http.Path.bound.lit: Http.Path.match("/ping", "/ping/extra") == none
+  refl

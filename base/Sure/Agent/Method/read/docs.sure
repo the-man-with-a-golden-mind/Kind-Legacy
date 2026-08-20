@@ -1,0 +1,2 @@
+Sure.Agent.Method.read.docs: Sure.Agent.Method.read("sure.docs") == some(Sure.Agent.Method.docs)
+  refl

@@ -1,0 +1,6 @@
+Nat.parse_decimal.all: Unit
+  let e0 = Nat.parse_decimal.empty
+  let j0 = Nat.parse_decimal.junk
+  let s0 = Nat.parse_decimal.stop
+  let d0 = Nat.parse_decimal.dec42
+  unit

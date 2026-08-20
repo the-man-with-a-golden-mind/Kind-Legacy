@@ -1,0 +1,2 @@
+Sure.Mod.Sort.read.empty: Maybe.is_none<Sure.Mod.Sort>(Sure.Mod.Sort.read("")) == true
+  refl

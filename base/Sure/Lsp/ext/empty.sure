@@ -1,0 +1,2 @@
+Sure.Lsp.ext.empty: Sure.Lsp.ext("") == false
+  refl

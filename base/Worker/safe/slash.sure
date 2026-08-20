@@ -1,0 +1,2 @@
+Worker.safe.slash: Worker.safe("a/b") == false
+  refl

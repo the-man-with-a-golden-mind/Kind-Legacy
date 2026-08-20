@@ -1,0 +1,34 @@
+// Turn a value into JSON. Nat is a decimal string so it stays exact.
+JSON.enc.unit: JSON
+  JSON.null
+
+JSON.enc.bool(b: Bool): JSON
+  JSON.bool(b)
+
+JSON.enc.string(s: String): JSON
+  JSON.string(s)
+
+JSON.enc.nat(n: Nat): JSON
+  JSON.string(Nat.show(n))
+
+JSON.enc.f64(x: F64): JSON
+  JSON.number(x)
+
+JSON.enc.list<A: Type>(enc: A -> JSON, xs: List<A>): JSON
+  JSON.array(List.map<A, JSON>(enc, xs))
+
+JSON.enc.pair<A: Type, B: Type>(enc_a: A -> JSON, enc_b: B -> JSON, p: Pair<A, B>): JSON
+  open p
+  JSON.array([enc_a(p.fst), enc_b(p.snd)])
+
+JSON.enc.maybe<A: Type>(enc: A -> JSON, m: Maybe<A>): JSON
+  case m {
+    none: JSON.null
+    some: JSON.object(Map.from_list<JSON>([{"some", enc(m.value)}]))
+  }
+
+JSON.enc.either<A: Type, B: Type>(enc_a: A -> JSON, enc_b: B -> JSON, e: Either<A, B>): JSON
+  case e {
+    left: JSON.object(Map.from_list<JSON>([{"left", enc_a(e.value)}]))
+    right: JSON.object(Map.from_list<JSON>([{"right", enc_b(e.value)}]))
+  }

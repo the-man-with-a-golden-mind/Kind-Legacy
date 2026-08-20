@@ -1,0 +1,2 @@
+Sure.Build.fresh.empty: Sure.Build.fresh("", "") == false
+  refl

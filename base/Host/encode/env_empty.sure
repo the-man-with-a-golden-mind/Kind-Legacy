@@ -1,0 +1,2 @@
+Host.encode.env_empty: Host.encode(Host.Op.env_get("")) == Pair.new<String, String>("get_env", "")
+  refl

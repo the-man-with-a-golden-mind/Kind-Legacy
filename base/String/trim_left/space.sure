@@ -1,0 +1,2 @@
+String.trim_left.space: String.trim_left(" a") == "a"
+  refl

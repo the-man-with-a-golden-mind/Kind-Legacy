@@ -1,0 +1,5 @@
+String.take.zero(xs: String): String.take(0, xs) == ""
+  case xs {
+    nil: refl
+    cons: refl
+  }!

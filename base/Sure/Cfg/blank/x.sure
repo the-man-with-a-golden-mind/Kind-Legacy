@@ -1,0 +1,2 @@
+Sure.Cfg.blank.x: Sure.Cfg.blank("x") == false
+  refl

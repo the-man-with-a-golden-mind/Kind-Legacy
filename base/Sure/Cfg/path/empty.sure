@@ -1,0 +1,2 @@
+Sure.Cfg.path.empty: Maybe.is_none<JSON>(Sure.Cfg.path(Sure.Cfg.empty, [])) == false
+  refl

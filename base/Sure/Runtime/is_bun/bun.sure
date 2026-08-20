@@ -1,0 +1,2 @@
+Sure.Runtime.is_bun.bun: Sure.Runtime.is_bun(Sure.Runtime.bun) == true
+  refl

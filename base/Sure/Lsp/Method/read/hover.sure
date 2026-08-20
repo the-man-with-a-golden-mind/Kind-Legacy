@@ -1,0 +1,2 @@
+Sure.Lsp.Method.read.hover: Sure.Lsp.Method.read("textDocument/hover") == some(Sure.Lsp.Method.hover)
+  refl

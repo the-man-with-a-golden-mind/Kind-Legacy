@@ -1,0 +1,2 @@
+Proc.decode.hi: Proc.decode.code("0\n0\nhi") == 0
+  refl

@@ -1,0 +1,5 @@
+Http.Server.parse.cookie(raw: String): String
+  case Http.Server.parse(raw) as got {
+    none: ""
+    some: got.value@cookie
+  }

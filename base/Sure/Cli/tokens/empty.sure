@@ -1,0 +1,2 @@
+Sure.Cli.tokens.empty: List.length<String>(Sure.Cli.tokens("")) == 0
+  refl

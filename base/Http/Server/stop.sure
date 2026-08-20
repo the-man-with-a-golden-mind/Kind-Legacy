@@ -1,0 +1,5 @@
+Http.Server.stop(port: Nat): IO<Unit>
+  IO {
+    IO.ask<Unit>("http_stop", Nat.show(port), (t) IO.end<Unit>(unit))
+    return unit
+  }

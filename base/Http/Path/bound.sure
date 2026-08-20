@@ -1,0 +1,5 @@
+Http.Path.bound(pattern: String, url: String, name: String): String
+  case Http.Path.match(pattern, url) as got {
+    none: ""
+    some: Http.Path.lookup(name, got.value)
+  }

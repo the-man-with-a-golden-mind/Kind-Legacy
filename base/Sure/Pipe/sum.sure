@@ -1,0 +1,2 @@
+Sure.Pipe.sum(xs: List<Nat>): Nat
+  Sure.Pipe.fold<Nat, Nat>(0, Nat.add, xs)

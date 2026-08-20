@@ -1,0 +1,2 @@
+Db.Cmd.read.get: Db.Cmd.read("GET k") == some(Db.Cmd.get("k"))
+  refl

@@ -1,0 +1,14 @@
+Sure.api.io.check_code_json(code: String): IO<String>
+  case Sure.Defs.read("Main.sure", code, Sure.Map.new!) as read {
+    left:
+      IO {
+        return "{\"ok\":false,\"diagnostics\":[{\"error\":{\"code\":\"parse\",\"message\":"
+          | Sure.Json.string(read.value) | "}}]}"
+      }
+    right: IO {
+      let defs = read.value
+      let nams = List.mapped!(BitsMap.keys!(defs))!(Sure.Name.from_bits)
+      get defs = Sure.Synth.many(nams, defs)
+      return Sure.Defs.report_json(defs, nams)
+    }
+  }

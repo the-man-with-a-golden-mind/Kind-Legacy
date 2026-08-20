@@ -1,0 +1,2 @@
+Sure.Qc.Bool.not_not_true: Bool.not(Bool.not(true)) == true
+  refl

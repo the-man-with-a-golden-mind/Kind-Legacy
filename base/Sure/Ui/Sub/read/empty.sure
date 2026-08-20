@@ -1,0 +1,2 @@
+Sure.Ui.Sub.read.empty: Sure.Ui.Sub.is_none(Sure.Ui.Sub.read("")) == true
+  refl

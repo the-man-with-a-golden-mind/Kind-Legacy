@@ -1,0 +1,91 @@
+// Rewrite free refs. Binders are already vars. Used after `module M` to turn
+// local `ok_user` into `M.ok_user` without touching Nat.add.
+Sure.Term.qualify(resolve: Sure.Name -> Sure.Name, term: Sure.Term): Sure.Term
+  case term {
+    var: term
+    ref: Sure.Term.ref(resolve(term.name))
+    typ: Sure.Term.typ
+    all:
+      Sure.Term.all(
+        term.eras,
+        term.self,
+        term.name,
+        Sure.Term.qualify(resolve, term.xtyp),
+        (s, x) Sure.Term.qualify(resolve, term.body(s, x))
+      )
+    lam:
+      Sure.Term.lam(term.name, (x) Sure.Term.qualify(resolve, term.body(x)))
+    app:
+      Sure.Term.app(
+        Sure.Term.qualify(resolve, term.func),
+        Sure.Term.qualify(resolve, term.argm)
+      )
+    let:
+      Sure.Term.let(
+        term.name,
+        Sure.Term.qualify(resolve, term.expr),
+        (x) Sure.Term.qualify(resolve, term.body(x))
+      )
+    def:
+      Sure.Term.def(
+        term.name,
+        Sure.Term.qualify(resolve, term.expr),
+        (x) Sure.Term.qualify(resolve, term.body(x))
+      )
+    ann:
+      Sure.Term.ann(
+        term.done,
+        Sure.Term.qualify(resolve, term.term),
+        Sure.Term.qualify(resolve, term.type)
+      )
+    gol: term
+    hol: term
+    nat: term
+    chr: term
+    str: term
+    num: term
+    cse:
+      let expr = Sure.Term.qualify(resolve, term.expr)
+      let wyth = List.map<Sure.Ann, Sure.Ann>((w)
+        open w
+        Sure.Ann.new(
+          w.name,
+          Sure.Term.qualify(resolve, w.term),
+          case w.type {
+            none: none
+            some: some(Sure.Term.qualify(resolve, w.type.value))
+          }
+        ), term.with)
+      let cses = BitsMap.map<Sure.Term, Sure.Term>(Sure.Term.qualify(resolve), term.cses)
+      let moti = case term.moti {
+        none: none
+        some: some(Sure.Term.qualify(resolve, term.moti.value))
+      }
+      Sure.Term.cse(term.path, expr, term.name, wyth, cses, moti)
+    new:
+      Sure.Term.new(List.map<Sure.Term, Sure.Term>(Sure.Term.qualify(resolve), term.args))
+    get:
+      Sure.Term.get(Sure.Term.qualify(resolve, term.expr), term.fkey)
+    set:
+      Sure.Term.set(
+        Sure.Term.qualify(resolve, term.expr),
+        term.fkey,
+        Sure.Term.qualify(resolve, term.fval)
+      )
+    mut:
+      Sure.Term.mut(
+        Sure.Term.qualify(resolve, term.expr),
+        term.fkey,
+        Sure.Term.qualify(resolve, term.ffun)
+      )
+    ope:
+      Sure.Term.ope(
+        term.name,
+        Sure.Term.qualify(resolve, term.arg0),
+        Sure.Term.qualify(resolve, term.arg1)
+      )
+    imp:
+      Sure.Term.imp(Sure.Term.qualify(resolve, term.expr))
+    ori:
+      Sure.Term.ori(term.orig, Sure.Term.qualify(resolve, term.expr))
+  }

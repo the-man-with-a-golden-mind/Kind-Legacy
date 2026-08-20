@@ -1,0 +1,2 @@
+Sure.Pipe.any<A: Type>(f: A -> Bool, xs: List<A>): Bool
+  List.any<A>(f, xs)

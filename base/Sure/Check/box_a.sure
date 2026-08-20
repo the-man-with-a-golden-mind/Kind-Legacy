@@ -1,0 +1,2 @@
+Sure.Check.box_a: Sure.Check.Box.a_of(Sure.Check.Box.new("", "2", "3", "4", "5")) == ""
+  refl

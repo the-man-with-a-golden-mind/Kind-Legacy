@@ -1,0 +1,2 @@
+Bytes.slice(i: Nat, j: Nat, b: Bytes): Bytes
+  List.take<U8>(Nat.sub(j, i), List.drop<U8>(i, b))

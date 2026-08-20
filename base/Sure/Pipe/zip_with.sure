@@ -1,0 +1,2 @@
+Sure.Pipe.zip_with<A: Type, B: Type, C: Type>(f: A -> B -> C, xs: List<A>, ys: List<B>): List<C>
+  List.zip_with<A, B, C>(f, xs, ys)

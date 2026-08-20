@@ -1,0 +1,10 @@
+// Deterministic generators. Samples stay small so Equal/refl still reduces.
+Sure.Gen.nat(i: Nat): Nat
+  case i {
+    zero: 0
+    succ:
+      case i.pred {
+        zero: 1
+        succ: i
+      }
+  }

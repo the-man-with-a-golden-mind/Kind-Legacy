@@ -1,0 +1,5 @@
+Outcome.http<E: Type, A: Type>(o: Outcome<E, A>, show: A -> String): Http.Response
+  case o {
+    err: Http.Response.new(404, "not found")
+    ok: Http.json(show(o.value))
+  }

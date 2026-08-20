@@ -1,0 +1,2 @@
+Host.Err.show.empty: Host.Err.show(Host.Err.empty) == "empty"
+  refl

@@ -1,0 +1,2 @@
+Net.decode_conn.empty: Outcome.is_ok<Net.Err, Net.Conn>(Net.decode_conn("")) == false
+  refl

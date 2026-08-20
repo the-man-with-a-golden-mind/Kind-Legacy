@@ -1,0 +1,2 @@
+Sure.Lsp.word.empty: Sure.Lsp.word("", 0) == ""
+  refl

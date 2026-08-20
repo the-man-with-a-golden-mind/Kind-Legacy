@@ -1,0 +1,2 @@
+Http.Server.reply_html(id: String, body: String): IO<Unit>
+  Http.Server.reply_ex(id, 200, "text/html; charset=utf-8", body)

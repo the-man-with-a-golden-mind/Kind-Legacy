@@ -1,0 +1,2 @@
+Sure.Pipe.drop<A: Type>(n: Nat, xs: List<A>): List<A>
+  List.drop<A>(n, xs)

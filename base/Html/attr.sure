@@ -1,0 +1,2 @@
+Html.attr(key: String, val: String, props: Map<String>): Map<String>
+  Map.set<String>(key, val, props)

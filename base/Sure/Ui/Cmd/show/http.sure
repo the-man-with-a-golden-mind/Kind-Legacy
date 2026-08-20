@@ -1,0 +1,2 @@
+Sure.Ui.Cmd.show.http: Sure.Ui.Cmd.show(Sure.Ui.Cmd.http("/u", "ok")) == "H\n/u\nok"
+  refl

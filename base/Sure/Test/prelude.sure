@@ -1,0 +1,23 @@
+// Small runtime checks for the stubs fixed in the takeover.
+Sure.Test.prelude: IO<Unit>
+  IO {
+    let hex = Nat.read_base(16, "ff")
+    let dec = Nat.read_base(10, "42")
+    let stop = Nat.read_base(10, "12x3")
+    let ok_hex = Nat.eql(hex, 255)
+    let ok_dec = Nat.eql(dec, 42)
+    let ok_stop = Nat.eql(stop, 12)
+    let sliced = String.slice(1, 4, "abcdef")
+    let ok_slice = String.eql(sliced, "bcd")
+    let suite = TestSuite.many("prelude", [
+      TestSuite.unit("Nat.read_base.hex",
+        IO { return if ok_hex then none else some("expected 255") }),
+      TestSuite.unit("Nat.read_base.dec",
+        IO { return if ok_dec then none else some("expected 42") }),
+      TestSuite.unit("Nat.read_base.stop",
+        IO { return if ok_stop then none else some("expected 12") }),
+      TestSuite.unit("String.slice",
+        IO { return if ok_slice then none else some("expected bcd") }),
+    ])
+    TestSuite.run(suite, 0)
+  }

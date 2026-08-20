@@ -1,0 +1,2 @@
+Http.Method.read.post: Http.Method.read("POST") == some(Http.Method.post)
+  refl

@@ -1,0 +1,2 @@
+Db.Dsl.row_key.empty: Maybe.is_none<String>(Db.Dsl.row_key("", "a")) == true
+  refl

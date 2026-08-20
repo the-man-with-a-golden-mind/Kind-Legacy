@@ -1,0 +1,2 @@
+Db.Dsl.show.count: Db.Dsl.show(Db.Dsl.count) == "COUNT"
+  refl

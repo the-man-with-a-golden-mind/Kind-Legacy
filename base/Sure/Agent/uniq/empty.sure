@@ -1,0 +1,2 @@
+Sure.Agent.uniq.empty: List.length<String>(Sure.Agent.uniq([])) == 0
+  refl

@@ -1,0 +1,2 @@
+Sure.Csv.show.empty: Sure.Csv.show([]) == ""
+  refl

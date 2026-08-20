@@ -1,0 +1,6 @@
+Db.close(conn: Db.Conn): IO<Unit>
+  open conn
+  IO {
+    IO.ask<Unit>("db_close", conn.id, (t) IO.end<Unit>(unit))
+    return unit
+  }

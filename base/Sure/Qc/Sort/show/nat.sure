@@ -1,0 +1,2 @@
+Sure.Qc.Sort.show.nat: Sure.Qc.Sort.show(Sure.Qc.Sort.nat) == "Nat"
+  refl

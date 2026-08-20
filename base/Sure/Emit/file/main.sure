@@ -1,0 +1,2 @@
+Sure.Emit.file.main: Sure.Emit.file("Main") == "dist/Main.js"
+  refl

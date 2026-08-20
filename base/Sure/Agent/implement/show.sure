@@ -1,0 +1,3 @@
+// `?implement` is an ordinary goal name, not a new primitive.
+Sure.Agent.implement.show: Sure.Agent.implement == "implement"
+  refl

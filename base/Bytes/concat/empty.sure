@@ -1,0 +1,2 @@
+Bytes.concat.empty: Bytes.concat([], []) == []
+  refl

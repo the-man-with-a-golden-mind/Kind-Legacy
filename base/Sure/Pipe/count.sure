@@ -1,0 +1,2 @@
+Sure.Pipe.count<A: Type>(xs: List<A>): Nat
+  List.length<A>(xs)

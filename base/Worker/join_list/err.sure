@@ -1,0 +1,5 @@
+Worker.join_list.err: Worker.join_list(
+  Outcome.err<Worker.Err, JSON>(Worker.Err.empty_name),
+  Outcome.ok<Worker.Err, List<JSON>>([])
+) == Outcome.err<Worker.Err, List<JSON>>(Worker.Err.empty_name)
+  refl

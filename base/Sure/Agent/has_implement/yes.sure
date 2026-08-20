@@ -1,0 +1,2 @@
+Sure.Agent.has_implement.yes: Sure.Agent.has_implement("n: Nat\n  ?implement") == true
+  refl

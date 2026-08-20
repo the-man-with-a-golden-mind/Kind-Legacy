@@ -1,0 +1,2 @@
+Sure.Repl.Cmd.read.empty: Maybe.is_none<Sure.Repl.Cmd>(Sure.Repl.Cmd.read("")) == true
+  refl

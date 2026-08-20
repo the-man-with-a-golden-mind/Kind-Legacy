@@ -1,0 +1,2 @@
+Sure.Qc.List.sing(n: Nat): List<Nat>
+  List.cons<Nat>(n, [])

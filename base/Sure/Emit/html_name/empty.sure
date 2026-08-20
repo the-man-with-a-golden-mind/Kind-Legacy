@@ -1,0 +1,2 @@
+Sure.Emit.html_name.empty: Sure.Emit.html_name("") == ""
+  refl

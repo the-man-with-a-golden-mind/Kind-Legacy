@@ -1,0 +1,6 @@
+Db.clear(conn: Db.Conn): IO<Outcome<Db.Err, Unit>>
+  open conn
+  IO {
+    get raw = IO.ask<String>("db_clear", conn.id, (t) IO.end<String>(t))
+    return Db.decode_unit(raw)
+  }

@@ -1,0 +1,2 @@
+Sure.Check.map_get: Map.get<Nat>("a", Map.set<Nat>("a", 1, Map.from_list<Nat>([]))) == some(1)
+  refl

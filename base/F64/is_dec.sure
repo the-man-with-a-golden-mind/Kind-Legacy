@@ -1,0 +1,42 @@
+F64.is_dec.exp(s: String): Bool
+  case s {
+    nil: true
+    cons:
+      if Bool.or(U16.eql(s.head, 'e'), U16.eql(s.head, 'E')) then
+        case s.tail {
+          nil: false
+          cons:
+            let body =
+              if Bool.or(U16.eql(s.tail.head, '+'), U16.eql(s.tail.head, '-')) then s.tail.tail
+              else s.tail
+            JSON.digits(body)
+        }
+      else false
+  }
+
+F64.is_dec.body(s: String): Bool
+  case s {
+    nil: false
+    cons:
+      let intp = String.take_while(Char.is_digit, s)
+      if String.is_empty(intp) then false
+      else
+        let rest = String.drop(String.length(intp), s)
+        case rest {
+          nil: true
+          cons:
+            if U16.eql(rest.head, '.') then
+              let frac = String.take_while(Char.is_digit, rest.tail)
+              if String.is_empty(frac) then false
+              else F64.is_dec.exp(String.drop(String.length(frac), rest.tail))
+            else F64.is_dec.exp(rest)
+        }
+  }
+
+F64.is_dec(s: String): Bool
+  case s {
+    nil: false
+    cons:
+      if U16.eql(s.head, '-') then F64.is_dec.body(s.tail)
+      else F64.is_dec.body(s)
+  }

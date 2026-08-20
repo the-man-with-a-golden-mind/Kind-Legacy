@@ -1,0 +1,2 @@
+Time.div.zero: Time.div(5, 0) == 0
+  refl

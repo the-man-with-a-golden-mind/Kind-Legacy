@@ -1,0 +1,2 @@
+Sure.Gen.nat.zero: Sure.Gen.nat(0) == 0
+  refl

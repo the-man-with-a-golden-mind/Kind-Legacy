@@ -1,0 +1,10 @@
+Sure.Term.reduce.spine.go(term: Sure.Term, acc: List<Sure.Term>): Pair<Sure.Term, List<Sure.Term>>
+  case term {
+    app: Sure.Term.reduce.spine.go(term.func, List.cons<Sure.Term>(term.argm, acc))
+    ori: Sure.Term.reduce.spine.go(term.expr, acc)
+    imp: Sure.Term.reduce.spine.go(term.expr, acc)
+    ann: Sure.Term.reduce.spine.go(term.term, acc)
+  } default Pair.new<Sure.Term, List<Sure.Term>>(term, acc)
+
+Sure.Term.reduce.spine(term: Sure.Term): Pair<Sure.Term, List<Sure.Term>>
+  Sure.Term.reduce.spine.go(term, [])

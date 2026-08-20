@@ -1,0 +1,8 @@
+Sure.Tweeter.demo: IO<Unit>
+  let m = Sure.Tweeter.init
+  let u = if String.is_empty(Sure.Tweeter.user_of(m)) then "anon" else "u"
+  let s = case Sure.Tweeter.sess_of(m) {
+    none: "none"
+    some: "sid"
+  }
+  IO.print(u | " " | s | " -")

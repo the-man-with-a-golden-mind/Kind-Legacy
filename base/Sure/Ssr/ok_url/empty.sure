@@ -1,0 +1,2 @@
+Sure.Ssr.ok_url.empty: Sure.Ssr.ok_url("") == false
+  refl

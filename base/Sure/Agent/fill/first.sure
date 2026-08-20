@@ -1,0 +1,10 @@
+// Fill the first `?implement` only. Later holes stay for the next repair step.
+Sure.Agent.fill.first(src: String, term: String): String
+  case String.split(src, "?implement") as xs {
+    nil: src
+    cons:
+      case xs.tail {
+        nil: xs.head
+        cons: xs.head | term | String.join("?implement", xs.tail)
+      }
+  }

@@ -1,0 +1,97 @@
+// Tabular text. Empty input is no rows. Unclosed quotes still yield a field.
+// A trailing newline does not add an extra row.
+
+Sure.Csv.Row: Type
+  List<String>
+
+Sure.Csv.need_quote.go(s: String): Bool
+  case s {
+    nil: false
+    cons:
+      if U16.eql(s.head, ',') then true
+      else if U16.eql(s.head, '"') then true
+      else if U16.eql(s.head, '\n') then true
+      else if U16.eql(s.head, '\r') then true
+      else Sure.Csv.need_quote.go(s.tail)
+  }
+
+Sure.Csv.need_quote(s: String): Bool
+  Sure.Csv.need_quote.go(s)
+
+Sure.Csv.escape(s: String): String
+  String.replace_all(s, "\"", "\"\"")
+
+Sure.Csv.field.show(s: String): String
+  if Sure.Csv.need_quote(s) then "\"" | Sure.Csv.escape(s) | "\""
+  else s
+
+Sure.Csv.row.show(row: Sure.Csv.Row): String
+  String.join(",", List.map<String, String>(Sure.Csv.field.show, row))
+
+Sure.Csv.show(rows: List<Sure.Csv.Row>): String
+  String.join("\n", List.map<Sure.Csv.Row, String>(Sure.Csv.row.show, rows))
+
+Sure.Csv.flush(field: String, row: Sure.Csv.Row): Sure.Csv.Row
+  List.reverse<String>(List.cons<String>(field, row))
+
+Sure.Csv.parse(s: String, field: String, row: Sure.Csv.Row, quoted: Bool): List<Sure.Csv.Row>
+  case s {
+    nil:
+      case row {
+        nil:
+          if String.is_empty(field) then []
+          else List.cons<Sure.Csv.Row>(List.cons<String>(field, []), [])
+        cons: List.cons<Sure.Csv.Row>(Sure.Csv.flush(field, row), [])
+      }
+    cons:
+      let c = s.head
+      let rest = s.tail
+      if quoted then
+        if U16.eql(c, '"') then
+          case rest {
+            nil: Sure.Csv.parse("", field, row, false)
+            cons:
+              if U16.eql(rest.head, '"') then
+                Sure.Csv.parse(rest.tail, field | "\"", row, true)
+              else
+                Sure.Csv.parse(rest, field, row, false)
+          }
+        else
+          Sure.Csv.parse(rest, field | Char.to_string(c), row, true)
+      else if U16.eql(c, '"') then
+        if String.is_empty(field) then Sure.Csv.parse(rest, field, row, true)
+        else Sure.Csv.parse(rest, field | "\"", row, false)
+      else if U16.eql(c, ',') then
+        Sure.Csv.parse(rest, "", List.cons<String>(field, row), false)
+      else if U16.eql(c, '\n') then
+        List.cons<Sure.Csv.Row>(Sure.Csv.flush(field, row), Sure.Csv.parse(rest, "", [], false))
+      else if U16.eql(c, '\r') then
+        Sure.Csv.parse(rest, field, row, false)
+      else
+        Sure.Csv.parse(rest, field | Char.to_string(c), row, false)
+  }
+
+Sure.Csv.read(s: String): List<Sure.Csv.Row>
+  Sure.Csv.parse(s, "", [], false)
+
+Sure.Csv.get(row: Sure.Csv.Row, i: Nat): Maybe<String>
+  List.at<String>(i, row)
+
+Sure.Csv.col(rows: List<Sure.Csv.Row>, i: Nat): List<String>
+  case rows {
+    nil: []
+    cons:
+      List.cons<String>(
+        Maybe.default<String>(Sure.Csv.get(rows.head, i), ""),
+        Sure.Csv.col(rows.tail, i)
+      )
+  }
+
+Sure.Csv.header(rows: List<Sure.Csv.Row>): Maybe<Sure.Csv.Row>
+  List.head<Sure.Csv.Row>(rows)
+
+Sure.Csv.body(rows: List<Sure.Csv.Row>): List<Sure.Csv.Row>
+  List.drop<Sure.Csv.Row>(1, rows)
+
+Sure.Csv.nats(rows: List<Sure.Csv.Row>, i: Nat): List<Nat>
+  Sure.Pipe.nats(Sure.Csv.col(rows, i))

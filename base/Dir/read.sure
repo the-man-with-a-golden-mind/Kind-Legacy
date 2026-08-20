@@ -1,0 +1,14 @@
+Dir.read.decode(raw: String): Outcome<File.Err, List<String>>
+  case Host.to_file(Host.decode(raw)) as o {
+    err: Outcome.err<File.Err, List<String>>(o.error)
+    ok: Outcome.ok<File.Err, List<String>>(Dir.names(o.value))
+  }
+
+Dir.read(path: Path): IO<Outcome<File.Err, List<String>>>
+  IO {
+    get e = Host.perform(Host.Op.fs_dir(Path.text(path)))
+    return case Host.to_file(e) as o {
+      err: Outcome.err<File.Err, List<String>>(o.error)
+      ok: Outcome.ok<File.Err, List<String>>(Dir.names(o.value))
+    }
+  }

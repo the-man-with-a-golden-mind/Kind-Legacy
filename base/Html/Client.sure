@@ -1,0 +1,35 @@
+// Page in the browser. `sure build --html Html.Counter.client` then open the HTML.
+// init is the model. draw is HTML. step gets a click and returns the next model.
+type Html.Client <M: Type> {
+  new(
+    init: M
+    draw: (m: M) -> String
+    step: (raw: String) -> (m: M) -> M
+  )
+}
+
+Html.Client.of<M: Type>(app: Html.App<M>): Html.Client<M>
+  open app
+  Html.Client.new<M>(
+    app.init,
+    (m) DOM.render(app.view(m)),
+    (raw) (m)
+      let ev = Html.Event.Data.parse(raw)
+      open ev
+      app.update(ev.msg, ev, m)
+  )
+
+Html.Client.init_of<M: Type>(c: Html.Client<M>): M
+  open c
+  c.init
+
+Html.Client.draw_of<M: Type>(c: Html.Client<M>, m: M): String
+  open c
+  c.draw(m)
+
+Html.Client.step_of<M: Type>(c: Html.Client<M>, raw: String, m: M): M
+  open c
+  c.step(raw, m)
+
+Html.Client.wire(kind: String, msg: String, target: String, value: String): String
+  kind | "\n" | msg | "\n" | target | "\n" | value | "\n\n0\n0\n0\n0\n0\n0\n0\n0"

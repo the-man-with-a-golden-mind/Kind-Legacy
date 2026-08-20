@@ -1,0 +1,5 @@
+Host.perform(op: Host.Op): IO<Host.Event>
+  let qp = Host.encode(op)
+  open qp
+  IO.ask<Host.Event>(qp.fst, qp.snd, (raw)
+    IO.end<Host.Event>(Host.decode(raw)))

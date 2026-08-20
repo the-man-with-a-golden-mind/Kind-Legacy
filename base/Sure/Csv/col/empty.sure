@@ -1,0 +1,2 @@
+Sure.Csv.col.empty: Sure.Csv.col([], 0) == []
+  refl

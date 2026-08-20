@@ -1,0 +1,2 @@
+Time.Duration.show.zero: Time.Duration.show(Time.Duration.zero) == "0ms"
+  refl

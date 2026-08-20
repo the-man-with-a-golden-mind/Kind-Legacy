@@ -1,0 +1,2 @@
+Sure.Env.ok_name.path: Sure.Env.ok_name("PATH") == true
+  refl

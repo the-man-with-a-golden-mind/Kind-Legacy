@@ -1,0 +1,2 @@
+Sure.Pipe.unique_nil: Sure.Pipe.unique<Nat>(Nat.eql, []) == []
+  refl

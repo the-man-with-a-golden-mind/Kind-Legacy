@@ -1,0 +1,2 @@
+Sure.Ui.join.empty: Sure.Ui.join([]) == ""
+  refl

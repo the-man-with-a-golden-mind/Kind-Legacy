@@ -1,0 +1,2 @@
+Sure.Agent.hole_count.two: Sure.Agent.hole_count("a?implementb?implementc") == 2
+  refl

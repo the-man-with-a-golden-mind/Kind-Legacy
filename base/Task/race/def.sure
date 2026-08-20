@@ -1,0 +1,7 @@
+Task.race.def: Task.race<Nat>(IO.end<Nat>(1), IO.end<Nat>(1)) ==
+  IO.race<Nat, Nat, Nat>(IO.end<Nat>(1), IO.end<Nat>(1), (e)
+    case e {
+      left: IO.end<Nat>(e.value)
+      right: IO.end<Nat>(e.value)
+    })
+  refl

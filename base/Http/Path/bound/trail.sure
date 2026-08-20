@@ -1,0 +1,2 @@
+Http.Path.bound.trail: Http.Path.bound("/user/:id", "/user/42/", "id") == "42"
+  refl

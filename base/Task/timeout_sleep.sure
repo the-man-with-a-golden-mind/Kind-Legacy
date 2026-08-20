@@ -1,0 +1,5 @@
+Task.timeout_sleep(limit: Nat, work: Nat): IO<Outcome<Task.Err, Unit>>
+  IO {
+    get done = Task.race_sleep(work, limit)
+    return Task.timeout_pick(done)
+  }

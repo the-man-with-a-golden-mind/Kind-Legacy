@@ -1,0 +1,96 @@
+type Time.Duration {
+  new(ms: Nat)
+}
+
+Time.Duration.ms_of(d: Time.Duration): Nat
+  open d
+  d.ms
+
+Time.Duration.zero: Time.Duration
+  Time.Duration.new(0)
+
+Time.Duration.milli(n: Nat): Time.Duration
+  Time.Duration.new(n)
+
+Time.Duration.sec(n: Nat): Time.Duration
+  Time.Duration.new(Nat.mul(n, Time.ms_sec))
+
+Time.Duration.min(n: Nat): Time.Duration
+  Time.Duration.new(Nat.mul(n, Nat.read("60000")))
+
+Time.Duration.hour(n: Nat): Time.Duration
+  Time.Duration.new(Nat.mul(n, Nat.read("3600000")))
+
+Time.Duration.day(n: Nat): Time.Duration
+  Time.Duration.new(Nat.mul(n, Nat.read("86400000")))
+
+Time.Duration.add(a: Time.Duration, b: Time.Duration): Time.Duration
+  open a
+  open b
+  Time.Duration.new(Nat.add(a.ms, b.ms))
+
+Time.Duration.sub(a: Time.Duration, b: Time.Duration): Time.Duration
+  open a
+  open b
+  Time.Duration.new(Nat.sub(a.ms, b.ms))
+
+Time.Duration.eql(a: Time.Duration, b: Time.Duration): Bool
+  open a
+  open b
+  Nat.eql(a.ms, b.ms)
+
+Time.Duration.ltn(a: Time.Duration, b: Time.Duration): Bool
+  open a
+  open b
+  Nat.ltn(a.ms, b.ms)
+
+Time.Duration.show(d: Time.Duration): String
+  open d
+  Nat.show(d.ms) | "ms"
+
+Time.Duration.read(s: String): Maybe<Time.Duration>
+  if String.is_empty(s) then none
+  else case Time.cut_suf(s, "ms") as m0 {
+    some:
+      case Parse.nat(m0.value) as n {
+        none: none
+        some: some(Time.Duration.milli(n.value))
+      }
+    none:
+      case Time.cut_suf(s, "d") as m1 {
+        some:
+          case Parse.nat(m1.value) as n {
+            none: none
+            some: some(Time.Duration.day(n.value))
+          }
+        none:
+          case Time.cut_suf(s, "h") as m2 {
+            some:
+              case Parse.nat(m2.value) as n {
+                none: none
+                some: some(Time.Duration.hour(n.value))
+              }
+            none:
+              case Time.cut_suf(s, "m") as m3 {
+                some:
+                  case Parse.nat(m3.value) as n {
+                    none: none
+                    some: some(Time.Duration.min(n.value))
+                  }
+                none:
+                  case Time.cut_suf(s, "s") as m4 {
+                    some:
+                      case Parse.nat(m4.value) as n {
+                        none: none
+                        some: some(Time.Duration.sec(n.value))
+                      }
+                    none:
+                      case Parse.nat(s) as n {
+                        none: none
+                        some: some(Time.Duration.milli(n.value))
+                      }
+                  }
+              }
+          }
+      }
+  }

@@ -1,0 +1,152 @@
+// Remaining Host.Err / to_file / to_env / as_outcome / perform borders.
+
+Host.adapt.show_missing: Host.Err.show(Host.Err.missing) == "missing"
+  refl
+
+Host.adapt.show_io: Host.Err.show(Host.Err.io("bad")) == "bad"
+  refl
+
+Host.adapt.show_bad_tag: Host.Err.show(Host.Err.bad_tag) == "bad host tag"
+  refl
+
+Host.adapt.file_err_empty: Host.to_file_err(Host.Err.empty) == File.Err.io("empty")
+  refl
+
+Host.adapt.file_err_missing: Host.to_file_err(Host.Err.missing) == File.Err.missing
+  refl
+
+Host.adapt.file_err_io: Host.to_file_err(Host.Err.io("bad")) == File.Err.io("bad")
+  refl
+
+Host.adapt.file_err_tag: Host.to_file_err(Host.Err.bad_tag) == File.Err.io("bad host tag")
+  refl
+
+Host.adapt.env_err_empty: Host.to_env_err(Host.Err.empty) == Sure.Env.Err.empty_name
+  refl
+
+Host.adapt.env_err_missing: Host.to_env_err(Host.Err.missing) == Sure.Env.Err.missing
+  refl
+
+Host.adapt.env_err_io: Host.to_env_err(Host.Err.io("bad")) == Sure.Env.Err.junk
+  refl
+
+Host.adapt.env_err_tag: Host.to_env_err(Host.Err.bad_tag) == Sure.Env.Err.junk
+  refl
+
+Host.adapt.to_file_io: Host.to_file(Host.decode("1\nbad")) == Outcome.err<File.Err, String>(File.Err.io("bad"))
+  refl
+
+Host.adapt.to_file_not_found: Host.to_file(Host.decode("1\nnot found")) == Outcome.err<File.Err, String>(File.Err.missing)
+  refl
+
+Host.adapt.to_file_empty_name: Host.to_file(Host.decode("1\nempty_name")) == Outcome.err<File.Err, String>(File.Err.io("empty"))
+  refl
+
+Host.adapt.to_file_ok_empty: Host.to_file(Host.decode("0\n")) == Outcome.ok<File.Err, String>("")
+  refl
+
+Host.adapt.to_file_unit_junk: Host.to_file_unit(Host.decode("nope")) == Outcome.ok<File.Err, Unit>(unit)
+  refl
+
+Host.adapt.to_file_unit_err_empty: Host.to_file_unit(Host.decode("1\n")) == Outcome.err<File.Err, Unit>(File.Err.io("empty"))
+  refl
+
+Host.adapt.to_file_unit_host_missing: Host.to_file_unit(Host.decode("1\nmissing")) == Outcome.err<File.Err, Unit>(File.Err.missing)
+  refl
+
+Host.adapt.to_file_unit_io: Host.to_file_unit(Host.decode("1\nbad")) == Outcome.err<File.Err, Unit>(File.Err.io("bad"))
+  refl
+
+Host.adapt.to_env_enoent: Host.to_env(Host.decode("1\nENOENT")) == Outcome.err<Sure.Env.Err, String>(Sure.Env.Err.missing)
+  refl
+
+Host.adapt.to_env_not_found: Host.to_env(Host.decode("1\nnot found")) == Outcome.err<Sure.Env.Err, String>(Sure.Env.Err.missing)
+  refl
+
+Host.adapt.to_env_untagged: Host.to_env(Host.decode("nope")) == Outcome.ok<Sure.Env.Err, String>("nope")
+  refl
+
+Host.adapt.to_env_err_empty: Host.to_env(Host.decode("1\n")) == Outcome.err<Sure.Env.Err, String>(Sure.Env.Err.empty_name)
+  refl
+
+Host.adapt.to_env_unit_missing: Host.to_env_unit(Host.decode("1\nmissing")) == Outcome.err<Sure.Env.Err, Unit>(Sure.Env.Err.missing)
+  refl
+
+Host.adapt.to_env_unit_empty_name: Host.to_env_unit(Host.decode("1\nempty_name")) == Outcome.err<Sure.Env.Err, Unit>(Sure.Env.Err.empty_name)
+  refl
+
+Host.adapt.to_env_unit_junk: Host.to_env_unit(Host.decode("1\nbad")) == Outcome.err<Sure.Env.Err, Unit>(Sure.Env.Err.junk)
+  refl
+
+Host.adapt.to_env_unit_untagged: Host.to_env_unit(Host.decode("nope")) == Outcome.ok<Sure.Env.Err, Unit>(unit)
+  refl
+
+Host.adapt.as_outcome_missing: Host.as_outcome(Host.err(Host.Err.missing)) == Outcome.err<Host.Err, String>(Host.Err.missing)
+  refl
+
+Host.adapt.as_outcome_io: Host.as_outcome(Host.err(Host.Err.io("bad"))) == Outcome.err<Host.Err, String>(Host.Err.io("bad"))
+  refl
+
+Host.adapt.as_outcome_tag: Host.as_outcome(Host.err(Host.Err.bad_tag)) == Outcome.err<Host.Err, String>(Host.Err.bad_tag)
+  refl
+
+Host.adapt.perform_cwd: Host.perform(Host.Op.cwd) == IO.ask<Host.Event>("cwd", "", (raw) IO.end<Host.Event>(Host.decode(raw)))
+  refl
+
+Host.adapt.perform_yield: Host.perform(Host.Op.yield) == IO.ask<Host.Event>("yield", "", (raw) IO.end<Host.Event>(Host.decode(raw)))
+  refl
+
+Host.adapt.perform_env_keys: Host.perform(Host.Op.env_keys) == IO.ask<Host.Event>("env_keys", "", (raw) IO.end<Host.Event>(Host.decode(raw)))
+  refl
+
+Host.adapt.perform_fs_read: Host.perform(Host.Op.fs_read("")) == IO.ask<Host.Event>("fs_read_ex", "", (raw) IO.end<Host.Event>(Host.decode(raw)))
+  refl
+
+Host.adapt.perform_env_get: Host.perform(Host.Op.env_get("")) == IO.ask<Host.Event>("get_env", "", (raw) IO.end<Host.Event>(Host.decode(raw)))
+  refl
+
+Host.adapt.perform_fs_dir: Host.perform(Host.Op.fs_dir("")) == IO.ask<Host.Event>("get_dir_ex", "", (raw) IO.end<Host.Event>(Host.decode(raw)))
+  refl
+
+Host.adapt.perform_sleep0: Host.perform(Host.Op.sleep(0)) == IO.ask<Host.Event>("sleep", "0", (raw) IO.end<Host.Event>(Host.decode(raw)))
+  refl
+
+Host.adapt: Unit
+  let s0 = Host.adapt.show_missing
+  let s1 = Host.adapt.show_io
+  let s2 = Host.adapt.show_bad_tag
+  let f0 = Host.adapt.file_err_empty
+  let f1 = Host.adapt.file_err_missing
+  let f2 = Host.adapt.file_err_io
+  let f3 = Host.adapt.file_err_tag
+  let e0 = Host.adapt.env_err_empty
+  let e1 = Host.adapt.env_err_missing
+  let e2 = Host.adapt.env_err_io
+  let e3 = Host.adapt.env_err_tag
+  let t0 = Host.adapt.to_file_io
+  let t1 = Host.adapt.to_file_not_found
+  let t2 = Host.adapt.to_file_empty_name
+  let t3 = Host.adapt.to_file_ok_empty
+  let u0 = Host.adapt.to_file_unit_junk
+  let u1 = Host.adapt.to_file_unit_err_empty
+  let u2 = Host.adapt.to_file_unit_host_missing
+  let u3 = Host.adapt.to_file_unit_io
+  let n0 = Host.adapt.to_env_enoent
+  let n1 = Host.adapt.to_env_not_found
+  let n2 = Host.adapt.to_env_untagged
+  let n3 = Host.adapt.to_env_err_empty
+  let v0 = Host.adapt.to_env_unit_missing
+  let v1 = Host.adapt.to_env_unit_empty_name
+  let v2 = Host.adapt.to_env_unit_junk
+  let v3 = Host.adapt.to_env_unit_untagged
+  let o0 = Host.adapt.as_outcome_missing
+  let o1 = Host.adapt.as_outcome_io
+  let o2 = Host.adapt.as_outcome_tag
+  let p0 = Host.adapt.perform_cwd
+  let p1 = Host.adapt.perform_yield
+  let p2 = Host.adapt.perform_env_keys
+  let p3 = Host.adapt.perform_fs_read
+  let p4 = Host.adapt.perform_env_get
+  let p5 = Host.adapt.perform_fs_dir
+  let p6 = Host.adapt.perform_sleep0
+  unit

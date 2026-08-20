@@ -1,0 +1,2 @@
+Sure.Runtime.read.node: Sure.Runtime.read("node") == some(Sure.Runtime.node)
+  refl

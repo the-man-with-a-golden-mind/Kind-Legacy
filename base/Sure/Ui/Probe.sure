@@ -1,0 +1,49 @@
+// Effect probe for Cmd/Sub. Empty model. Unknown messages leave the model.
+
+Sure.Ui.Probe.view(s: String): DOM
+  Html.div(Map.new<String>, [
+    Html.button("go", [Html.text("go")]),
+    Html.button("net", [Html.text("net")]),
+    Html.button("wait", [Html.text("wait")]),
+    Html.button("pack", [Html.text("pack")]),
+    Html.button("subon", [Html.text("subon")]),
+    Html.button("suboff", [Html.text("suboff")]),
+    Html.button("eson", [Html.text("eson")]),
+    Html.p([Html.text(s)])
+  ])
+
+Sure.Ui.Probe.update(msg: String, ev: Html.Event.Data, s: String): Pair<String, Sure.Ui.Cmd>
+  if String.eql(msg, "go") then Pair.new<String, Sure.Ui.Cmd>(s, Sure.Ui.Cmd.push("plus"))
+  else if String.eql(msg, "plus") then Pair.new<String, Sure.Ui.Cmd>(s | "+", Sure.Ui.Cmd.none)
+  else if String.eql(msg, "net") then Pair.new<String, Sure.Ui.Cmd>(s, Sure.Ui.Cmd.http("/u", "got"))
+  else if String.eql(msg, "got") then
+    open ev
+    Pair.new<String, Sure.Ui.Cmd>(ev.value, Sure.Ui.Cmd.none)
+  else if String.eql(msg, "wait") then Pair.new<String, Sure.Ui.Cmd>(s, Sure.Ui.Cmd.tick(1, "done"))
+  else if String.eql(msg, "done") then Pair.new<String, Sure.Ui.Cmd>("done", Sure.Ui.Cmd.none)
+  else if String.eql(msg, "pack") then Pair.new<String, Sure.Ui.Cmd>(s, Sure.Ui.Cmd.batch([Sure.Ui.Cmd.push("a"), Sure.Ui.Cmd.none, Sure.Ui.Cmd.http("", "x"), Sure.Ui.Cmd.tick(0, "z"), Sure.Ui.Cmd.push("b")]))
+  else if String.eql(msg, "a") then Pair.new<String, Sure.Ui.Cmd>(s | "A", Sure.Ui.Cmd.none)
+  else if String.eql(msg, "b") then Pair.new<String, Sure.Ui.Cmd>(s | "B", Sure.Ui.Cmd.none)
+  else if String.eql(msg, "subon") then Pair.new<String, Sure.Ui.Cmd>("sub", Sure.Ui.Cmd.none)
+  else if String.eql(msg, "suboff") then Pair.new<String, Sure.Ui.Cmd>("", Sure.Ui.Cmd.none)
+  else if String.eql(msg, "tick") then Pair.new<String, Sure.Ui.Cmd>(s | "T", Sure.Ui.Cmd.none)
+  else if String.eql(msg, "eson") then Pair.new<String, Sure.Ui.Cmd>("es", Sure.Ui.Cmd.none)
+  else if String.eql(msg, "msg") then
+    open ev
+    Pair.new<String, Sure.Ui.Cmd>(ev.value, Sure.Ui.Cmd.none)
+  else if String.eql(msg, "loop") then Pair.new<String, Sure.Ui.Cmd>(s, Sure.Ui.Cmd.push("loop"))
+  else if String.eql(msg, "http0") then Pair.new<String, Sure.Ui.Cmd>(s, Sure.Ui.Cmd.http("", "got"))
+  else if String.eql(msg, "tick0") then Pair.new<String, Sure.Ui.Cmd>(s, Sure.Ui.Cmd.tick(0, "done"))
+  else if String.eql(msg, "blank") then Pair.new<String, Sure.Ui.Cmd>(s, Sure.Ui.Cmd.push(""))
+  else Pair.new<String, Sure.Ui.Cmd>(s, Sure.Ui.Cmd.none)
+
+Sure.Ui.Probe.subs(s: String): Sure.Ui.Sub
+  if String.starts_with(s, "sub") then Sure.Ui.Sub.every(1, "tick")
+  else if String.eql(s, "es") then Sure.Ui.Sub.sse("/sse", "msg")
+  else Sure.Ui.Sub.none
+
+Sure.Ui.Probe: Sure.Ui.App<String>
+  Sure.Ui.element<String>("", Sure.Ui.Cmd.none, Sure.Ui.Probe.view, Sure.Ui.Probe.update, Sure.Ui.Probe.subs)
+
+Sure.Ui.Probe.client: Sure.Ui.Client<String>
+  Sure.Ui.pack<String>(Sure.Ui.Probe)

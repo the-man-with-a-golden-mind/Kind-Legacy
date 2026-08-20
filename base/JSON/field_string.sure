@@ -1,0 +1,11 @@
+JSON.field_string(j: JSON, key: String): String
+  case j {
+    object:
+      case Map.get<JSON>(key, j.value) as got {
+        none: ""
+        some:
+          case got.value {
+            string: got.value.value
+          } default JSON.stringify(got.value)
+      }
+  } default ""

@@ -1,0 +1,2 @@
+Http.Path.segs(url: String): List<String>
+  List.filter<String>(String.not_empty, String.split(Http.Path.strip_query(url), "/"))

@@ -1,0 +1,2 @@
+Sure.Cfg.ok_key.x: Sure.Cfg.ok_key("x") == true
+  refl

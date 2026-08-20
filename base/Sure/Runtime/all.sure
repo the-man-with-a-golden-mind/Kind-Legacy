@@ -1,0 +1,15 @@
+Sure.Runtime.all: Unit
+  let s0 = Sure.Runtime.show.node
+  let s1 = Sure.Runtime.show.bun
+  let r0 = Sure.Runtime.read.empty
+  let r1 = Sure.Runtime.read.junk
+  let r2 = Sure.Runtime.read.bun
+  let r3 = Sure.Runtime.read.node
+  let b0 = Sure.Runtime.is_bun.bun
+  let b1 = Sure.Runtime.is_bun.node
+  let p0 = Sure.Runtime.pick.flag
+  let p1 = Sure.Runtime.pick.env
+  let p2 = Sure.Runtime.pick.native
+  let p3 = Sure.Runtime.pick.node
+  let p4 = Sure.Runtime.pick.junk
+  unit

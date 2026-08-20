@@ -1,0 +1,2 @@
+Ffi.decode.null: Ffi.decode("0\nnull") == Outcome.ok<Ffi.Err, JSON>(JSON.null)
+  refl

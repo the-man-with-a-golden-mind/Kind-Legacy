@@ -1,0 +1,30 @@
+// Compile-time proofs that the agent protocol maps `kind.prove` (and parse)
+// through show/read. Other methods are covered by Test.suite at runtime;
+// a single file of 15 `read(show(m))` lemmas does not all reduce with refl.
+Sure.Agent.Method.roundtrip: Unit
+  let s0 = Sure.Agent.Method.show.parse
+  let s1 = Sure.Agent.Method.show.prove
+  let r0 = Sure.Agent.Method.read.parse
+  let r1 = Sure.Agent.Method.read.prove
+  let p0 = Sure.Agent.Method.roundtrip.prove
+  let s2 = Sure.Agent.Method.show.impact
+  let s3 = Sure.Agent.Method.show.theorems
+  let r2 = Sure.Agent.Method.read.impact
+  let r3 = Sure.Agent.Method.read.theorems
+  let s4 = Sure.Agent.Method.show.docs
+  let r4 = Sure.Agent.Method.read.docs
+  let s5 = Sure.Agent.Method.show.graph
+  let r5 = Sure.Agent.Method.read.graph
+  let s6 = Sure.Agent.Method.show.qc
+  let r6 = Sure.Agent.Method.read.qc
+  let s7 = Sure.Agent.Method.show.fill
+  let r7 = Sure.Agent.Method.read.fill
+  let s8 = Sure.Agent.Method.show.trace
+  let r8 = Sure.Agent.Method.read.trace
+  let s9 = Sure.Agent.Method.show.gen
+  let r9 = Sure.Agent.Method.read.gen
+  let sa = Sure.Agent.Method.show.debug
+  let ra = Sure.Agent.Method.read.debug
+  unit
+
+

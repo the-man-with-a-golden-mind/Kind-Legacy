@@ -1,0 +1,2 @@
+Sure.Debug.Channel.read.host: Sure.Debug.Channel.read("host") == some(Sure.Debug.Channel.host)
+  refl

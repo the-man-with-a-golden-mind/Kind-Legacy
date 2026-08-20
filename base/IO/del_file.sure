@@ -1,0 +1,3 @@
+IO.del_file(name: String): IO<Unit>
+  IO.ask<Unit>("del_file", name, (ok)
+  IO.end<Unit>(Unit.new))

@@ -1,0 +1,2 @@
+Sure.Cfg.ok_key.nl: Sure.Cfg.ok_key("a\nb") == false
+  refl

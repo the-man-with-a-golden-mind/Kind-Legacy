@@ -1,0 +1,2 @@
+Time.Parts.ok.epoch: Time.Parts.ok(Time.Parts.new(1970, 1, 1, 0, 0, 0, 0)) == true
+  refl

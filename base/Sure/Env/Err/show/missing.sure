@@ -1,0 +1,2 @@
+Sure.Env.Err.show.missing: Sure.Env.Err.show(Sure.Env.Err.missing) == "missing"
+  refl

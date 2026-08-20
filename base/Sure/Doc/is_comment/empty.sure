@@ -1,0 +1,2 @@
+Sure.Doc.is_comment.empty: Sure.Doc.is_comment("") == false
+  refl

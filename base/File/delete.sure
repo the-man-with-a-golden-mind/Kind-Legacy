@@ -1,0 +1,8 @@
+File.delete.decode(raw: String): Outcome<File.Err, Unit>
+  Host.to_file_unit(Host.decode(raw))
+
+File.delete(path: Path): IO<Outcome<File.Err, Unit>>
+  IO {
+    get e = Host.perform(Host.Op.fs_del(Path.text(path)))
+    return Host.to_file_unit(e)
+  }

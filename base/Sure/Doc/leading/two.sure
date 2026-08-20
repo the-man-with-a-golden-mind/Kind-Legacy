@@ -1,0 +1,2 @@
+Sure.Doc.leading.two: Sure.Doc.leading("// a\n// b\nFoo") == "a\nb"
+  refl

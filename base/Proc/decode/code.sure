@@ -1,0 +1,5 @@
+Proc.decode.code(raw: String): Nat
+  case Proc.decode(raw) as o {
+    err: 999
+    ok: o.value@code
+  }

@@ -1,0 +1,9 @@
+Http.Server.reply_ex(id: String, status: Nat, ctype: String, body: String): IO<Unit>
+  IO {
+    IO.ask<Unit>(
+      "http_reply_ex",
+      id | "\n" | Nat.show(status) | "\n" | ctype | "\n" | body,
+      (t) IO.end<Unit>(unit)
+    )
+    return unit
+  }

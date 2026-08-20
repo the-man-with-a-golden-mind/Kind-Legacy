@@ -1,0 +1,2 @@
+Sure.Pipe.words_empty: Sure.Pipe.words("") == []
+  refl

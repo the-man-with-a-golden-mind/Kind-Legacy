@@ -1,0 +1,9 @@
+Db.decode_conn(raw: String): Outcome<Db.Err, Db.Conn>
+  case IO.tagged.read(raw) as tag {
+    err: Outcome.err<Db.Err, Db.Conn>(Db.err_of(tag.error))
+    ok:
+      if String.is_empty(tag.value) then
+        Outcome.err<Db.Err, Db.Conn>(Db.Err.bad_url)
+      else
+        Outcome.ok<Db.Err, Db.Conn>(Db.Conn.new(tag.value))
+  }

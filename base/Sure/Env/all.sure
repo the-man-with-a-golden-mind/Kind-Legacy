@@ -1,0 +1,29 @@
+Sure.Env.all: Unit
+  let n0 = Sure.Env.ok_name.empty
+  let n1 = Sure.Env.ok_name.path
+  let n2 = Sure.Env.ok_name.eq
+  let n3 = Sure.Env.ok_name.nl
+  let e0 = Sure.Env.Err.show.empty_name
+  let e1 = Sure.Env.Err.show.missing
+  let e2 = Sure.Env.Err.show.junk
+  let e3 = Sure.Env.Err.read.empty
+  let e4 = Sure.Env.Err.read.missing
+  let e5 = Sure.Env.Err.read.junk
+  let d0 = Sure.Env.decode.empty
+  let d1 = Sure.Env.decode.ok
+  let d2 = Sure.Env.decode.missing
+  let d3 = Sure.Env.decode.blank
+  let p0 = Sure.Env.parse_nat.empty
+  let p1 = Sure.Env.parse_nat.junk
+  let p2 = Sure.Env.parse_nat.zero
+  let p3 = Sure.Env.parse_bool.empty
+  let p4 = Sure.Env.parse_bool.junk
+  let p5 = Sure.Env.parse_bool.true
+  let f0 = Sure.Env.is_flag.empty
+  let f1 = Sure.Env.is_flag.zero
+  let f2 = Sure.Env.is_flag.false
+  let f3 = Sure.Env.is_flag.one
+  let k0 = Sure.Env.keys_of.empty
+  let k1 = Sure.Env.keys_of.one
+  let d4 = Sure.Env.decode.all
+  unit

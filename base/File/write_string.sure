@@ -1,0 +1,9 @@
+File.write_string(s: String, body: String): IO<Outcome<File.Err, Unit>>
+  case Path.from_string(s) as p {
+    err:
+      IO {
+        return File.bad_unit(p.error)
+      }
+    ok:
+      File.write(p.value, body)
+  }

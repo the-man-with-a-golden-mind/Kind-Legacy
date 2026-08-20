@@ -1,0 +1,10 @@
+Task.all<A: Type>(xs: List<IO<A>>): IO<List<A>>
+  case xs {
+    nil: IO.end<List<A>>([])
+    cons:
+      IO.par<List<A>, A, List<A>>(
+        xs.head,
+        Task.all<A>(xs.tail),
+        (xy) IO.end<List<A>>(List.cons<A>(Pair.fst<A, List<A>>(xy), Pair.snd<A, List<A>>(xy)))
+      )
+  }

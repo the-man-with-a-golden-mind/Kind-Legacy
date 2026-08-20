@@ -1,0 +1,2 @@
+F64.read_dec.junk: Maybe.is_none<F64>(F64.read_dec("abc")) == true
+  refl

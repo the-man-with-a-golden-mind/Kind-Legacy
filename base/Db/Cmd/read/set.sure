@@ -1,0 +1,2 @@
+Db.Cmd.read.set: Db.Cmd.read("SET k v") == some(Db.Cmd.set("k", "v"))
+  refl

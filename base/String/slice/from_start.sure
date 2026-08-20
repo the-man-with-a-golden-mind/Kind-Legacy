@@ -1,0 +1,3 @@
+String.slice.from_start(n: Nat, xs: String): String.slice(0, n, xs) == String.take(n, xs)
+  rewrite X in String.take(n, X) == String.take(n, xs) with String.drop.zero(xs)
+  refl

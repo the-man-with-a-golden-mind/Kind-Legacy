@@ -1,0 +1,2 @@
+Sure.Mod.import_name.empty: Sure.Mod.import_name("") == ""
+  refl

@@ -1,0 +1,2 @@
+Http.Path.bound.two: Http.Path.bound("/u/:a/p/:b", "/u/1/p/2", "b") == "2"
+  refl

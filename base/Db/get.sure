@@ -1,0 +1,9 @@
+Db.get(conn: Db.Conn, key: String): IO<Outcome<Db.Err, String>>
+  open conn
+  case Db.key_err(key) as ke {
+    some: IO.end<Outcome<Db.Err, String>>(Outcome.err<Db.Err, String>(ke.value))
+    none: IO {
+      get raw = IO.ask<String>("db_get", conn.id | "\n" | key, (t) IO.end<String>(t))
+      return Db.decode_text(raw)
+    }
+  }

@@ -1,0 +1,125 @@
+// Serves the Tweeter client. Empty user/pass/text/file are errors.
+// Missing dist file is a page, not a crash. Junk URLs are 404.
+
+Sure.Tweeter.page_path: String
+  "dist/Sure.Tweeter.client.html"
+
+Sure.Tweeter.missing_html: String
+  Sure.Ssr.document(
+    "Tweeter",
+    Html.p([Html.text("Build the client first: sure build --html Sure.Tweeter.client")])
+  )
+
+Sure.Tweeter.send_page(id: String): IO<Unit>
+  case Path.from_string(Sure.Tweeter.page_path) as p {
+    err: Http.Server.reply_ex(id, Nat.read("200"), "text/html; charset=utf-8", Sure.Tweeter.missing_html)
+    ok: IO {
+      get f = File.read(p.value)
+      case f {
+        err: Http.Server.reply_ex(id, Nat.read("200"), "text/html; charset=utf-8", Sure.Tweeter.missing_html)
+        ok: Http.Server.reply_ex(id, Nat.read("200"), "text/html; charset=utf-8", f.value)
+      }
+    }
+  }
+
+Sure.Tweeter.plain(id: String, body: String): IO<Unit>
+  Http.Server.reply_hdr(id, Nat.read("200"), Sure.Tweeter.hdr_text, body)
+
+Sure.Tweeter.done(id: String, body: String): IO<Unit>
+  let sid = Sure.Tweeter.auth_sid(body)
+  if String.is_empty(sid) then Sure.Tweeter.plain(id, body)
+  else Http.Server.reply_hdr(id, Nat.read("200"), Sure.Tweeter.hdr_sess(sid), body)
+
+Sure.Tweeter.clear(id: String, body: String): IO<Unit>
+  Http.Server.reply_hdr(id, Nat.read("200"), Sure.Tweeter.hdr_clear, body)
+
+Sure.Tweeter.send_file(id: String, body: String): IO<Unit>
+  let ct = Sure.Tweeter.data_ctype(body)
+  if String.is_empty(ct) then Http.Server.reply_ex(id, Nat.read("404"), "text/plain; charset=utf-8", "not found")
+  else Http.Server.reply_ex(id, Nat.read("200"), ct, body)
+
+Sure.Tweeter.db_str(url: String, fn: Db.Conn -> IO<String>): IO<String>
+  IO {
+    get o = Db.with<String>(url, (c) IO {
+      get s = fn(c)
+      return Outcome.ok<Db.Err, String>(s)
+    })
+    return case o {
+      err: Sure.Tweeter.reply_err("junk")
+      ok: o.value
+    }
+  }
+
+Sure.Tweeter.handle(req: Http.Server.Req): IO<Unit>
+  open req
+  if Sure.Tweeter.is_page(req.url) then Sure.Tweeter.send_page(req.id)
+  else if Bool.and(Sure.Tweeter.need_post(req.url), Bool.not(Sure.Tweeter.is_post(req.method))) then
+    Sure.Tweeter.plain(req.id, Sure.Tweeter.reply_err("method"))
+  else if Sure.Tweeter.is_register(req.url) then
+    IO {
+      get body = Sure.Tweeter.db_str(Sure.Tweeter.db_url, (c) Sure.Tweeter.do_register(c, Sure.Tweeter.qget(req.body, "u"), Sure.Tweeter.qget(req.body, "p")))
+      Sure.Tweeter.done(req.id, body)
+    }
+  else if Sure.Tweeter.is_login(req.url) then
+    IO {
+      get body = Sure.Tweeter.db_str(Sure.Tweeter.db_url, (c) Sure.Tweeter.do_login(c, Sure.Tweeter.qget(req.body, "u"), Sure.Tweeter.qget(req.body, "p")))
+      Sure.Tweeter.done(req.id, body)
+    }
+  else if Sure.Tweeter.is_logout(req.url) then
+    IO {
+      get body = Sure.Tweeter.db_str(Sure.Tweeter.db_url, (c) Sure.Tweeter.do_logout(c, Sure.Tweeter.pick_sid(req.body, req.url, req.cookie)))
+      Sure.Tweeter.clear(req.id, body)
+    }
+  else if Sure.Tweeter.is_me(req.url) then
+    IO {
+      get body = Sure.Tweeter.db_str(Sure.Tweeter.db_url, (c) Sure.Tweeter.do_me(c, Sure.Tweeter.pick_sid(req.body, req.url, req.cookie)))
+      Sure.Tweeter.plain(req.id, body)
+    }
+  else if Sure.Tweeter.is_feed(req.url) then
+    IO {
+      get body = Sure.Tweeter.db_str(Sure.Tweeter.db_url, (c) Sure.Tweeter.do_feed(c, Sure.Tweeter.pick_sid(req.body, req.url, req.cookie)))
+      Sure.Tweeter.plain(req.id, body)
+    }
+  else if Sure.Tweeter.is_tweet(req.url) then
+    IO {
+      get body = Sure.Tweeter.db_str(Sure.Tweeter.db_url, (c) Sure.Tweeter.do_tweet(c, Sure.Tweeter.pick_sid(req.body, req.url, req.cookie), Sure.Tweeter.qget(req.body, "t"), Sure.Tweeter.qget(req.body, "f")))
+      Sure.Tweeter.plain(req.id, body)
+    }
+  else if Sure.Tweeter.is_upload(req.url) then
+    IO {
+      get body = Sure.Tweeter.db_str(Sure.Tweeter.db_url, (c) Sure.Tweeter.do_upload(c, Sure.Tweeter.pick_sid(req.body, req.url, req.cookie), req.body))
+      Sure.Tweeter.plain(req.id, body)
+    }
+  else if Sure.Tweeter.is_file(req.url) then
+    IO {
+      get body = Sure.Tweeter.db_str(Sure.Tweeter.db_url, (c) Sure.Tweeter.do_file(c, Sure.Tweeter.qget(Sure.Tweeter.query(req.url), "id")))
+      Sure.Tweeter.send_file(req.id, body)
+    }
+  else Http.Server.reply_ex(req.id, Nat.read("404"), "text/plain; charset=utf-8", "not found")
+
+Sure.Tweeter.serve.go(port: Nat): IO<Unit>
+  IO {
+    get raw = Http.Server.recv(port)
+    case Http.Server.parse(raw) as req {
+      none: Sure.Tweeter.serve.go(port)
+      some: IO {
+        Sure.Tweeter.handle(req.value)
+        Sure.Tweeter.serve.go(port)
+      }
+    }
+  }
+
+Sure.Tweeter.serve: IO<Outcome<Http.Err, Unit>>
+  let port = Nat.read("8766")
+  IO {
+    get l = Http.Server.listen(port)
+    case l {
+      err: IO {
+        return l
+      }
+      ok: IO {
+        Sure.Tweeter.serve.go(port)
+        return Http.Server.ok
+      }
+    }
+  }

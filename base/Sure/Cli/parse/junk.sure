@@ -1,0 +1,2 @@
+Sure.Cli.parse.junk: Sure.Cli.flag(Sure.Cli.parse(["--=z"]), "z") == false
+  refl

@@ -1,0 +1,8 @@
+// Incremental project builds. A stamp is dirty when the src hash
+// changed or a dependency was already dirty.
+
+Sure.Build.fresh(prev: String, next: String): Bool
+  Bool.not(String.eql(prev, next))
+
+Sure.Build.dirty(prev: String, next: String, dep_dirty: Bool): Bool
+  Bool.or(Sure.Build.fresh(prev, next), dep_dirty)

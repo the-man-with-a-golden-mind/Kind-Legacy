@@ -1,0 +1,3 @@
+IO.fs_write_hex(name: String, hex: String): IO<String>
+  IO.ask<String>("fs_write_hex", name | "\n" | hex, (text)
+  IO.end<String>(text))

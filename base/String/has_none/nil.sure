@@ -1,0 +1,2 @@
+String.has_none.nil: String.has_none("x", []) == true
+  refl

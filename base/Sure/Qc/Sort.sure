@@ -1,0 +1,11 @@
+// Closed universe of first-order types QC can inhabit. Dependent types are not generated.
+type Sure.Qc.Sort {
+  unit
+  bool
+  nat
+  string
+  list(of: Sure.Qc.Sort)
+  pair(fst: Sure.Qc.Sort, snd: Sure.Qc.Sort)
+  maybe(of: Sure.Qc.Sort)
+  either(left: Sure.Qc.Sort, right: Sure.Qc.Sort)
+}

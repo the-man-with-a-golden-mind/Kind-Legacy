@@ -1,0 +1,108 @@
+// Read JSON. Junk is none: empty nat, "12x", bool-as-nat, missing field, non-array list.
+JSON.dec.unit(j: JSON): Maybe<Unit>
+  case j {
+    null: some(unit)
+  } default none
+
+JSON.dec.bool(j: JSON): Maybe<Bool>
+  case j {
+    bool: some(j.value)
+  } default none
+
+JSON.dec.string(j: JSON): Maybe<String>
+  case j {
+    string: some(j.value)
+  } default none
+
+JSON.dec.nat(j: JSON): Maybe<Nat>
+  case j {
+    string:
+      if JSON.digits(j.value) then some(Nat.read_base(10, j.value))
+      else none
+  } default none
+
+JSON.dec.f64(j: JSON): Maybe<F64>
+  case j {
+    number: some(j.value)
+  } default none
+
+JSON.dec.list.go<A: Type>(dec: JSON -> Maybe<A>, xs: List<JSON>): Maybe<List<A>>
+  case xs {
+    nil: some([])
+    cons:
+      case dec(xs.head) as h {
+        none: none
+        some:
+          case JSON.dec.list.go<A>(dec, xs.tail) as t {
+            none: none
+            some: some(List.cons<A>(h.value, t.value))
+          }
+      }
+  }
+
+JSON.dec.list<A: Type>(dec: JSON -> Maybe<A>, j: JSON): Maybe<List<A>>
+  case j {
+    array: JSON.dec.list.go<A>(dec, j.value)
+  } default none
+
+JSON.dec.pair<A: Type, B: Type>(dec_a: JSON -> Maybe<A>, dec_b: JSON -> Maybe<B>, j: JSON): Maybe<Pair<A, B>>
+  case j {
+    array:
+      case j.value {
+        nil: none
+        cons:
+          case j.value.tail {
+            nil: none
+            cons:
+              case j.value.tail.tail {
+                nil:
+                  case dec_a(j.value.head) as a {
+                    none: none
+                    some:
+                      case dec_b(j.value.tail.head) as b {
+                        none: none
+                        some: some(Pair.new<A, B>(a.value, b.value))
+                      }
+                  }
+              } default none
+          }
+      }
+  } default none
+
+JSON.dec.maybe<A: Type>(dec: JSON -> Maybe<A>, j: JSON): Maybe<Maybe<A>>
+  case j {
+    null: some(none)
+    object:
+      case JSON.get(j, "some") as v {
+        none: none
+        some:
+          case dec(v.value) as x {
+            none: none
+            some: some(Maybe.some<A>(x.value))
+          }
+      }
+  } default none
+
+JSON.dec.either<A: Type, B: Type>(dec_a: JSON -> Maybe<A>, dec_b: JSON -> Maybe<B>, j: JSON): Maybe<Either<A, B>>
+  case JSON.get(j, "left") as l {
+    some:
+      case dec_a(l.value) as a {
+        none: none
+        some: some(Either.left<A, B>(a.value))
+      }
+    none:
+      case JSON.get(j, "right") as r {
+        none: none
+        some:
+          case dec_b(r.value) as b {
+            none: none
+            some: some(Either.right<A, B>(b.value))
+          }
+      }
+  }
+
+JSON.dec.field<A: Type>(dec: JSON -> Maybe<A>, j: JSON, key: String): Maybe<A>
+  case JSON.get(j, key) as v {
+    none: none
+    some: dec(v.value)
+  }

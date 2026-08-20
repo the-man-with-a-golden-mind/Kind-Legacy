@@ -1,0 +1,2 @@
+Html.Event.Data.empty: Html.Event.Data
+  Html.Event.Data.new(Html.Event.click, "", "", "", "", 0, 0, 0, false, false, false, false, false)

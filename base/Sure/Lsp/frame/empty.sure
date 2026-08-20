@@ -1,0 +1,2 @@
+Sure.Lsp.frame.empty: Sure.Lsp.frame("") == "Content-Length: 0\r\n\r\n"
+  refl

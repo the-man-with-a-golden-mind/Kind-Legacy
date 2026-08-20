@@ -1,0 +1,119 @@
+type Time.Parts {
+  new(
+    year: Nat
+    month: Nat
+    day: Nat
+    hour: Nat
+    minute: Nat
+    second: Nat
+    milli: Nat
+  )
+}
+
+Time.Parts.year(p: Time.Parts): Nat
+  open p
+  p.year
+
+Time.Parts.month(p: Time.Parts): Nat
+  open p
+  p.month
+
+Time.Parts.day(p: Time.Parts): Nat
+  open p
+  p.day
+
+Time.Parts.ok(p: Time.Parts): Bool
+  open p
+  Bool.and(Nat.gte(p.year, Time.epoch_year),
+    Bool.and(Bool.and(Nat.gte(p.month, 1), Nat.lte(p.month, 12)),
+      Bool.and(Bool.and(Nat.gte(p.day, 1), Nat.lte(p.day, Time.month_days(p.year, p.month))),
+        Bool.and(Nat.ltn(p.hour, 24),
+          Bool.and(Nat.ltn(p.minute, 60),
+            Bool.and(Nat.ltn(p.second, 60), Nat.ltn(p.milli, 1000)))))))
+
+Time.Parts.show(p: Time.Parts): String
+  open p
+  Time.pad4(p.year) | "-" | Time.pad2(p.month) | "-" | Time.pad2(p.day)
+  | "T" | Time.pad2(p.hour) | ":" | Time.pad2(p.minute) | ":" | Time.pad2(p.second)
+  | "." | Time.pad3(p.milli) | "Z"
+
+Time.Parts.read_time(rest: String, year: Nat, month: Nat, day: Nat): Maybe<Time.Parts>
+  case Time.read_width(2, rest) as hh {
+    none: none
+    some:
+      open hh.value
+      case Time.expect(hh.value.snd, ':') as r1 {
+        none: none
+        some:
+          case Time.read_width(2, r1.value) as mm {
+            none: none
+            some:
+              open mm.value
+              case Time.expect(mm.value.snd, ':') as r2 {
+                none: none
+                some:
+                  case Time.read_width(2, r2.value) as ss {
+                    none: none
+                    some:
+                      open ss.value
+                      let after = ss.value.snd
+                      case Time.expect(after, '.') as dot {
+                        none:
+                          let z = if String.eql(after, "Z") then true else String.is_empty(after)
+                          if z then some(Time.Parts.new(year, month, day, hh.value.fst, mm.value.fst, ss.value.fst, 0))
+                          else none
+                        some:
+                          case Time.read_width(3, dot.value) as mil {
+                            none: none
+                            some:
+                              open mil.value
+                              let tail = mil.value.snd
+                              let z = if String.eql(tail, "Z") then true else String.is_empty(tail)
+                              if z then some(Time.Parts.new(year, month, day, hh.value.fst, mm.value.fst, ss.value.fst, mil.value.fst))
+                              else none
+                          }
+                      }
+                  }
+              }
+          }
+      }
+  }
+
+Time.Parts.read(s: String): Maybe<Time.Parts>
+  if String.is_empty(s) then none
+  else case Time.read_width(4, s) as yy {
+    none: none
+    some:
+      open yy.value
+      case Time.expect(yy.value.snd, '-') as r1 {
+        none: none
+        some:
+          case Time.read_width(2, r1.value) as mo {
+            none: none
+            some:
+              open mo.value
+              case Time.expect(mo.value.snd, '-') as r2 {
+                none: none
+                some:
+                  case Time.read_width(2, r2.value) as dd {
+                    none: none
+                    some:
+                      open dd.value
+                      let rest = dd.value.snd
+                      let p0 = Time.Parts.new(yy.value.fst, mo.value.fst, dd.value.fst, 0, 0, 0, 0)
+                      if String.is_empty(rest) then
+                        if Time.Parts.ok(p0) then some(p0) else none
+                      else case Time.expect(rest, 'T') as t {
+                        none:
+                          case Time.expect(rest, ' ') as sp {
+                            none: none
+                            some: Time.Parts.read_time(sp.value, yy.value.fst, mo.value.fst, dd.value.fst)
+                          }
+                        some: Time.Parts.read_time(t.value, yy.value.fst, mo.value.fst, dd.value.fst)
+                      }
+                  }
+              }
+          }
+      }
+  }
+

@@ -1,0 +1,6 @@
+Sure.Sse.comment.empty:
+  case Sure.Sse.comment("") as f {
+    none: ""
+    some: f.value
+  } == ": \n\n"
+  refl

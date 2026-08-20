@@ -1,0 +1,5 @@
+Task.timeout_pick(done: Nat): Outcome<Task.Err, Unit>
+  case Nat.eql(done, 0) {
+    true: Task.timeout_ok
+    false: Task.timeout_err
+  }

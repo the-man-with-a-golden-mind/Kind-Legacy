@@ -1,0 +1,2 @@
+Sure.Json.escape.nil: Sure.Json.escape("") == ""
+  refl

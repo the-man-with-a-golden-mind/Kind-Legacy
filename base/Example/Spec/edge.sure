@@ -1,0 +1,201 @@
+// Non-optimistic / border compile-time proofs.
+// These must check: zeros, empty inputs, rejects, mismatches.
+
+Example.Spec.edge.add0: Nat.add(0, 0) == 0
+  refl
+
+Example.Spec.edge.add0r: Nat.add(0, 7) == 7
+  refl
+
+Example.Spec.edge.add0l: Nat.add(7, 0) == 7
+  refl
+
+Example.Spec.edge.nil: List.length<Nat>([]) == 0
+  refl
+
+Example.Spec.edge.not_false: Bool.not(false) == true
+  refl
+
+Example.Spec.edge.email_empty: Email.raw_of("") == ""
+  refl
+
+Example.Spec.edge.email_no: Email.raw_of("ada") == ""
+  refl
+
+Example.Spec.edge.email_at: Email.raw_of("@") == "@"
+  refl
+
+Example.Spec.edge.email_a_at: Email.raw_of("a@") == "a@"
+  refl
+
+Example.Spec.edge.email_at_b: Email.raw_of("@b") == "@b"
+  refl
+
+Example.Spec.edge.email_ok_false: Outcome.is_ok<Email.Err, Email>(Email.from_string("")) == false
+  refl
+
+Example.Spec.edge.path_empty: Path.is_safe("") == false
+  refl
+
+Example.Spec.edge.path_dotdot: Path.is_safe("..") == false
+  refl
+
+Example.Spec.edge.path_parent: Path.is_safe("a/../b") == false
+  refl
+
+Example.Spec.edge.path_prefix: Path.is_safe("../x") == false
+  refl
+
+Example.Spec.edge.path_suffix: Path.is_safe("x/..") == false
+  refl
+
+Example.Spec.edge.path_plain: Path.is_safe("foo.txt") == true
+  refl
+
+Example.Spec.edge.path_from_empty: Outcome.is_ok<Path.Err, Path>(Path.from_string("")) == false
+  refl
+
+Example.Spec.edge.bound_miss: Http.Path.bound("/user/:id", "/post/1", "id") == ""
+  refl
+
+Example.Spec.edge.bound_empty_url: Http.Path.bound("/user/:id", "", "id") == ""
+  refl
+
+Example.Spec.edge.bound_short: Http.Path.bound("/user/:id", "/user", "id") == ""
+  refl
+
+Example.Spec.edge.bound_slash: Http.Path.bound("/user/:id", "/user/", "id") == ""
+  refl
+
+Example.Spec.edge.bound_wrong: Http.Path.bound("/user/:id", "/user/1", "nope") == ""
+  refl
+
+Example.Spec.edge.bound_empty_name: Http.Path.bound("/user/:id", "/user/1", "") == ""
+  refl
+
+Example.Spec.edge.hit_method: Http.App.hit(Http.Method.get, "/user/:id", "POST", "/user/1", "id") == ""
+  refl
+
+Example.Spec.edge.hit_empty: Http.App.hit(Http.Method.get, "/user/:id", "GET", "", "id") == ""
+  refl
+
+Example.Spec.edge.method_bad: Http.Method.read("FOO") == none
+  refl
+
+Example.Spec.edge.method_empty: Http.Method.read("") == none
+  refl
+
+Example.Spec.edge.method_space: Http.Method.read("GET ") == none
+  refl
+
+Example.Spec.edge.method_eql: Http.Method.eql(Http.Method.get, Http.Method.post) == false
+  refl
+
+Example.Spec.edge.fill_none: Sure.Agent.fill("no hole", "0") == "no hole"
+  refl
+
+Example.Spec.edge.fill_empty: Sure.Agent.fill("", "0") == ""
+  refl
+
+Example.Spec.edge.fill_first_none: Sure.Agent.fill.first("no hole", "0") == "no hole"
+  refl
+
+Example.Spec.edge.hole_count_empty: Sure.Agent.hole_count("") == 0
+  refl
+
+Example.Spec.edge.trace_empty: Sure.Agent.trace("", "", "") == "Goal ?:\nWith type: \nWith context:\n"
+  refl
+
+Example.Spec.edge.names_empty: Sure.Agent.names_head("") == ""
+  refl
+
+Example.Spec.edge.json_null: JSON.field_string(JSON.null, "name") == ""
+  refl
+
+Example.Spec.edge.row_empty: Db.Row.get("name", []) == ""
+  refl
+
+Example.Spec.edge.dir_empty: List.length<String>(Dir.names("")) == 0
+  refl
+
+Example.Spec.edge.dir_semi: List.length<String>(Dir.names(";")) == 0
+  refl
+
+Example.Spec.edge.stream_over: Stream.take<Nat>(3, []) == []
+  refl
+
+Example.Spec.edge.semver_eq: Semver.lt(Semver.new(1, 0, 0), Semver.new(1, 0, 0)) == false
+  refl
+
+Example.Spec.edge.semver_empty: Maybe.is_none<Semver>(Semver.parse("")) == true
+  refl
+
+Example.Spec.edge.semver_one: Maybe.is_none<Semver>(Semver.parse("1")) == true
+  refl
+
+Example.Spec.edge.semver_two: Maybe.is_none<Semver>(Semver.parse("1.2")) == true
+  refl
+
+Example.Spec.edge.bytes_empty: Bytes.to_hex(Bytes.from_hex("")) == ""
+  refl
+
+Example.Spec.edge.signal_bad: Proc.Signal.read("NOPE") == none
+  refl
+
+Example.Spec.edge.agent_empty: Sure.Agent.Method.read("") == none
+  refl
+
+Example.Spec.edge.agent_junk: Sure.Agent.Method.read("kind.unknown") == none
+  refl
+
+Example.Spec.edge: Unit
+  let e00 = Example.Spec.edge.add0
+  let e01 = Example.Spec.edge.add0r
+  let e02 = Example.Spec.edge.add0l
+  let e03 = Example.Spec.edge.nil
+  let e04 = Example.Spec.edge.not_false
+  let e05 = Example.Spec.edge.email_empty
+  let e06 = Example.Spec.edge.email_no
+  let e07 = Example.Spec.edge.email_at
+  let e08 = Example.Spec.edge.email_a_at
+  let e09 = Example.Spec.edge.email_at_b
+  let e10 = Example.Spec.edge.email_ok_false
+  let e11 = Example.Spec.edge.path_empty
+  let e12 = Example.Spec.edge.path_dotdot
+  let e13 = Example.Spec.edge.path_parent
+  let e14 = Example.Spec.edge.path_prefix
+  let e15 = Example.Spec.edge.path_suffix
+  let e16 = Example.Spec.edge.path_plain
+  let e17 = Example.Spec.edge.path_from_empty
+  let e18 = Example.Spec.edge.bound_miss
+  let e19 = Example.Spec.edge.bound_empty_url
+  let e20 = Example.Spec.edge.bound_short
+  let e21 = Example.Spec.edge.bound_slash
+  let e22 = Example.Spec.edge.bound_wrong
+  let e23 = Example.Spec.edge.bound_empty_name
+  let e24 = Example.Spec.edge.hit_method
+  let e25 = Example.Spec.edge.hit_empty
+  let e26 = Example.Spec.edge.method_bad
+  let e27 = Example.Spec.edge.method_empty
+  let e28 = Example.Spec.edge.method_space
+  let e29 = Example.Spec.edge.method_eql
+  let e30 = Example.Spec.edge.fill_none
+  let e31 = Example.Spec.edge.fill_empty
+  let e32 = Example.Spec.edge.names_empty
+  let e33 = Example.Spec.edge.json_null
+  let e34 = Example.Spec.edge.row_empty
+  let e36 = Example.Spec.edge.dir_empty
+  let e37 = Example.Spec.edge.dir_semi
+  let e38 = Example.Spec.edge.stream_over
+  let e39 = Example.Spec.edge.semver_eq
+  let e40 = Example.Spec.edge.semver_empty
+  let e41 = Example.Spec.edge.semver_one
+  let e42 = Example.Spec.edge.semver_two
+  let e43 = Example.Spec.edge.bytes_empty
+  let e44 = Example.Spec.edge.signal_bad
+  let e45 = Example.Spec.edge.agent_empty
+  let e46 = Example.Spec.edge.agent_junk
+  let e47 = Example.Spec.edge.fill_first_none
+  let e48 = Example.Spec.edge.hole_count_empty
+  let e49 = Example.Spec.edge.trace_empty
+  unit

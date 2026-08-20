@@ -1,0 +1,2 @@
+Host.to_env.ok_empty: Host.to_env(Host.decode("0\n")) == Outcome.ok<Sure.Env.Err, String>("")
+  refl

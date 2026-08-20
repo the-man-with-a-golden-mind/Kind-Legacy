@@ -1,0 +1,10 @@
+Http.Path.lookup(name: String, binds: List<Pair<String, String>>): String
+  case binds {
+    nil: ""
+    cons:
+      open binds.head
+      if String.eql(binds.head.fst, name) then
+        binds.head.snd
+      else
+        Http.Path.lookup(name, binds.tail)
+  }

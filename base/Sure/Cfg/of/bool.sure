@@ -1,0 +1,2 @@
+Sure.Cfg.of.bool: Maybe.is_none<Sure.Cfg>(Sure.Cfg.of(JSON.bool(true))) == true
+  refl

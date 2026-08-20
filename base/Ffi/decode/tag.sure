@@ -1,0 +1,2 @@
+Ffi.decode.tag: Ffi.decode("") == Outcome.err<Ffi.Err, JSON>(Ffi.Err.bad_tag)
+  refl

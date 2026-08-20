@@ -1,0 +1,2 @@
+Sure.Pipe.drop_zero: Sure.Pipe.drop<Nat>(0, [1]) == [1]
+  refl

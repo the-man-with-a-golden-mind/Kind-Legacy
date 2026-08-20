@@ -1,0 +1,2 @@
+String.count.two: String.count("aaa", "a") == 3
+  refl

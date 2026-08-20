@@ -1,0 +1,2 @@
+Sure.Sse.event_name.empty: Sure.Sse.event_name("") == "message"
+  refl

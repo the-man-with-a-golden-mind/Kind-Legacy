@@ -1,0 +1,2 @@
+Sure.Lsp.offset.past: Sure.Lsp.offset("ab", 0, 9) == 2
+  refl

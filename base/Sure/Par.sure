@@ -1,0 +1,23 @@
+// Delayed computation so IO.par does not evaluate work while building the tree.
+Sure.Par.compute<A: Type>(f: Unit -> A): IO<A>
+  IO {
+    get u = IO.yield
+    return f(u)
+  }
+
+Sure.Par.pair<A: Type, B: Type>(fa: Unit -> A, fb: Unit -> B): IO<Pair<A, B>>
+  Task.par<A, B>(Sure.Par.compute<A>(fa), Sure.Par.compute<B>(fb))
+
+Sure.Par.map<A: Type, B: Type>(f: A -> B, xs: List<A>): IO<List<B>>
+  case xs {
+    nil: IO.end<List<B>>([])
+    cons: IO {
+      get p = Task.par<B, List<B>>(
+        Sure.Par.compute<B>((u) f(xs.head)),
+        Sure.Par.map<A, B>(f, xs.tail)
+      )
+      open p
+      return List.cons<B>(p.fst, p.snd)
+    }
+  }
+

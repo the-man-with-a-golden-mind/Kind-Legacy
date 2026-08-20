@@ -1,0 +1,2 @@
+String.count.empty: String.count("aaa", "") == 0
+  refl

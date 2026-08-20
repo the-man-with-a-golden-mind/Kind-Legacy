@@ -1,0 +1,14 @@
+Net.udp.all: Unit
+  let p0 = Net.udp.parse_one.empty
+  let p1 = Net.udp.parse_one.short
+  let p2 = Net.udp.parse_one.ok
+  let p3 = Net.udp.parse_one.ip
+  let a0 = Net.udp.parse_all.empty
+  let d0 = Net.udp.decode.err
+  let d1 = Net.udp.decode.empty
+  let d2 = Net.udp.decode.bad_tag
+  let d3 = Net.udp.decode.closed
+  let d4 = Net.udp.decode.bad_port
+  let u0 = Net.decode_unit.ok
+  let t0 = Net.tcp.all
+  unit

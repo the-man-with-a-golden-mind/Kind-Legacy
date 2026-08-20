@@ -1,0 +1,4 @@
+Parser.f64.all: Unit
+  let e0 = Parser.f64.empty
+  let j0 = Parser.f64.junk
+  unit

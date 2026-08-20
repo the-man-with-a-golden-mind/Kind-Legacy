@@ -1,0 +1,2 @@
+Ffi.err_of.throw: Ffi.Err.show(Ffi.err_of("throw\nboom")) == "throw:boom"
+  refl

@@ -1,0 +1,2 @@
+Sure.Log.want.off: Sure.Log.want(Sure.Debug.Level.off, Sure.Debug.Level.error) == false
+  refl

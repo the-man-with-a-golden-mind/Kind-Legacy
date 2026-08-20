@@ -1,0 +1,484 @@
+// Empty / junk / border lemmas for public API that Test.suite did not name.
+
+Cover.file.bad_string: File.bad_string(Path.Err.empty) == Outcome.err<File.Err, String>(File.Err.bad_path(Path.Err.empty))
+  refl
+
+Cover.file.bad_unit: File.bad_unit(Path.Err.empty) == Outcome.err<File.Err, Unit>(File.Err.bad_path(Path.Err.empty))
+  refl
+
+Cover.file.bad_nul: File.bad_string(Path.Err.nul) == Outcome.err<File.Err, String>(File.Err.bad_path(Path.Err.nul))
+  refl
+
+Cover.file.bad_dotdot: File.bad_unit(Path.Err.dotdot) == Outcome.err<File.Err, Unit>(File.Err.bad_path(Path.Err.dotdot))
+  refl
+
+Cover.list.and_nil: List.and([]) == true
+  refl
+
+Cover.list.or_nil: List.or([]) == false
+  refl
+
+Cover.list.sum_nil: List.sum([]) == 0
+  refl
+
+Cover.list.product_nil: List.product([]) == 0
+  refl
+
+Cover.list.range_0: List.range(0) == []
+  refl
+
+Cover.list.seq_0: List.seq(0) == []
+  refl
+
+Cover.list.quicksort_nil: List.quicksort([]) == []
+  refl
+
+Cover.maybe.show_none: Maybe.show<Nat>(Nat.show, none) == "none()"
+  refl
+
+Cover.unit.show: Unit.show(unit) == "Unit.new"
+  refl
+
+Cover.queue.max_diff: Queue.max_diff == 2
+  refl
+
+Cover.set.has_empty: Set.has("", Set.new) == false
+  refl
+
+Cover.set.has_miss: Set.has("x", Set.new) == false
+  refl
+
+Cover.email.has_at_empty: Email.has_at("") == false
+  refl
+
+Cover.email.has_at_no: Email.has_at("ada") == false
+  refl
+
+Cover.email.has_at_yes: Email.has_at("a@b") == true
+  refl
+
+Cover.email.show: Email.show(Email.new("a@b")) == "a@b"
+  refl
+
+Cover.json.enc_unit: JSON.enc.unit == JSON.null
+  refl
+
+Cover.json.enc_string_empty: JSON.enc.string("") == JSON.string("")
+  refl
+
+Cover.bytes.empty: Bytes.empty == []
+  refl
+
+Cover.bytes.from_nat_0: Bytes.from_nat(0) == []
+  refl
+
+Cover.bytes.split_empty: Bytes.split([], 0) == Pair.new<Bytes, Bytes>([], [])
+  refl
+
+Cover.bool.eql_tt: Bool.eql(true, true) == true
+  refl
+
+Cover.bool.eql_tf: Bool.eql(true, false) == false
+  refl
+
+Cover.bool.eql_ff: Bool.eql(false, false) == true
+  refl
+
+Cover.bool.xor_ff: Bool.xor(false, false) == false
+  refl
+
+Cover.bool.xor_tf: Bool.xor(true, false) == true
+  refl
+
+Cover.bool.is_true: Bool.is_true(true) == true
+  refl
+
+Cover.bool.is_false: Bool.is_false(false) == true
+  refl
+
+Cover.cmp.eql: Cmp.as_eql(Cmp.eql) == true
+  refl
+
+Cover.cmp.ltn: Cmp.as_eql(Cmp.ltn) == false
+  refl
+
+Cover.cmp.as_ltn: Cmp.as_ltn(Cmp.ltn) == true
+  refl
+
+Cover.cmp.as_gtn: Cmp.as_gtn(Cmp.gtn) == true
+  refl
+
+Cover.cmp.as_lte: Cmp.as_lte(Cmp.eql) == true
+  refl
+
+Cover.cmp.as_gte: Cmp.as_gte(Cmp.eql) == true
+  refl
+
+Cover.string.length_empty: String.length("") == 0
+  refl
+
+Cover.string.not_empty_no: String.not_empty("") == false
+  refl
+
+Cover.string.not_empty_yes: String.not_empty("a") == true
+  refl
+
+Cover.string.head_empty: Maybe.is_none<Char>(String.head("")) == true
+  refl
+
+Cover.string.repeat_0: String.repeat("a", 0) == ""
+  refl
+
+Cover.string.reverse_empty: String.reverse("") == ""
+  refl
+
+Cover.string.is_ascii_empty: String.is_ascii("") == true
+  refl
+
+Cover.string.is_hex_empty: String.is_hex("") == true
+  refl
+
+Cover.string.is_lower_empty: String.is_lower("") == true
+  refl
+
+Cover.string.is_upper_empty: String.is_upper("") == true
+  refl
+
+Cover.string.concat_empty: String.concat("", "") == ""
+  refl
+
+Cover.string.append_empty: String.append("", 'x') == "x"
+  refl
+
+Cover.string.join_nil: String.join(",", []) == ""
+  refl
+
+Cover.string.split_empty: List.length<String>(String.split("", ",")) == 1
+  refl
+
+Cover.string.ends_with_empty: String.ends_with("", "") == true
+  refl
+
+Cover.string.to_list_empty: String.to_list("") == []
+  refl
+
+Cover.string.to_lower_empty: String.to_lower("") == ""
+  refl
+
+Cover.string.to_upper_empty: String.to_upper("") == ""
+  refl
+
+Cover.string.trim_empty: String.trim("") == ""
+  refl
+
+Cover.string.trim_right_empty: String.trim_right("") == ""
+  refl
+
+Cover.string.filter_empty: String.filter(Char.is_space, "") == ""
+  refl
+
+Cover.string.map_empty: String.map(Char.to_upper, "") == ""
+  refl
+
+Cover.string.drop_while_empty: String.drop_while(Char.is_space, "") == ""
+  refl
+
+Cover.string.take_while_empty: String.take_while(Char.is_space, "") == ""
+  refl
+
+Cover.string.pad_left_0: String.pad_left(0, ' ', "x") == "x"
+  refl
+
+Cover.nat.is_zero_0: Nat.is_zero(0) == true
+  refl
+
+Cover.nat.is_zero_1: Nat.is_zero(1) == false
+  refl
+
+Cover.nat.is_even_0: Nat.is_even(0) == true
+  refl
+
+Cover.nat.odd_0: Nat.odd(0) == false
+  refl
+
+Cover.nat.gtn_00: Nat.gtn(0, 0) == false
+  refl
+
+Cover.nat.min_00: Nat.min(0, 0) == 0
+  refl
+
+Cover.nat.square_0: Nat.square(0) == 0
+  refl
+
+Cover.nat.to_string_0: Nat.to_string(0) == "z"
+  refl
+
+Cover.nat.to_string_base_10: Nat.to_string_base(10, 0) == "0"
+  refl
+
+Cover.nat.same_0: Nat.same(0) == 0
+  refl
+
+Cover.nat.between_001: Nat.between(0, 0, 1) == true
+  refl
+
+Cover.nat.pred_0: Nat.pred(0) == 0
+  refl
+
+Cover.nat.bitlen_0: Nat.bitlen(0) == 0
+  refl
+
+Cover.regex.match_eps_empty: Regex.match(Regex.eps, "") == true
+  refl
+
+Cover.regex.match_never: Regex.match(Regex.never, "") == false
+  refl
+
+Cover.regex.contains_never: Regex.contains(Regex.never, "") == false
+  refl
+
+Cover.regex.in_class_empty: Regex.in_class("", 'a') == false
+  refl
+
+Cover.regex.flat_nil: Regex.flat([], (s) [s]) == []
+  refl
+
+Cover.regex.shorter: Regex.shorter("ab", "a") == true
+  refl
+
+Cover.time.dur_sec_0: Time.Duration.eql(Time.Duration.sec(0), Time.Duration.zero) == true
+  refl
+
+Cover.time.dur_min_0: Time.Duration.eql(Time.Duration.min(0), Time.Duration.zero) == true
+  refl
+
+Cover.time.dur_hour_0: Time.Duration.eql(Time.Duration.hour(0), Time.Duration.zero) == true
+  refl
+
+Cover.time.dur_day_0: Time.Duration.eql(Time.Duration.day(0), Time.Duration.zero) == true
+  refl
+
+Cover.time.dur_add_0: Time.Duration.eql(Time.Duration.add(Time.Duration.zero, Time.Duration.zero), Time.Duration.zero) == true
+  refl
+
+Cover.time.dur_ltn_0: Time.Duration.ltn(Time.Duration.zero, Time.Duration.zero) == false
+  refl
+
+Cover.time.stamp_eql_0: Time.Stamp.eql(Time.Stamp.new(0), Time.Stamp.new(0)) == true
+  refl
+
+Cover.time.stamp_ltn_0: Time.Stamp.ltn(Time.Stamp.new(0), Time.Stamp.new(0)) == false
+  refl
+
+Cover.time.stamp_diff_0: Time.Stamp.diff(Time.Stamp.new(0), Time.Stamp.new(0)) == Time.Duration.zero
+  refl
+
+Cover.time.year_days_0: Time.year_days(0) == 366
+  refl
+
+Cover.http.strip_empty: Http.Path.strip_query("") == ""
+  refl
+
+Cover.http.strip_q: Http.Path.strip_query("/x?y=1") == "/x"
+  refl
+
+Cover.http.segs_empty: Http.Path.segs("") == []
+  refl
+
+Cover.http.segs_slash: Http.Path.segs("/") == []
+  refl
+
+Cover.ffi.read_nat_null: Maybe.is_none<Nat>(Ffi.read_nat(JSON.null)) == true
+  refl
+
+Cover.worker.err_empty: Worker.err_of("") == Worker.Err.throw("")
+  refl
+
+Cover.worker.err_missing: Worker.err_of("missing") == Worker.Err.missing
+  refl
+
+Cover.crypto.is_hex_digit_0: Crypto.is_hex_digit('0') == true
+  refl
+
+Cover.crypto.is_hex_digit_g: Crypto.is_hex_digit('g') == false
+  refl
+
+Cover.crypto.hash_empty: Crypto.sha256.empty_hex == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  refl
+
+Cover.sure.lineage: Sure.lineage == "Legacy Kind 1.0.121"
+  refl
+
+Cover.env.show_get_err: Sure.Env.show_get(Outcome.err<Sure.Env.Err, String>(Sure.Env.Err.missing)) == "missing"
+  refl
+
+Cover.env.show_get_ok: Sure.Env.show_get(Outcome.ok<Sure.Env.Err, String>("")) == ""
+  refl
+
+Cover.io.cwd: IO.cwd == IO.ask<String>("cwd", "", (path) IO.end<String>(path))
+  refl
+
+Cover.io.pass: IO.pass == IO.end<Unit>(unit)
+  refl
+
+Cover.io.yield: IO.yield == IO.ask<Unit>("yield", "", (r) IO.end<Unit>(unit))
+  refl
+
+Cover.io.do_empty: IO.do("", "") == IO.ask<Unit>("", "", (answer) IO.end<Unit>(unit))
+  refl
+
+Cover.io.fs_read: IO.fs_read_ex("") == IO.ask<String>("fs_read_ex", "", (text) IO.end<String>(text))
+  refl
+
+Cover.io.fs_del: IO.fs_del_ex("") == IO.ask<String>("fs_del_ex", "", (text) IO.end<String>(text))
+  refl
+
+Cover.io.fs_write: IO.fs_write_ex("", "") == IO.ask<String>("fs_write_ex", "\n", (text) IO.end<String>(text))
+  refl
+
+Cover.io.fs_read_hex: IO.fs_read_hex("") == IO.ask<String>("fs_read_hex", "", (text) IO.end<String>(text))
+  refl
+
+Cover.io.fs_write_hex: IO.fs_write_hex("", "") == IO.ask<String>("fs_write_hex", "\n", (text) IO.end<String>(text))
+  refl
+
+Cover.io.get_args: IO.get_args == IO.ask<String>("get_args", "", (line) IO.end<String>(line))
+  refl
+
+Cover.io.get_dir: IO.get_dir("") == IO.ask<String>("get_dir", "", (entries) IO.end<String>(entries))
+  refl
+
+Cover.io.http: IO.http("") == IO.ask<String>("http", "", (text) IO.end<String>(text))
+  refl
+
+Cover.io.job_cancel: IO.job_cancel("") == IO.ask<Unit>("job_cancel", "", (ok) IO.end<Unit>(unit))
+  refl
+
+Cover.html.el_div: Html.Tag.show(Html.Tag.div) == "div"
+  refl
+
+Cover.html.event_empty: Html.Event.Data.empty == Html.Event.Data.new(Html.Event.click, "", "", "", "", 0, 0, 0, false, false, false, false, false)
+  refl
+
+Cover.all: Unit
+  let a00 = Cover.file.bad_string
+  let a01 = Cover.file.bad_unit
+  let a02 = Cover.file.bad_nul
+  let a03 = Cover.file.bad_dotdot
+  let a04 = Cover.list.and_nil
+  let a05 = Cover.list.or_nil
+  let a06 = Cover.list.sum_nil
+  let a07 = Cover.list.product_nil
+  let a08 = Cover.list.range_0
+  let a09 = Cover.list.seq_0
+  let a10 = Cover.list.quicksort_nil
+  let a11 = Cover.maybe.show_none
+  let a12 = Cover.unit.show
+  let a13 = Cover.queue.max_diff
+  let a14 = Cover.set.has_empty
+  let a15 = Cover.set.has_miss
+  let a16 = Cover.email.has_at_empty
+  let a17 = Cover.email.has_at_no
+  let a18 = Cover.email.has_at_yes
+  let a19 = Cover.email.show
+  let a20 = Cover.json.enc_unit
+  let a21 = Cover.json.enc_string_empty
+  let a22 = Cover.bytes.empty
+  let a23 = Cover.bytes.from_nat_0
+  let a24 = Cover.bytes.split_empty
+  let a25 = Cover.bool.eql_tt
+  let a26 = Cover.bool.eql_tf
+  let a27 = Cover.bool.eql_ff
+  let a28 = Cover.bool.xor_ff
+  let a29 = Cover.bool.xor_tf
+  let a30 = Cover.bool.is_true
+  let a31 = Cover.bool.is_false
+  let a32 = Cover.cmp.eql
+  let a33 = Cover.cmp.ltn
+  let a34 = Cover.cmp.as_ltn
+  let a35 = Cover.cmp.as_gtn
+  let a36 = Cover.cmp.as_lte
+  let a37 = Cover.cmp.as_gte
+  let a38 = Cover.string.length_empty
+  let a39 = Cover.string.not_empty_no
+  let a40 = Cover.string.not_empty_yes
+  let a41 = Cover.string.head_empty
+  let a42 = Cover.string.repeat_0
+  let a43 = Cover.string.reverse_empty
+  let a44 = Cover.string.is_ascii_empty
+  let a45 = Cover.string.is_hex_empty
+  let a46 = Cover.string.is_lower_empty
+  let a47 = Cover.string.is_upper_empty
+  let a48 = Cover.string.concat_empty
+  let a49 = Cover.string.append_empty
+  let a50 = Cover.string.join_nil
+  let a51 = Cover.string.split_empty
+  let a52 = Cover.string.ends_with_empty
+  let a53 = Cover.string.to_list_empty
+  let a54 = Cover.string.to_lower_empty
+  let a55 = Cover.string.to_upper_empty
+  let a56 = Cover.string.trim_empty
+  let a57 = Cover.string.trim_right_empty
+  let a58 = Cover.string.filter_empty
+  let a59 = Cover.string.map_empty
+  let a60 = Cover.string.drop_while_empty
+  let a61 = Cover.string.take_while_empty
+  let a62 = Cover.string.pad_left_0
+  let a63 = Cover.nat.is_zero_0
+  let a64 = Cover.nat.is_zero_1
+  let a65 = Cover.nat.is_even_0
+  let a66 = Cover.nat.odd_0
+  let a67 = Cover.nat.gtn_00
+  let a68 = Cover.nat.min_00
+  let a69 = Cover.nat.square_0
+  let a70 = Cover.nat.to_string_0
+  let a71 = Cover.nat.to_string_base_10
+  let a72 = Cover.nat.same_0
+  let a74 = Cover.nat.between_001
+  let a75 = Cover.nat.pred_0
+  let a76 = Cover.nat.bitlen_0
+  let a77 = Cover.regex.match_eps_empty
+  let a78 = Cover.regex.match_never
+  let a79 = Cover.regex.contains_never
+  let a80 = Cover.regex.in_class_empty
+  let a81 = Cover.regex.flat_nil
+  let a82 = Cover.regex.shorter
+  let a83 = Cover.time.dur_sec_0
+  let a84 = Cover.time.dur_min_0
+  let a85 = Cover.time.dur_hour_0
+  let a86 = Cover.time.dur_day_0
+  let a87 = Cover.time.dur_add_0
+  let a88 = Cover.time.dur_ltn_0
+  let a89 = Cover.time.stamp_eql_0
+  let a90 = Cover.time.stamp_ltn_0
+  let a91 = Cover.time.stamp_diff_0
+  let a92 = Cover.time.year_days_0
+  let a93 = Cover.http.strip_empty
+  let a94 = Cover.http.strip_q
+  let a95 = Cover.http.segs_empty
+  let a96 = Cover.http.segs_slash
+  let a97 = Cover.ffi.read_nat_null
+  let a98 = Cover.worker.err_empty
+  let a99 = Cover.worker.err_missing
+  let b00 = Cover.crypto.is_hex_digit_0
+  let b01 = Cover.crypto.is_hex_digit_g
+  let b02 = Cover.crypto.hash_empty
+  let b03 = Cover.sure.lineage
+  let b04 = Cover.env.show_get_err
+  let b05 = Cover.env.show_get_ok
+  let b06 = Cover.io.cwd
+  let b07 = Cover.io.pass
+  let b08 = Cover.io.yield
+  let b09 = Cover.io.do_empty
+  let b10 = Cover.io.fs_read
+  let b11 = Cover.io.fs_del
+  let b12 = Cover.io.fs_write
+  let b13 = Cover.io.fs_read_hex
+  let b14 = Cover.io.fs_write_hex
+  let b15 = Cover.io.get_args
+  let b16 = Cover.io.get_dir
+  let b17 = Cover.io.http
+  let b18 = Cover.io.job_cancel
+  let b19 = Cover.html.el_div
+  let b20 = Cover.html.event_empty
+  unit

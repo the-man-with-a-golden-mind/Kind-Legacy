@@ -1,0 +1,5 @@
+File.write_bytes(path: Path, body: Bytes): IO<Outcome<File.Err, Unit>>
+  IO {
+    get e = Host.perform(Host.Op.fs_write_hex(Path.text(path), Bytes.to_hex(body)))
+    return Host.to_file_unit(e)
+  }

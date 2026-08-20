@@ -1,0 +1,2 @@
+File.write.decode.missing: File.write.decode("1\nENOENT") == Outcome.err<File.Err, Unit>(File.Err.missing)
+  refl

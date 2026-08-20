@@ -1,0 +1,21 @@
+type Sure.Debug.Channel {
+  host
+  term
+  holes
+  qc
+}
+
+Sure.Debug.Channel.show(c: Sure.Debug.Channel): String
+  case c {
+    host: "host"
+    term: "term"
+    holes: "holes"
+    qc: "qc"
+  }
+
+Sure.Debug.Channel.read(s: String): Maybe<Sure.Debug.Channel>
+  if String.eql(s, "host") then some(Sure.Debug.Channel.host)
+  else if String.eql(s, "term") then some(Sure.Debug.Channel.term)
+  else if String.eql(s, "holes") then some(Sure.Debug.Channel.holes)
+  else if String.eql(s, "qc") then some(Sure.Debug.Channel.qc)
+  else none

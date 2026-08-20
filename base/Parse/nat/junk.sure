@@ -1,0 +1,2 @@
+Parse.nat.junk: Maybe.is_none<Nat>(Parse.nat("12x")) == true
+  refl

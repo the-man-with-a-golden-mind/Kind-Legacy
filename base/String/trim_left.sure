@@ -1,0 +1,2 @@
+String.trim_left(xs: String): String
+  String.drop_while(Char.is_space, xs)

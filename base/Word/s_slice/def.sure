@@ -1,0 +1,7 @@
+Word.s_slice.def<size: Nat>(a: Word(size), b: Word(size), str: String):
+  Word.s_slice<size>(a, b, str) ==
+    String.slice(
+      if Word.is_neg<size>(a) then 0 else Word.to_nat<size>(a),
+      if Word.is_neg<size>(b) then 0 else Word.to_nat<size>(b),
+      str)
+  refl

@@ -1,0 +1,2 @@
+Sure.Cli.parse.rest: Sure.Cli.count(Sure.Cli.parse(["a"])) == 1
+  refl

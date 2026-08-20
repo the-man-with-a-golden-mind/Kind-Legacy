@@ -1,0 +1,4 @@
+Time.md.go(year: Nat, month: Nat, days: Nat): Pair<Nat, Nat>
+  let md = Time.month_days(year, month)
+  if Nat.ltn(days, md) then Pair.new<Nat, Nat>(month, Nat.succ(days))
+  else Time.md.go(year, Nat.succ(month), Nat.sub(days, md))

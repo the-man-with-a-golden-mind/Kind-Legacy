@@ -1,0 +1,7 @@
+Sure.Sheet.demo: IO<Unit>
+  let m = Sure.Sheet.init
+  open m
+  let n = Nat.show(List.length<Nat>(m.widths))
+  let r = Nat.show(m.received)
+  let z = Nat.show(Sure.Sheet.first(0, 1))
+  IO.print(n | " " | r | " " | z | " -")

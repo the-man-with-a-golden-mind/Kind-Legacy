@@ -1,0 +1,2 @@
+Time.read.junk: Maybe.is_none<Time.Stamp>(Time.read("2026-13-01")) == true
+  refl

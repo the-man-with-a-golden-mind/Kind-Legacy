@@ -1,0 +1,18 @@
+Time.to_parts(t: Time.Stamp): Time.Parts
+  open t
+  let day_ms = Nat.read("86400000")
+  let hour_ms = Nat.read("3600000")
+  let min_ms = Nat.read("60000")
+  let days = Time.div(t.ms, day_ms)
+  let rem = Time.mod(t.ms, day_ms)
+  let hour = Time.div(rem, hour_ms)
+  let rem_h = Time.mod(rem, hour_ms)
+  let minute = Time.div(rem_h, min_ms)
+  let rem_m = Time.mod(rem_h, min_ms)
+  let second = Time.div(rem_m, Time.ms_sec)
+  let milli = Time.mod(rem_m, Time.ms_sec)
+  let yd = Time.ymd.go(Time.epoch_year, days)
+  open yd
+  let md = Time.md.go(yd.fst, 1, yd.snd)
+  open md
+  Time.Parts.new(yd.fst, md.fst, md.snd, hour, minute, second, milli)

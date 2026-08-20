@@ -1,0 +1,2 @@
+Host.encode.put_empty: Host.encode(Host.Op.put_string("")) == Pair.new<String, String>("put_string", "")
+  refl

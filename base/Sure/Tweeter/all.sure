@@ -1,0 +1,22 @@
+Sure.Tweeter.all: Unit
+  let a = Sure.Tweeter.ok_user.empty
+  let b = Sure.Tweeter.ok_user.space
+  let c = Sure.Tweeter.ok_pass.empty
+  let d = Sure.Tweeter.ok_text.empty
+  let e = Sure.Tweeter.ok_data.empty
+  let f = Sure.Tweeter.ok_file_id.empty
+  let g = Sure.Tweeter.read_feed.empty
+  let h = Sure.Tweeter.read_tweet.empty
+  let i = Sure.Tweeter.is_login.empty
+  let j = Sure.Tweeter.is_page.empty
+  let k = Sure.Tweeter.qget.empty
+  let l = Sure.Tweeter.show_feed.nil
+  let m = Sure.Tweeter.is_page.client
+  let n = Sure.Tweeter.is_page.junk
+  let o = Sure.Tweeter.is_post.empty
+  let p = Sure.Tweeter.need_post.empty
+  let q = Sure.Tweeter.cookie_sid.empty
+  let r = Sure.Tweeter.login_body.empty
+  let s = Sure.Tweeter.data_ctype.empty
+  let t = Sure.Tweeter.read_me.empty
+  unit

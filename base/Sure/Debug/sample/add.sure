@@ -1,0 +1,2 @@
+Sure.Debug.sample.add: Sure.Debug.sample("Nat.add.comm", "2, 3") == "Nat.add.comm(2, 3)"
+  refl

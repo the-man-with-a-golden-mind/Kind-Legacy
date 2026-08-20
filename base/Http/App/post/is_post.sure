@@ -1,0 +1,2 @@
+Http.App.post.is_post: Http.App.post("/x", Http.App.dummy)@method == Http.Method.post
+  refl

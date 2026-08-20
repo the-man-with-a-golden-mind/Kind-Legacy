@@ -1,0 +1,2 @@
+JSON.dec.unit.no: JSON.dec.unit(JSON.bool(true)) == none
+  refl

@@ -1,0 +1,2 @@
+Sure.Mod.allows.all: Sure.Mod.allows("Foo", Sure.Mod.Exposing.all, "Foo.bar") == true
+  refl

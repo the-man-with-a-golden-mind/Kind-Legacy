@@ -1,0 +1,2 @@
+Sure.Web.escape_empty.zero: Sure.Web.escape_empty(0) == 0
+  refl

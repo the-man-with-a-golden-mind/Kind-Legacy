@@ -1,0 +1,2 @@
+Sure.Tweeter.read_me.empty: Sure.Tweeter.read_me("") == none
+  refl

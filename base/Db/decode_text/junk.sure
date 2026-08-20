@@ -1,0 +1,2 @@
+Db.decode_text.junk: Outcome.is_ok<Db.Err, String>(Db.decode_text("nope")) == false
+  refl

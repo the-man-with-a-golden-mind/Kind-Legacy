@@ -1,0 +1,2 @@
+Sure.Pipe.once<A: Type>(x: A): List<A>
+  List.cons<A>(x, [])

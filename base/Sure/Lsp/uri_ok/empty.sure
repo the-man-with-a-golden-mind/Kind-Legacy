@@ -1,0 +1,2 @@
+Sure.Lsp.uri_ok.empty: Sure.Lsp.uri_ok("") == false
+  refl

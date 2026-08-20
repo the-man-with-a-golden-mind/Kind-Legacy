@@ -1,0 +1,2 @@
+Sure.Env.is_flag.false: Sure.Env.is_flag("false") == false
+  refl

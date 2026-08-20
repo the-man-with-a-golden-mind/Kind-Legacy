@@ -1,0 +1,19 @@
+Sure.Cfg.demo: IO<Unit>
+  let e = Nat.show(Sure.Cfg.count(Sure.Cfg.empty))
+  let r = case Sure.Cfg.read("") as c {
+    none: "-"
+    some: Nat.show(Sure.Cfg.count(c.value))
+  }
+  let j = case Sure.Cfg.read("[") as c {
+    none: "-"
+    some: "x"
+  }
+  let o = case Sure.Cfg.str(Sure.Cfg.put(Sure.Cfg.empty, "x", "y"), "x") as v {
+    none: "-"
+    some: v.value
+  }
+  let w = case Sure.Cfg.str(Sure.Cfg.overlay(Sure.Cfg.put(Sure.Cfg.empty, "x", "1"), Sure.Cfg.put(Sure.Cfg.empty, "x", "2")), "x") as v {
+    none: "-"
+    some: v.value
+  }
+  IO.print(e | " " | r | " " | j | " " | o | " " | w)

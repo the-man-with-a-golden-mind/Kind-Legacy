@@ -1,0 +1,2 @@
+Proc.Signal.read_show.term: Proc.Signal.read(Proc.Signal.show(Proc.Signal.term)) == some(Proc.Signal.term)
+  refl

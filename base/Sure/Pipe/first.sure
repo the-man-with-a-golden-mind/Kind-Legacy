@@ -1,0 +1,2 @@
+Sure.Pipe.first<A: Type>(xs: List<A>): Maybe<A>
+  List.head<A>(xs)

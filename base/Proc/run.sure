@@ -1,0 +1,5 @@
+Proc.run(cmd: String): IO<Outcome<Proc.Err, Proc.Out>>
+  IO {
+    get raw = IO.ask<String>("proc_exec", cmd, (t) IO.end<String>(t))
+    return Proc.decode(raw)
+  }

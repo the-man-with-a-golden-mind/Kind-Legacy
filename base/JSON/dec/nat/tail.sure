@@ -1,0 +1,2 @@
+JSON.dec.nat.tail: JSON.dec.nat(JSON.string("12x")) == none
+  refl

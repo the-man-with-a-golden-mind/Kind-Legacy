@@ -1,0 +1,2 @@
+Sure.Agent.names_of.nat: Sure.Agent.names_head("Nat") == "Nat"
+  refl

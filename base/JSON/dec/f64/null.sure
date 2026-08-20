@@ -1,0 +1,2 @@
+JSON.dec.f64.null: Maybe.is_none<F64>(JSON.dec.f64(JSON.null)) == true
+  refl

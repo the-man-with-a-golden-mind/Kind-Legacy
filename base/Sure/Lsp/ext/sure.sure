@@ -1,0 +1,2 @@
+Sure.Lsp.ext.sure: Sure.Lsp.ext("Nat.sure") == true
+  refl

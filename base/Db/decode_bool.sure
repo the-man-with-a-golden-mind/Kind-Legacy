@@ -1,0 +1,8 @@
+Db.decode_bool(raw: String): Outcome<Db.Err, Bool>
+  case IO.tagged.read(raw) as tag {
+    err: Outcome.err<Db.Err, Bool>(Db.err_of(tag.error))
+    ok:
+      if String.eql(tag.value, "1") then Outcome.ok<Db.Err, Bool>(true)
+      else if String.eql(tag.value, "0") then Outcome.ok<Db.Err, Bool>(false)
+      else Outcome.err<Db.Err, Bool>(Db.Err.io("bad bool"))
+  }

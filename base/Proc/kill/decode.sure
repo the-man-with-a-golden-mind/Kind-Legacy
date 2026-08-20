@@ -1,0 +1,6 @@
+Proc.kill.decode.ok: Outcome.is_ok<Proc.Err, Unit>(
+  case IO.tagged.read("0\n") as tag {
+    err: Outcome.err<Proc.Err, Unit>(Proc.Err.io(tag.error))
+    ok: Outcome.ok<Proc.Err, Unit>(unit)
+  }) == true
+  refl

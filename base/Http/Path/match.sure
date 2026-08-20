@@ -1,0 +1,29 @@
+Http.Path.match.go(
+  ps: List<String>,
+  us: List<String>,
+  acc: List<Pair<String, String>>
+): Maybe<List<Pair<String, String>>>
+  case ps {
+    nil:
+      case us {
+        nil: some(List.reverse<Pair<String, String>>(acc))
+        cons: none
+      }
+    cons:
+      case us {
+        nil: none
+        cons:
+          if String.starts_with(ps.head, ":") then
+            Http.Path.match.go(
+              ps.tail,
+              us.tail,
+              List.cons<Pair<String, String>>({String.drop(1, ps.head), us.head}, acc))
+          else if String.eql(ps.head, us.head) then
+            Http.Path.match.go(ps.tail, us.tail, acc)
+          else
+            none
+      }
+  }
+
+Http.Path.match(pattern: String, url: String): Maybe<List<Pair<String, String>>>
+  Http.Path.match.go(Http.Path.segs(pattern), Http.Path.segs(url), [])

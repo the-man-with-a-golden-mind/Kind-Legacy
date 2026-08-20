@@ -1,0 +1,2 @@
+JSON.path.empty: JSON.path(JSON.null, []) == some(JSON.null)
+  refl

@@ -1,0 +1,2 @@
+Sure.Pipe.decode_nil: Sure.Pipe.decode<Nat>(Parse.nat, []) == []
+  refl

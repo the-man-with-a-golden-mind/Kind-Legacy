@@ -1,0 +1,2 @@
+Host.decode.err_empty: Host.decode("1\n") == Host.err(Host.Err.empty)
+  refl

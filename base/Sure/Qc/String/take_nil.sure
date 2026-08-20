@@ -1,0 +1,2 @@
+Sure.Qc.String.take_nil(n: Nat): String.take(n, "") == ""
+  String.take.nil(n)

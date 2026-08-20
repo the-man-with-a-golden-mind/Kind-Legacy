@@ -1,0 +1,3 @@
+// Nonempty and none of the banned substrings. Empty banned list is just nonempty.
+String.ok(s: String, banned: List<String>): Bool
+  if String.is_empty(s) then false else String.has_none(s, banned)

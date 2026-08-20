@@ -1,0 +1,2 @@
+Sure.Mod.allows.hit: Sure.Mod.allows("Foo", Sure.Mod.Exposing.names(["bar"]), "Foo.bar") == true
+  refl

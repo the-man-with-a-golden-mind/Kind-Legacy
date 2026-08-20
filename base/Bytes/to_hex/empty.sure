@@ -1,0 +1,2 @@
+Bytes.to_hex.empty: Bytes.to_hex([]) == ""
+  refl

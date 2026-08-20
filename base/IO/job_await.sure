@@ -1,0 +1,3 @@
+IO.job_await(id: String): IO<String>
+  IO.ask<String>("job_await", id, (text)
+  IO.end<String>(text))

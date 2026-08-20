@@ -1,0 +1,2 @@
+Sure.Lsp.uri_ok.file: Sure.Lsp.uri_ok("file:///tmp/Nat.sure") == true
+  refl

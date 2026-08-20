@@ -1,0 +1,43 @@
+// A filesystem path. Safe constructors reject ".." and NUL.
+type Path {
+  new(text: String)
+}
+
+type Path.Err {
+  empty
+  nul
+  dotdot
+}
+
+Path.text(p: Path): String
+  open p
+  p.text
+
+Path.unsafe(text: String): Path
+  Path.new(text)
+
+Path.is_safe(s: String): Bool
+  if String.is_empty(s) then
+    false
+  else if String.includes(s, String.cons(0#16, "")) then
+    false
+  else if String.eql(s, "..") then
+    false
+  else if String.starts_with(s, "../") then
+    false
+  else if String.ends_with(s, "/..") then
+    false
+  else if String.includes(s, "/../") then
+    false
+  else
+    true
+
+Path.from_string(s: String): Outcome<Path.Err, Path>
+  if String.is_empty(s) then
+    Outcome.err<Path.Err, Path>(Path.Err.empty)
+  else if String.includes(s, String.cons(0#16, "")) then
+    Outcome.err<Path.Err, Path>(Path.Err.nul)
+  else if Bool.not(Path.is_safe(s)) then
+    Outcome.err<Path.Err, Path>(Path.Err.dotdot)
+  else
+    Outcome.ok<Path.Err, Path>(Path.new(s))

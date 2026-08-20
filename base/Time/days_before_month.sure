@@ -1,0 +1,6 @@
+Time.days_before_month.go(year: Nat, i: Nat, month: Nat, acc: Nat): Nat
+  if Nat.gte(i, month) then acc
+  else Time.days_before_month.go(year, Nat.succ(i), month, Nat.add(acc, Time.month_days(year, i)))
+
+Time.days_before_month(year: Nat, month: Nat): Nat
+  Time.days_before_month.go(year, 1, month, 0)

@@ -1,0 +1,3 @@
+Sure.Term.serialize.compact(n: Nat, x: Bits): Bits
+  let name = Bits.concat(Nat.to_bits(n))
+  Bits.i(Bits.i(Bits.i(Bits.i(name(x)))))

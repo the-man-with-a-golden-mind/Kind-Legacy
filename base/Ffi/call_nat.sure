@@ -1,0 +1,5 @@
+Ffi.call_nat(name: String, args: List<Nat>): IO<Outcome<Ffi.Err, Nat>>
+  IO {
+    get o = Ffi.call(name, JSON.enc.list<Nat>(JSON.enc.nat, args))
+    return Ffi.from_json<Nat>(Ffi.read_nat, o)
+  }

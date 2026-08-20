@@ -1,0 +1,2 @@
+Html.Tag.read.junk: Maybe.is_none<Html.Tag>(Html.Tag.read("not-a-tag")) == true
+  refl

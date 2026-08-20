@@ -1,0 +1,74 @@
+Sure.Env.decode.all.empty_name: Sure.Env.decode("1\nempty_name") == Outcome.err<Sure.Env.Err, String>(Sure.Env.Err.empty_name)
+  refl
+
+Sure.Env.decode.all.junk: Sure.Env.decode("1\nbad") == Outcome.err<Sure.Env.Err, String>(Sure.Env.Err.junk)
+  refl
+
+Sure.Env.decode.all.enoent: Sure.Env.decode("1\nENOENT") == Outcome.err<Sure.Env.Err, String>(Sure.Env.Err.missing)
+  refl
+
+Sure.Env.decode.all.not_found: Sure.Env.decode("1\nnot found") == Outcome.err<Sure.Env.Err, String>(Sure.Env.Err.missing)
+  refl
+
+Sure.Env.decode.all.err_empty: Sure.Env.decode("1\n") == Outcome.err<Sure.Env.Err, String>(Sure.Env.Err.empty_name)
+  refl
+
+Sure.Env.decode.all.untagged: Sure.Env.decode("nope") == Outcome.ok<Sure.Env.Err, String>("nope")
+  refl
+
+Sure.Env.decode.all.via: Sure.Env.decode("1\nmissing") == Host.to_env(Host.decode("1\nmissing"))
+  refl
+
+Sure.Env.decode.all.unit_ok: Sure.Env.decode_unit("0\n") == Outcome.ok<Sure.Env.Err, Unit>(unit)
+  refl
+
+Sure.Env.decode.all.unit_empty: Sure.Env.decode_unit("") == Outcome.err<Sure.Env.Err, Unit>(Sure.Env.Err.junk)
+  refl
+
+Sure.Env.decode.all.unit_missing: Sure.Env.decode_unit("1\nmissing") == Outcome.err<Sure.Env.Err, Unit>(Sure.Env.Err.missing)
+  refl
+
+Sure.Env.decode.all.unit_empty_name: Sure.Env.decode_unit("1\nempty_name") == Outcome.err<Sure.Env.Err, Unit>(Sure.Env.Err.empty_name)
+  refl
+
+Sure.Env.decode.all.unit_junk: Sure.Env.decode_unit("1\nbad") == Outcome.err<Sure.Env.Err, Unit>(Sure.Env.Err.junk)
+  refl
+
+Sure.Env.decode.all.keys_empty: Outcome.is_ok<Sure.Env.Err, List<String>>(Sure.Env.decode_keys("")) == false
+  refl
+
+Sure.Env.decode.all.keys_ok:
+  case Sure.Env.decode_keys("0\nPATH") as o {
+    err: 0
+    ok: List.length<String>(o.value)
+  } == 1
+  refl
+
+Sure.Env.decode.all.keys_missing: Outcome.is_ok<Sure.Env.Err, List<String>>(Sure.Env.decode_keys("1\nmissing")) == false
+  refl
+
+Sure.Env.decode.all.keys_blank:
+  case Sure.Env.decode_keys("0\n") as o {
+    err: 1
+    ok: List.length<String>(o.value)
+  } == 0
+  refl
+
+Sure.Env.decode.all: Unit
+  let a0 = Sure.Env.decode.all.empty_name
+  let a1 = Sure.Env.decode.all.junk
+  let a2 = Sure.Env.decode.all.enoent
+  let a3 = Sure.Env.decode.all.not_found
+  let a4 = Sure.Env.decode.all.err_empty
+  let a5 = Sure.Env.decode.all.untagged
+  let a6 = Sure.Env.decode.all.via
+  let u0 = Sure.Env.decode.all.unit_ok
+  let u1 = Sure.Env.decode.all.unit_empty
+  let u2 = Sure.Env.decode.all.unit_missing
+  let u3 = Sure.Env.decode.all.unit_empty_name
+  let u4 = Sure.Env.decode.all.unit_junk
+  let k0 = Sure.Env.decode.all.keys_empty
+  let k1 = Sure.Env.decode.all.keys_ok
+  let k2 = Sure.Env.decode.all.keys_missing
+  let k3 = Sure.Env.decode.all.keys_blank
+  unit

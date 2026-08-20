@@ -1,0 +1,30 @@
+// The next commands after `sure new`. Empty is not a topic.
+Sure.How.next: String
+  "sure prove && sure build && sure run"
+
+Sure.How.is_topic(s: String): Bool
+  if String.eql(s, "prove") then true
+  else if String.eql(s, "json") then true
+  else if String.eql(s, "html") then true
+  else if String.eql(s, "emit") then true
+  else if String.eql(s, "ffi") then true
+  else if String.eql(s, "gen") then true
+  else if String.eql(s, "pkg") then true
+  else if String.eql(s, "bun") then true
+  else if String.eql(s, "worker") then true
+  else if String.eql(s, "db") then true
+  else if String.eql(s, "debug") then true
+  else if String.eql(s, "lsp") then true
+  else if String.eql(s, "pipe") then true
+  else if String.eql(s, "time") then true
+  else if String.eql(s, "cli") then true
+  else if String.eql(s, "log") then true
+  else if String.eql(s, "repl") then true
+  else if String.eql(s, "test") then true
+  else if String.eql(s, "env") then true
+  else if String.eql(s, "cfg") then true
+  else if String.eql(s, "ssr") then true
+  else if String.eql(s, "ui") then true
+  else if String.eql(s, "web") then true
+  else false
+

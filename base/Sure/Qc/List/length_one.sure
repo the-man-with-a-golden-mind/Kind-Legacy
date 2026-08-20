@@ -1,0 +1,2 @@
+Sure.Qc.List.length_one(n: Nat): List.length<Nat>(Sure.Qc.List.sing(n)) == 1
+  refl

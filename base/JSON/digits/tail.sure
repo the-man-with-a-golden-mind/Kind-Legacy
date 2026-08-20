@@ -1,0 +1,2 @@
+JSON.digits.tail: JSON.digits("12x") == false
+  refl

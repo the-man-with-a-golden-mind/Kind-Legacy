@@ -1,0 +1,2 @@
+Sure.Sheet.apply_state.empty: Sure.Sheet.received(Sure.Sheet.apply_state(Sure.Sheet.init, "")) == 0
+  refl

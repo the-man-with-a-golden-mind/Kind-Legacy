@@ -1,0 +1,63 @@
+type Sure.Lsp.Method {
+  initialize
+  shutdown
+  exit
+  did_open
+  did_change
+  did_close
+  did_save
+  hover
+  definition
+  completion
+  formatting
+  rename
+  references
+  symbols
+  highlight
+  prepare_rename
+  workspace_symbol
+  code_action
+}
+
+Sure.Lsp.Method.show(m: Sure.Lsp.Method): String
+  case m {
+    initialize: "initialize"
+    shutdown: "shutdown"
+    exit: "exit"
+    did_open: "textDocument/didOpen"
+    did_change: "textDocument/didChange"
+    did_close: "textDocument/didClose"
+    did_save: "textDocument/didSave"
+    hover: "textDocument/hover"
+    definition: "textDocument/definition"
+    completion: "textDocument/completion"
+    formatting: "textDocument/formatting"
+    rename: "textDocument/rename"
+    references: "textDocument/references"
+    symbols: "textDocument/documentSymbol"
+    highlight: "textDocument/documentHighlight"
+    prepare_rename: "textDocument/prepareRename"
+    workspace_symbol: "workspace/symbol"
+    code_action: "textDocument/codeAction"
+  }
+
+Sure.Lsp.Method.read(s: String): Maybe<Sure.Lsp.Method>
+  if String.eql(s, "initialize") then some(Sure.Lsp.Method.initialize)
+  else if String.eql(s, "shutdown") then some(Sure.Lsp.Method.shutdown)
+  else if String.eql(s, "exit") then some(Sure.Lsp.Method.exit)
+  else if String.eql(s, "textDocument/didOpen") then some(Sure.Lsp.Method.did_open)
+  else if String.eql(s, "textDocument/didChange") then some(Sure.Lsp.Method.did_change)
+  else if String.eql(s, "textDocument/didClose") then some(Sure.Lsp.Method.did_close)
+  else if String.eql(s, "textDocument/didSave") then some(Sure.Lsp.Method.did_save)
+  else if String.eql(s, "textDocument/hover") then some(Sure.Lsp.Method.hover)
+  else if String.eql(s, "textDocument/definition") then some(Sure.Lsp.Method.definition)
+  else if String.eql(s, "textDocument/completion") then some(Sure.Lsp.Method.completion)
+  else if String.eql(s, "textDocument/formatting") then some(Sure.Lsp.Method.formatting)
+  else if String.eql(s, "textDocument/rename") then some(Sure.Lsp.Method.rename)
+  else if String.eql(s, "textDocument/references") then some(Sure.Lsp.Method.references)
+  else if String.eql(s, "textDocument/documentSymbol") then some(Sure.Lsp.Method.symbols)
+  else if String.eql(s, "textDocument/documentHighlight") then some(Sure.Lsp.Method.highlight)
+  else if String.eql(s, "textDocument/prepareRename") then some(Sure.Lsp.Method.prepare_rename)
+  else if String.eql(s, "workspace/symbol") then some(Sure.Lsp.Method.workspace_symbol)
+  else if String.eql(s, "textDocument/codeAction") then some(Sure.Lsp.Method.code_action)
+  else none

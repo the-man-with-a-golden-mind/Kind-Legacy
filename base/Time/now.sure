@@ -1,0 +1,5 @@
+Time.now: IO<Time.Stamp>
+  IO {
+    get ms = IO.get_time
+    IO.end<Time.Stamp>(Time.Stamp.new(ms))
+  }

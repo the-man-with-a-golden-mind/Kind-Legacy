@@ -1,0 +1,2 @@
+Outcome.http.err: Outcome.http<String, String>(Outcome.err<String, String>("no"), (x) x)@status == 404
+  refl

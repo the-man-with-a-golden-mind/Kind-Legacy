@@ -1,0 +1,2 @@
+JSON.digits.zero: JSON.digits("0") == true
+  refl

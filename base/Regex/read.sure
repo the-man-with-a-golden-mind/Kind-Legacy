@@ -1,0 +1,147 @@
+Regex.read.range.go(i: Nat, j: Nat): String
+  if Nat.gtn(i, j) then ""
+  else Char.to_string(Nat.to_u16(i)) | Regex.read.range.go(Nat.succ(i), j)
+
+Regex.read.range(a: Char, b: Char): String
+  Regex.read.range.go(U16.to_nat(a), U16.to_nat(b))
+
+Regex.read.expand.go(s: String, acc: String): String
+  case s {
+    nil: acc
+    cons:
+      case s.tail {
+        nil: acc | Char.to_string(s.head)
+        cons:
+          if U16.eql(s.tail.head, '-') then
+            case s.tail.tail {
+              nil: acc | Char.to_string(s.head) | "-"
+              cons: Regex.read.expand.go(s.tail.tail.tail, acc | Regex.read.range(s.head, s.tail.tail.head))
+            }
+          else Regex.read.expand.go(s.tail, acc | Char.to_string(s.head))
+      }
+  }
+
+Regex.read.expand(cs: String): String
+  Regex.read.expand.go(cs, "")
+
+Regex.read.esc(s: String): Maybe<Pair<Regex, String>>
+  case s {
+    nil: none
+    cons:
+      if U16.eql(s.head, 'd') then
+        some(Pair.new<Regex, String>(Regex.cls(false, "0123456789"), s.tail))
+      else if U16.eql(s.head, 's') then
+        some(Pair.new<Regex, String>(Regex.cls(false, " \n\t\r"), s.tail))
+      else if U16.eql(s.head, 'w') then
+        some(Pair.new<Regex, String>(Regex.cls(false, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_"), s.tail))
+      else
+        some(Pair.new<Regex, String>(Regex.lit(s.head), s.tail))
+  }
+
+Regex.read.cls.go(neg: Bool, acc: String, s: String): Maybe<Pair<Regex, String>>
+  case s {
+    nil: none
+    cons:
+      if U16.eql(s.head, ']') then
+        some(Pair.new<Regex, String>(Regex.cls(neg, Regex.read.expand(acc)), s.tail))
+      else Regex.read.cls.go(neg, acc | Char.to_string(s.head), s.tail)
+  }
+
+Regex.read.cls(s: String): Maybe<Pair<Regex, String>>
+  case s {
+    nil: none
+    cons:
+      if U16.eql(s.head, '^') then Regex.read.cls.go(true, "", s.tail)
+      else Regex.read.cls.go(false, "", s)
+  }
+
+Regex.read.alt(s: String): Maybe<Pair<Regex, String>>
+  case Regex.read.seq(s) as p {
+    none: none
+    some:
+      open p.value
+      case p.value.snd {
+        nil: some(p.value)
+        cons:
+          if U16.eql(p.value.snd.head, '|') then
+            case Regex.read.alt(p.value.snd.tail) as q {
+              none: none
+              some:
+                open q.value
+                some(Pair.new<Regex, String>(Regex.alt(p.value.fst, q.value.fst), q.value.snd))
+            }
+          else some(p.value)
+      }
+  }
+
+Regex.read.seq(s: String): Maybe<Pair<Regex, String>>
+  case Regex.read.rep(s) as p {
+    none: some(Pair.new<Regex, String>(Regex.eps, s))
+    some:
+      open p.value
+      case Regex.read.seq(p.value.snd) as q {
+        none: some(p.value)
+        some:
+          open q.value
+          case q.value.fst {
+            eps: some(p.value)
+          } default some(Pair.new<Regex, String>(Regex.concat(p.value.fst, q.value.fst), q.value.snd))
+      }
+  }
+
+Regex.read.rep(s: String): Maybe<Pair<Regex, String>>
+  case Regex.read.atom(s) as p {
+    none: none
+    some:
+      open p.value
+      case p.value.snd {
+        nil: some(p.value)
+        cons:
+          if U16.eql(p.value.snd.head, '*') then
+            some(Pair.new<Regex, String>(Regex.star(p.value.fst), p.value.snd.tail))
+          else if U16.eql(p.value.snd.head, '+') then
+            some(Pair.new<Regex, String>(Regex.concat(p.value.fst, Regex.star(p.value.fst)), p.value.snd.tail))
+          else if U16.eql(p.value.snd.head, '?') then
+            some(Pair.new<Regex, String>(Regex.alt(p.value.fst, Regex.eps), p.value.snd.tail))
+          else some(p.value)
+      }
+  }
+
+Regex.read.atom(s: String): Maybe<Pair<Regex, String>>
+  case s {
+    nil: none
+    cons:
+      if U16.eql(s.head, '.') then
+        some(Pair.new<Regex, String>(Regex.any, s.tail))
+      else if U16.eql(s.head, '(') then
+        case Regex.read.alt(s.tail) as p {
+          none: none
+          some:
+            open p.value
+            case p.value.snd {
+              nil: none
+              cons:
+                if U16.eql(p.value.snd.head, ')') then
+                  some(Pair.new<Regex, String>(p.value.fst, p.value.snd.tail))
+                else none
+            }
+        }
+      else if U16.eql(s.head, '[') then Regex.read.cls(s.tail)
+      else if U16.eql(s.head, '\\') then Regex.read.esc(s.tail)
+      else if U16.eql(s.head, '*') then none
+      else if U16.eql(s.head, '+') then none
+      else if U16.eql(s.head, '?') then none
+      else if U16.eql(s.head, '|') then none
+      else if U16.eql(s.head, ')') then none
+      else if U16.eql(s.head, ']') then none
+      else some(Pair.new<Regex, String>(Regex.lit(s.head), s.tail))
+  }
+
+Regex.read(s: String): Maybe<Regex>
+  case Regex.read.alt(s) as p {
+    none: none
+    some:
+      open p.value
+      if String.is_empty(p.value.snd) then some(p.value.fst)
+      else none
+  }

@@ -1,0 +1,191 @@
+Sure.Tweeter.box(cls: String, props: Map<String>, kids: List<DOM>): DOM
+  Html.el(Html.Tag.div, Html.attr("class", cls, props), Map.from_list<String>([]), kids)
+
+Sure.Tweeter.field(typ: String, ph: String, val: String, msg: String): DOM
+  Html.el(
+    Html.Tag.input,
+    Html.on(
+      Html.Event.change,
+      msg,
+      Html.attr(
+        "type",
+        typ,
+        Html.attr(
+          "placeholder",
+          ph,
+          Html.attr(
+            "value",
+            val,
+            Html.attr("class", "input input-bordered w-full", Map.new<String>)
+          )
+        )
+      )
+    ),
+    Map.new<String>,
+    []
+  )
+
+Sure.Tweeter.note_view(note: String): List<DOM>
+  if String.is_empty(note) then []
+  else [Sure.Tweeter.box("alert alert-error mt-2", Map.from_list<String>([]), [Html.text(note)])]
+
+Sure.Tweeter.login_view(m: Sure.Tweeter.Model): DOM
+  open m
+  Sure.Tweeter.box(
+    "min-h-screen bg-base-200 flex items-center justify-center p-4",
+    Map.from_list<String>([]),
+    [
+      Sure.Tweeter.box(
+        "card bg-base-100 shadow-xl w-full max-w-md",
+        Map.from_list<String>([]),
+        [
+          Sure.Tweeter.box(
+            "card-body",
+            Map.from_list<String>([]),
+            List.concat<DOM>(
+              [
+                Sure.Tweeter.box("card-title", Map.from_list<String>([]), [Html.text("Tweeter")]),
+                Sure.Tweeter.field("text", "user", m.user, "user"),
+                Sure.Tweeter.field("password", "password", m.pass, "pass"),
+                Sure.Tweeter.box(
+                  "card-actions justify-end mt-2",
+                  Map.from_list<String>([]),
+                  [
+                    Html.el(Html.Tag.button, Html.on(Html.Event.click, "register", Html.attr("class", "btn btn-ghost", Map.new<String>)), Map.new<String>, [Html.text("Register")]),
+                    Html.el(Html.Tag.button, Html.on(Html.Event.click, "login", Html.attr("class", "btn btn-primary", Map.new<String>)), Map.new<String>, [Html.text("Login")])
+                  ]
+                )
+              ],
+              Sure.Tweeter.note_view(m.note)
+            )
+          )
+        ]
+      )
+    ]
+  )
+
+Sure.Tweeter.file_input(u: Unit): DOM
+  Html.el(
+    Html.Tag.input,
+    Html.on(
+      Html.Event.change,
+      "file",
+      Html.attr(
+        "type",
+        "file",
+        Html.attr(
+          "accept",
+          "image/png,image/jpeg,image/gif,image/webp",
+          Html.attr("class", "file-input file-input-bordered file-input-sm w-full", Map.new<String>)
+        )
+      )
+    ),
+    Map.new<String>,
+    []
+  )
+
+Sure.Tweeter.preview(blob: String): List<DOM>
+  if String.is_empty(blob) then []
+  else [Html.el(Html.Tag.img, Html.attr("src", blob, Html.attr("class", "max-h-40 rounded-box mt-2", Map.new<String>)), Map.new<String>, [])]
+
+Sure.Tweeter.tweet_card(t: Sure.Tweeter.Tweet): DOM
+  open t
+  let img = if String.is_empty(t.file) then []
+    else [Html.el(Html.Tag.img, Html.attr("src", "/tweeter/file?id=" | t.file, Html.attr("class", "max-h-48 rounded-box mt-2", Map.new<String>)), Map.new<String>, [])]
+  Sure.Tweeter.box(
+    "card bg-base-100 shadow mb-3",
+    Map.from_list<String>([]),
+    [
+      Sure.Tweeter.box(
+        "card-body p-4",
+        Map.from_list<String>([]),
+        List.concat<DOM>(
+          [
+            Sure.Tweeter.box("font-bold", Map.from_list<String>([]), [Html.text("@" | t.user)]),
+            Sure.Tweeter.box("mt-1", Map.from_list<String>([]), [Html.text(t.text)])
+          ],
+          img
+        )
+      )
+    ]
+  )
+
+Sure.Tweeter.feed_view.go(xs: List<Sure.Tweeter.Tweet>): List<DOM>
+  case xs {
+    nil: []
+    cons: List.cons<DOM>(Sure.Tweeter.tweet_card(xs.head), Sure.Tweeter.feed_view.go(xs.tail))
+  }
+
+Sure.Tweeter.compose(m: Sure.Tweeter.Model): DOM
+  open m
+  Sure.Tweeter.box(
+    "card bg-base-100 shadow-xl mb-4",
+    Map.from_list<String>([]),
+    [
+      Sure.Tweeter.box(
+        "card-body",
+        Map.from_list<String>([]),
+        List.concat<DOM>(
+          [
+            Html.el(
+              Html.Tag.textarea,
+              Html.on(
+                Html.Event.input,
+                "draft",
+                Html.attr("class", "textarea textarea-bordered w-full", Html.attr("placeholder", "What's happening?", Map.new<String>))
+              ),
+              Map.new<String>,
+              [Html.text(m.draft)]
+            ),
+            Sure.Tweeter.file_input(unit),
+            Sure.Tweeter.box(
+              "card-actions justify-end",
+              Map.from_list<String>([]),
+              [Html.el(Html.Tag.button, Html.on(Html.Event.click, "tweet", Html.attr("class", "btn btn-primary", Map.new<String>)), Map.new<String>, [Html.text("Tweet")])]
+            )
+          ],
+          List.concat<DOM>(Sure.Tweeter.preview(m.blob), Sure.Tweeter.note_view(m.note))
+        )
+      )
+    ]
+  )
+
+Sure.Tweeter.home_view(m: Sure.Tweeter.Model): DOM
+  open m
+  let who = case m.sess {
+    none: ""
+    some: m.sess.user
+  }
+  Sure.Tweeter.box(
+    "min-h-screen bg-base-200",
+    Map.from_list<String>([]),
+    [
+      Sure.Tweeter.box(
+        "navbar bg-primary text-primary-content",
+        Map.from_list<String>([]),
+        [
+          Sure.Tweeter.box("navbar-start", Map.from_list<String>([]), [Sure.Tweeter.box("btn btn-ghost text-xl", Map.from_list<String>([]), [Html.text("Tweeter")])]),
+          Sure.Tweeter.box(
+            "navbar-end gap-2",
+            Map.from_list<String>([]),
+            [
+              Sure.Tweeter.box("badge badge-ghost", Map.from_list<String>([]), [Html.text("@" | who)]),
+              Html.el(Html.Tag.button, Html.on(Html.Event.click, "logout", Html.attr("class", "btn btn-ghost btn-sm", Map.new<String>)), Map.new<String>, [Html.text("Logout")])
+            ]
+          )
+        ]
+      ),
+      Sure.Tweeter.box(
+        "max-w-xl mx-auto p-4",
+        Map.from_list<String>([]),
+        List.cons<DOM>(Sure.Tweeter.compose(m), Sure.Tweeter.feed_view.go(m.feed))
+      )
+    ]
+  )
+
+Sure.Tweeter.view(m: Sure.Tweeter.Model): DOM
+  open m
+  case m.sess {
+    none: Sure.Tweeter.login_view(m)
+    some: Sure.Tweeter.home_view(m)
+  }

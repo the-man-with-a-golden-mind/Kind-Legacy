@@ -1,0 +1,33 @@
+Sure.Mod.all: Unit
+  let k0 = Sure.Mod.Sort.show.app
+  let k1 = Sure.Mod.Sort.show.package
+  let k2 = Sure.Mod.Sort.read.empty
+  let k3 = Sure.Mod.Sort.read.junk
+  let k4 = Sure.Mod.Sort.read.package
+  let n0 = Sure.Mod.name.empty
+  let n1 = Sure.Mod.name.junk
+  let n2 = Sure.Mod.name.ok
+  let n3 = Sure.Mod.name.nested
+  let n4 = Sure.Mod.name.dot
+  let p0 = Sure.Mod.pkg.empty
+  let p1 = Sure.Mod.pkg.junk
+  let p2 = Sure.Mod.pkg.ok
+  let p3 = Sure.Mod.pkg.slash
+  let a0 = Sure.Mod.allows.empty
+  let a1 = Sure.Mod.allows.all
+  let a2 = Sure.Mod.allows.hit
+  let a3 = Sure.Mod.allows.miss
+  let a4 = Sure.Mod.allows.mod
+  let r0 = Sure.Mod.module_name.empty
+  let r1 = Sure.Mod.module_name.ok
+  let r2 = Sure.Mod.module_name.all
+  let r3 = Sure.Mod.module_name.junk
+  let r4 = Sure.Mod.module_name.comment
+  let i0 = Sure.Mod.import_name.empty
+  let i1 = Sure.Mod.import_name.ok
+  let i2 = Sure.Mod.import_name.all
+  let i3 = Sure.Mod.import_name.none
+  let u0 = Sure.Mod.imports_allow.open
+  let u1 = Sure.Mod.imports_allow.hit
+  let u2 = Sure.Mod.imports_allow.miss
+  unit

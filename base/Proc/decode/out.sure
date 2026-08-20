@@ -1,0 +1,5 @@
+Proc.decode.out(raw: String): String
+  case Proc.decode(raw) as o {
+    err: ""
+    ok: o.value@stdout
+  }

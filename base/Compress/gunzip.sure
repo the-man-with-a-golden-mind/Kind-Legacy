@@ -1,0 +1,5 @@
+Compress.gunzip(hex: String): IO<Outcome<Compress.Err, String>>
+  IO {
+    get raw = IO.ask<String>("gunzip", hex, (t) IO.end<String>(t))
+    return Compress.decode(raw)
+  }

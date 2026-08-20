@@ -1,0 +1,2 @@
+Sure.Ui.Cmd.read.tick_zero: Sure.Ui.Cmd.is_none(Sure.Ui.Cmd.read("T\n0\nx")) == true
+  refl

@@ -1,0 +1,12 @@
+Proc.decode(raw: String): Outcome<Proc.Err, Proc.Out>
+  case IO.tagged.read(raw) as tag {
+    err: Outcome.err<Proc.Err, Proc.Out>(Proc.Err.io(tag.error))
+    ok:
+      let parts = String.split(tag.value, "\n")
+      case parts {
+        nil: Outcome.err<Proc.Err, Proc.Out>(Proc.Err.io("decode"))
+        cons:
+          Outcome.ok<Proc.Err, Proc.Out>(
+            Proc.Out.new(Nat.read(parts.head), String.join("\n", parts.tail)))
+      }
+  }

@@ -1,0 +1,2 @@
+Db.Row.get(name: String, row: Db.Row): String
+  Http.Path.lookup(name, row)

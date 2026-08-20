@@ -1,0 +1,2 @@
+Sure.Debug.Level.pick.flag: Sure.Debug.Level.pick(true, "") == Sure.Debug.Level.trace
+  refl

@@ -1,0 +1,5 @@
+Sure.Ui.Counter: Sure.Ui.App<Nat>
+  Sure.Ui.of_html<Nat>(Html.Counter)
+
+Sure.Ui.Counter.client: Sure.Ui.Client<Nat>
+  Sure.Ui.pack<Nat>(Sure.Ui.Counter)

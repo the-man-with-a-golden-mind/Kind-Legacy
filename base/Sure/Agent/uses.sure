@@ -1,0 +1,3 @@
+// True when `name` is a capitalized identifier in `src` (Sure.Agent.names_of).
+Sure.Agent.uses(src: String, name: String): Bool
+  List.any<String>((n) String.eql(n, name), Sure.Agent.names_of(src))

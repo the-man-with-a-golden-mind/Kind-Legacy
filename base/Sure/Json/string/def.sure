@@ -1,0 +1,2 @@
+Sure.Json.string.def(s: String): Sure.Json.string(s) == ("\"" | Sure.Json.escape(s) | "\"")
+  refl
