@@ -1,0 +1,23 @@
+{
+  "type": "application",
+  "name": "sure/todo",
+  "version": "1.0.0",
+  "language": "Sure",
+  "summary": "Elm-like todo list served on :8775.",
+  "source-directories": ["src"],
+  "exposed-modules": ["Todo", "App"],
+  "theorems": [
+    "Todo.empty_add",
+    "Todo.junk_stays",
+    "Todo.empty_stays",
+    "Todo.add_one",
+    "Todo.add_text",
+    "Todo.toggle_done",
+    "Todo.drop_empty",
+    "Todo.ok_text_empty"
+  ],
+  "dependencies": {
+    "direct": {},
+    "indirect": {}
+  }
+}

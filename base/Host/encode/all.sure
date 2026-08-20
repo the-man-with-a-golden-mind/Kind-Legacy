@@ -126,6 +126,9 @@ Host.encode.all.proc_exec: Host.encode(Host.Op.proc_exec("")) == Pair.new<String
 Host.encode.all.proc_spawn: Host.encode(Host.Op.proc_spawn("")) == Pair.new<String, String>("proc_spawn", "")
   refl
 
+Host.encode.all.proc_unsafe_shell: Host.encode(Host.Op.proc_unsafe_shell("")) == Pair.new<String, String>("proc_unsafe_shell", "")
+  refl
+
 Host.encode.all.proc_wait: Host.encode(Host.Op.proc_wait(0)) == Pair.new<String, String>("proc_wait", "0")
   refl
 
@@ -198,6 +201,39 @@ Host.encode.all.db_clear: Host.encode(Host.Op.db_clear("")) == Pair.new<String, 
 Host.encode.all.db_close: Host.encode(Host.Op.db_close("")) == Pair.new<String, String>("db_close", "")
   refl
 
+Host.encode.all.fs_open: Host.encode(Host.Op.fs_open("")) == Pair.new<String, String>("fs_open", "")
+  refl
+
+Host.encode.all.fs_read_fd: Host.encode(Host.Op.fs_read_fd("")) == Pair.new<String, String>("fs_read_fd", "")
+  refl
+
+Host.encode.all.fs_close: Host.encode(Host.Op.fs_close("")) == Pair.new<String, String>("fs_close", "")
+  refl
+
+Host.encode.all.fs_temp_push: Host.encode(Host.Op.fs_temp_push("")) == Pair.new<String, String>("fs_temp_push", "")
+  refl
+
+Host.encode.all.fs_temp_pop: Host.encode(Host.Op.fs_temp_pop("")) == Pair.new<String, String>("fs_temp_pop", "")
+  refl
+
+Host.encode.all.stream_open: Host.encode(Host.Op.stream_open("")) == Pair.new<String, String>("stream_open", "")
+  refl
+
+Host.encode.all.stream_read: Host.encode(Host.Op.stream_read("")) == Pair.new<String, String>("stream_read", "")
+  refl
+
+Host.encode.all.stream_close: Host.encode(Host.Op.stream_close("")) == Pair.new<String, String>("stream_close", "")
+  refl
+
+Host.encode.all.ws_send: Host.encode(Host.Op.ws_send("", "")) == Pair.new<String, String>("ws_send", "\n")
+  refl
+
+Host.encode.all.ws_recv: Host.encode(Host.Op.ws_recv("")) == Pair.new<String, String>("ws_recv", "")
+  refl
+
+Host.encode.all.ws_close: Host.encode(Host.Op.ws_close("")) == Pair.new<String, String>("ws_close", "")
+  refl
+
 Host.encode.all: Unit
   let a00 = Host.encode.all.put_string
   let a01 = Host.encode.all.get_line
@@ -265,4 +301,15 @@ Host.encode.all: Unit
   let a63 = Host.encode.all.db_keys
   let a64 = Host.encode.all.db_clear
   let a65 = Host.encode.all.db_close
+  let a66 = Host.encode.all.fs_open
+  let a67 = Host.encode.all.fs_read_fd
+  let a68 = Host.encode.all.fs_close
+  let a69 = Host.encode.all.fs_temp_push
+  let a70 = Host.encode.all.fs_temp_pop
+  let a71 = Host.encode.all.stream_open
+  let a72 = Host.encode.all.stream_read
+  let a73 = Host.encode.all.stream_close
+  let a74 = Host.encode.all.ws_send
+  let a75 = Host.encode.all.ws_recv
+  let a76 = Host.encode.all.ws_close
   unit

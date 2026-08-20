@@ -1,0 +1,2 @@
+Host.decode.bad_tag: Host.decode("nope") == Host.err(Host.Err.bad_tag)
+  refl

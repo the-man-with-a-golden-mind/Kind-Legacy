@@ -1,0 +1,2 @@
+DOM.render.junk_tag: DOM.render(DOM.node("><script", Map.new<String>, Map.new<String>, [])) == ""
+  refl

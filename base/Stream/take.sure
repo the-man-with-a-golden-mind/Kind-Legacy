@@ -1,3 +1,12 @@
-// Finite prefix of a list. This is not an async or backpressured stream.
-Stream.take<A: Type>(n: Nat, xs: List<A>): List<A>
-  List.take<A>(n, xs)
+Stream.take<A: Type>(n: Nat, s: Stream<A>): IO<List<A>>
+  case n {
+    zero: IO { return List.nil<A> }
+    succ: case s {
+      done: IO { return List.nil<A> }
+      more: IO {
+        get rest = s.rest
+        get tail = Stream.take<A>(n.pred, rest)
+        return List.cons<A>(s.head, tail)
+      }
+    }
+  }

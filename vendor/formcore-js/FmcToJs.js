@@ -1,4 +1,5 @@
 var fmc = require("./FormCore.js");
+var HOST_SCHEMA = require("./host-schema.js");
 
 const Var = (name)           => ({ctor:"Var",name});
 const Ref = (name)           => ({ctor:"Ref",name});
@@ -626,32 +627,7 @@ function dependency_sort(defs, main) {
 };
 
 // Host IO.ask query -> runtime slice. Unknown / computed queries keep every slice.
-var HOST_QUERY_GROUP = {
-  print: "core", put_string: "core", get_line: "core", get_time: "core",
-  exit: "core", get_args: "core", sleep: "core", yield: "core", cwd: "core",
-  get_env: "core", set_env: "core", del_env: "core", env_keys: "core",
-  get_state: "core", set_state: "core", get_random: "core",
-  sha256: "crypto", sha256_ex: "crypto", hmac_sha256: "crypto",
-  get_file: "file", set_file: "file", del_file: "file", get_dir: "file",
-  get_file_mtime: "file", file_hash: "file", set_file2: "file",
-  fs_read_ex: "file", fs_write_ex: "file", fs_del_ex: "file",
-  fs_read_hex: "file", fs_write_hex: "file", get_dir_ex: "file",
-  http: "http", request: "http",
-  job_start: "job", job_await: "job", job_race: "job", job_cancel: "job", job_all: "job",
-  dns: "dns",
-  tcp_connect: "tcp", tcp_send: "tcp", tcp_recv: "tcp", tcp_close: "tcp",
-  ws_connect: "ws",
-  gzip: "zlib", gunzip: "zlib",
-  http_listen: "server", http_recv: "server", http_reply: "server",
-  http_reply_ex: "server", http_stop: "server", http_reply_hdr: "server",
-  sse_open: "sse", sse_send: "sse", sse_close: "sse", sse_count: "sse",
-  ffi: "ffi", worker_run: "worker",
-  proc_exec: "proc", proc_spawn: "proc", proc_kill: "proc", proc_wait: "proc",
-  db_connect: "db", db_get: "db", db_set: "db", db_del: "db", db_has: "db",
-  db_keys: "db", db_clear: "db", db_query: "db", db_close: "db",
-  init_udp: "udp", send_udp: "udp", recv_udp: "udp", stop_udp: "udp",
-  udp_bind: "udp", udp_send: "udp", udp_recv: "udp", udp_close: "udp",
-};
+var HOST_QUERY_GROUP = HOST_SCHEMA.queries;
 
 function all_host_need() {
   return {
@@ -2199,8 +2175,8 @@ function compile_defs(defs, main, opts) {
     code += "    };\n";
     code += "    var lib = {rl,fs,pc,ht,hs,dg};\n";
     code += "    return run_io(lib,p)\n";
-    code += "      .then((x) => { rl.close(); return x; })\n";
-    code += "      .catch((e) => { rl.close(); try { var msg = String(e && (e.stack || e.message) || e); if (typeof console !== 'undefined') console.error(msg); } catch (e2) {} try { lib.pc.exit(1); } catch (e3) {} throw e; });\n";
+    code += "      .then((x) => { host_release_all(lib); rl.close(); return x; })\n";
+    code += "      .catch((e) => { host_release_all(lib); rl.close(); try { var msg = String(e && (e.stack || e.message) || e); if (typeof console !== 'undefined') console.error(msg); } catch (e2) {} try { lib.pc.exit(1); } catch (e3) {} throw e; });\n";
     code += "  };\n";
     if (hneed.file) {
     code += "  var set_file = (lib, param) => {\n";
@@ -2211,32 +2187,49 @@ function compile_defs(defs, main, opts) {
     code += "    var data = param.slice(i+1);\n";
     code += "    lib.fs.mkdirSync(path.split('/').slice(0,-1).join('/'),{recursive:true});\n";
     code += "    lib.fs.writeFileSync(path,data);\n";
-    code += "    return '';\n";
+    code += "    return host_ok('');\n";
     code += "  };\n";
     code += "  var del_file = (lib, param) => {\n";
     code += "    try {\n"; 
     code += "      lib.fs.unlinkSync(param);\n";
-    code += "      return '';\n";
+    code += "      return host_ok('');\n";
     code += "    } catch (e) {\n";
     code += "      if (e.message.indexOf('EPERM') !== -1) {\n";
     code += "        lib.fs.rmdirSync(param);\n";
-    code += "        return '';\n";
+    code += "        return host_ok('');\n";
     code += "      } else {\n";
-    code += "        return '';\n";
+    code += "        return host_err(String(e && e.message || e));\n";
     code += "      }\n";
     code += "    }\n";
     code += "  };\n";
     code += "  var get_file = (lib, param) => {\n";
-    code += "    return lib.fs.readFileSync(param, 'utf8');\n";
+    code += "    return host_ok(lib.fs.readFileSync(param, 'utf8'));\n";
     code += "  }\n";
     code += "  var get_dir = (lib, param) => {\n";
-    code += "    return lib.fs.readdirSync(param).join(';');\n";
+    code += "    return host_ok(lib.fs.readdirSync(param).join(';'));\n";
     code += "  };\n";
     code += "  var get_file_mtime = (lib, param) => {\n";
-    code += "    return String(lib.fs.statSync(param).mtime.getTime());\n";
+    code += "    return host_ok(String(lib.fs.statSync(param).mtime.getTime()));\n";
     code += "  };\n";
     }
     code += "  var HOST_STATE = {};\n";
+    code += "  var HOST_RES = []; var HOST_FD = {}; var HOST_FD_N = 0; var HOST_STREAM = {}; var HOST_STREAM_N = 0;\n";
+    code += "  var host_ok = function(s) { return '0\\n' + String(s == null ? '' : s); };\n";
+    code += "  var host_err = function(s) { return '1\\n' + String(s == null ? '' : s); };\n";
+    code += "  var host_release_all = (lib) => {\n";
+    code += "    while (HOST_RES.length) {\n";
+    code += "      var r = HOST_RES.pop();\n";
+    code += "      try {\n";
+    code += "        if (r.kind === 'temp' && r.path && lib && lib.fs) lib.fs.unlinkSync(r.path);\n";
+    code += "        if (r.kind === 'fd' && r.id && HOST_FD[r.id]) { HOST_FD[r.id].fd.close(); delete HOST_FD[r.id]; }\n";
+    code += "        if (r.kind === 'stream' && r.id && HOST_STREAM[r.id]) { HOST_STREAM[r.id].fd.close(); delete HOST_STREAM[r.id]; }\n";
+    code += "        if (r.kind === 'ws' && r.id && typeof HOST_TCP !== 'undefined' && HOST_TCP[r.id]) {\n";
+    code += "          try { HOST_TCP[r.id].sock.end(); } catch (eW) {}\n";
+    code += "          delete HOST_TCP[r.id];\n";
+    code += "        }\n";
+    code += "      } catch (eR) {}\n";
+    code += "    }\n";
+    code += "  };\n";
     code += "  var host_get_args = (lib) => {\n";
     code += "    var argv = (lib.pc && lib.pc.argv) || (typeof process !== 'undefined' ? process.argv : []) || [];\n";
     code += "    var flags = ['--run', '--run-scm', '--test', '--json'];\n";
@@ -2388,6 +2381,7 @@ function compile_defs(defs, main, opts) {
     code += "        return host_tcp_send(lib, id + '\\n' + req).then(() => host_tcp_recv(lib, id)).then((r) => {\n";
     code += "          if (String(r).indexOf('101') >= 0) {\n";
     code += "            if (HOST_TCP[id]) HOST_TCP[id].ws = true;\n";
+    code += "            HOST_RES.push({kind: 'ws', id: id});\n";
     code += "            return '0\\n' + id;\n";
     code += "          }\n";
     code += "          return '1\\nws handshake';\n";
@@ -2473,7 +2467,7 @@ function compile_defs(defs, main, opts) {
     code += "  };\n";
     code += "  var host_http_recv = (lib, param) => {\n";
     code += "    var port = Number(param) || 0; var srv = HOST_HTTP_SRV[port];\n";
-    code += "    if (!srv) return Promise.resolve('');\n";
+    code += "    if (!srv) return Promise.resolve(host_err('closed'));\n";
     code += "    return new Promise((res) => {\n";
     code += "      var deliver = (rec) => res('0\\n' + rec.id + '\\n' + rec.method + '\\n' + rec.url + '\\n' + (rec.cookie || '') + '\\n' + rec.body);\n";
     code += "      if (srv.mailbox.length) deliver(srv.mailbox.shift());\n";
@@ -2482,7 +2476,7 @@ function compile_defs(defs, main, opts) {
     code += "        var t = setTimeout(() => {\n";
     code += "          var i = srv.waiters.indexOf(fn);\n";
     code += "          if (i >= 0) srv.waiters.splice(i, 1);\n";
-    code += "          res('');\n";
+    code += "          res(host_ok(''));\n";
     code += "        }, 3000);\n";
     code += "        fn = (rec) => { clearTimeout(t); deliver(rec); };\n";
     code += "        srv.waiters.push(fn);\n";
@@ -2788,33 +2782,78 @@ function compile_defs(defs, main, opts) {
     code += "  };\n";
     }
     if (hneed.proc) {
-    code += "  var host_proc_exec = (lib, param) => {\n";
+    code += "  var host_parse_argv = function(param) {\n";
+    code += "    var lines = String(param || '').split('\\n');\n";
+    code += "    var file = lines[0] || '';\n";
+    code += "    var cwd = lines[1] || '';\n";
+    code += "    var envLine = lines[2] || '';\n";
+    code += "    var args = lines.slice(3);\n";
+    code += "    var env = Object.assign({}, process.env);\n";
+    code += "    if (envLine) envLine.split(';').forEach(function(kv) {\n";
+    code += "      var i = kv.indexOf('=');\n";
+    code += "      if (i > 0) env[kv.slice(0, i)] = kv.slice(i + 1);\n";
+    code += "    });\n";
+    code += "    return {file: file, cwd: cwd, env: env, args: args};\n";
+    code += "  };\n";
+    code += "  var host_proc_run = (lib, param) => {\n";
     code += "    return new Promise((res) => {\n";
     code += "      try {\n";
-    code += "        require('child_process').exec(param, {timeout: 8000, maxBuffer: 1048576, encoding: 'utf8'}, (err, stdout) => {\n";
+    code += "        var spec = host_parse_argv(param);\n";
+    code += "        if (!spec.file) { res(host_err('empty_name')); return; }\n";
+    code += "        var child = require('child_process').spawn(spec.file, spec.args, {cwd: spec.cwd || undefined, env: spec.env, shell: false, timeout: 8000, stdio: ['ignore', 'pipe', 'pipe']});\n";
+    code += "        var out = ''; var done = false;\n";
+    code += "        if (child.stdout) child.stdout.on('data', function(d) { out += d; });\n";
+    code += "        var finish = function(code, err) {\n";
+    code += "          if (done) return; done = true;\n";
+    code += "          if (err) res(host_err(err));\n";
+    code += "          else res(host_ok(String(code == null ? 1 : code) + '\\n' + out));\n";
+    code += "        };\n";
+    code += "        child.on('error', function(e) { finish(1, String(e && e.message || e)); });\n";
+    code += "        child.on('close', function(c) { finish(c, null); });\n";
+    code += "        var ac = lib && lib.abort;\n";
+    code += "        if (ac && ac.signal) {\n";
+    code += "          var kill = function() { try { child.kill('SIGTERM'); } catch (eK) {} finish(1, 'cancelled'); };\n";
+    code += "          if (ac.signal.aborted) kill();\n";
+    code += "          else ac.signal.addEventListener('abort', kill, {once: true});\n";
+    code += "        }\n";
+    code += "      } catch (e) { res(host_err(String(e && e.message || e))); }\n";
+    code += "    });\n";
+    code += "  };\n";
+    code += "  var host_proc_unsafe_shell = (lib, param) => {\n";
+    code += "    return new Promise((res) => {\n";
+    code += "      try {\n";
+    code += "        require('child_process').exec(param, {timeout: 8000, maxBuffer: 1048576, encoding: 'utf8', shell: true}, (err, stdout) => {\n";
     code += "          var code = 0;\n";
     code += "          if (err && typeof err.code === 'number') code = err.code;\n";
     code += "          else if (err) code = 1;\n";
-    code += "          res('0\\n' + String(code) + '\\n' + String(stdout || ''));\n";
+    code += "          res(host_ok(String(code) + '\\n' + String(stdout || '')));\n";
     code += "        });\n";
-    code += "      } catch (e) { res('1\\n' + String(e && e.message || e)); }\n";
+    code += "      } catch (e) { res(host_err(String(e && e.message || e))); }\n";
     code += "    });\n";
     code += "  };\n";
+    code += "  var host_proc_exec = host_proc_unsafe_shell;\n";
     code += "  var HOST_PROCS = {};\n";
-    code += "  var host_proc_spawn = (lib, param) => {\n";
+    code += "  var host_proc_spawn_ex = (lib, param) => {\n";
     code += "    try {\n";
-    code += "      var child;\n";
-    code += "      if (param && param.indexOf('node -e') === 0) {\n";
-    code += "        var src = param.slice(8).replace(/^['\\\"]|['\\\"]$/g, '');\n";
-    code += "        child = require('child_process').spawn(process.execPath, ['-e', src], {stdio: 'ignore'});\n";
-    code += "      } else {\n";
-    code += "        child = require('child_process').spawn(param || process.execPath, {shell: true, stdio: 'ignore'});\n";
-    code += "      }\n";
+    code += "      var spec = host_parse_argv(param);\n";
+    code += "      if (!spec.file) return Promise.resolve(host_err('empty_name'));\n";
+    code += "      var child = require('child_process').spawn(spec.file, spec.args, {cwd: spec.cwd || undefined, env: spec.env, shell: false, stdio: 'ignore'});\n";
     code += "      var rec = {child: child, code: null, done: null};\n";
     code += "      rec.done = new Promise((res) => { child.on('exit', (c) => { rec.code = (c == null ? 1 : c); res(rec.code); }); });\n";
     code += "      HOST_PROCS[String(child.pid)] = rec;\n";
-    code += "      return Promise.resolve('0\\n' + String(child.pid));\n";
-    code += "    } catch (e) { return Promise.resolve('1\\n' + String(e && e.message || e)); }\n";
+    code += "      return Promise.resolve(host_ok(String(child.pid)));\n";
+    code += "    } catch (e) { return Promise.resolve(host_err(String(e && e.message || e))); }\n";
+    code += "  };\n";
+    code += "  var host_proc_spawn = (lib, param) => {\n";
+    code += "    try {\n";
+    code += "      var spec = host_parse_argv(param);\n";
+    code += "      if (!spec.file) return Promise.resolve(host_err('empty_name'));\n";
+    code += "      var child = require('child_process').spawn(spec.file, spec.args, {cwd: spec.cwd || undefined, env: spec.env, shell: false, stdio: 'ignore'});\n";
+    code += "      var rec = {child: child, code: null, done: null};\n";
+    code += "      rec.done = new Promise((res) => { child.on('exit', (c) => { rec.code = (c == null ? 1 : c); res(rec.code); }); });\n";
+    code += "      HOST_PROCS[String(child.pid)] = rec;\n";
+    code += "      return Promise.resolve(host_ok(String(child.pid)));\n";
+    code += "    } catch (e) { return Promise.resolve(host_err(String(e && e.message || e))); }\n";
     code += "  };\n";
     code += "  var host_proc_kill = (lib, param) => {\n";
     code += "    try {\n";
@@ -2905,7 +2944,7 @@ function compile_defs(defs, main, opts) {
     }
     if (hneed.file) {
     code += "  var file_error = e => {\n";
-    code += "    return '';\n";
+    code += "    return host_err((e && e.code === 'ENOENT') ? 'ENOENT' : String(e && e.message || e));\n";
     code += "  };\n";
     }
     if (hneed.ffi) {
@@ -3026,11 +3065,11 @@ function compile_defs(defs, main, opts) {
     code += "  var io_action = {\n";
     code += "    print: async (lib, param) => {\n";
     code += "      console.log(param);\n";
-    code += "      return '';\n";
+    code += "      return host_ok('');\n";
     code += "    },\n";
     code += "    put_string: async (lib, param) => {\n";
     code += "      process.stdout.write(param);\n";
-    code += "      return '';\n";
+    code += "      return host_ok('');\n";
     code += "    },\n";
     if (hneed.file) {
     code += "    get_file: async (lib, param) => {\n";
@@ -3070,13 +3109,13 @@ function compile_defs(defs, main, opts) {
     code += "    },\n";
     }
     code += "    get_time: async (lib, param) => {\n";
-    code += "      return String(Date.now());\n";
+    code += "      return host_ok(String(Date.now()));\n";
     code += "    },\n";
     code += "    exit: async (lib, param) => {\n";
     code += "      var code = param === '' || param === undefined ? 0 : Number(param);\n";
     code += "      if (!(code >= 0)) code = 1;\n";
     code += "      lib.pc.exit(code);\n";
-    code += "      return '';\n";
+    code += "      return host_ok('');\n";
     code += "    },\n";
     if (hneed.http) {
     code += "    request: async (lib, param) => {\n";
@@ -3134,24 +3173,24 @@ function compile_defs(defs, main, opts) {
     code += "      } catch (e) { return '1\\n' + String(e && e.message || e); }\n";
     code += "    },\n";
     code += "    get_state: async (lib, param) => {\n";
-    code += "      return Object.prototype.hasOwnProperty.call(HOST_STATE, param) ? HOST_STATE[param] : '';\n";
+    code += "      return host_ok(Object.prototype.hasOwnProperty.call(HOST_STATE, param) ? HOST_STATE[param] : '');\n";
     code += "    },\n";
     code += "    set_state: async (lib, param) => {\n";
     code += "      var nl = param.indexOf('\\n');\n";
     code += "      if (nl === -1) { HOST_STATE[param] = ''; }\n";
     code += "      else { HOST_STATE[param.slice(0, nl)] = param.slice(nl + 1); }\n";
-    code += "      return '';\n";
+    code += "      return host_ok('');\n";
     code += "    },\n";
     code += "    get_random: async (lib, param) => {\n";
     code += "      try {\n";
-    code += "        return String(require('crypto').randomBytes(8).readUInt32BE(0) / 4294967296);\n";
+    code += "        return host_ok(String(require('crypto').randomBytes(8).readUInt32BE(0) / 4294967296));\n";
     code += "      } catch (e) {\n";
     code += "        throw new Error('secure random unavailable');\n";
     code += "      }\n";
     code += "    },\n";
     if (hneed.crypto) {
     code += "    sha256: async (lib, param) => {\n";
-    code += "      return require('crypto').createHash('sha256').update(param, 'utf8').digest('hex');\n";
+    code += "      return host_ok(require('crypto').createHash('sha256').update(param, 'utf8').digest('hex'));\n";
     code += "    },\n";
     code += "    sha256_ex: async (lib, param) => {\n";
     code += "      try {\n";
@@ -3172,9 +3211,9 @@ function compile_defs(defs, main, opts) {
     code += "    file_hash: async (lib, param) => {\n";
     code += "      try {\n";
     code += "        var buf = lib.fs.readFileSync(param);\n";
-    code += "        return require('crypto').createHash('sha256').update(buf).digest('hex');\n";
+    code += "        return host_ok(require('crypto').createHash('sha256').update(buf).digest('hex'));\n";
     code += "      } catch (e) {\n";
-    code += "        return '';\n";
+    code += "        return host_err((e && e.code === 'ENOENT') ? 'ENOENT' : String(e && e.message || e));\n";
     code += "      }\n";
     code += "    },\n";
     code += "    set_file2: async (lib, param) => {\n";
@@ -3184,14 +3223,14 @@ function compile_defs(defs, main, opts) {
     code += "        var data = nl === -1 ? '' : param.slice(nl + 1);\n";
     code += "        lib.fs.mkdirSync(fpath.split('/').slice(0, -1).join('/'), {recursive: true});\n";
     code += "        lib.fs.writeFileSync(fpath, data);\n";
-    code += "        return '';\n";
+    code += "        return host_ok('');\n";
     code += "      } catch (e) {\n";
     code += "        return file_error(e);\n";
     code += "      }\n";
     code += "    },\n";
     }
     code += "    cwd: async (lib, param) => {\n";
-    code += "      try { return process.cwd(); } catch (e) { return ''; }\n";
+    code += "      try { return host_ok(process.cwd()); } catch (e) { return host_err(String(e && e.message || e)); }\n";
     code += "    },\n";
     if (hneed.file) {
     code += "    fs_read_ex: async (lib, param) => {\n";
@@ -3213,6 +3252,73 @@ function compile_defs(defs, main, opts) {
     code += "      try { lib.fs.unlinkSync(param); return '0\\n'; }\n";
     code += "      catch (e) { return '1\\n' + ((e && e.code === 'ENOENT') ? 'ENOENT' : String(e && e.message || e)); }\n";
     code += "    },\n";
+    code += "    fs_open: async (lib, param) => {\n";
+    code += "      try {\n";
+    code += "        var fd = lib.fs.openSync(param, 'r');\n";
+    code += "        var id = String(++HOST_FD_N);\n";
+    code += "        HOST_FD[id] = {fd: fd, path: param};\n";
+    code += "        HOST_RES.push({kind: 'fd', id: id});\n";
+    code += "        return '0\\n' + id;\n";
+    code += "      } catch (e) { return '1\\n' + ((e && e.code === 'ENOENT') ? 'ENOENT' : String(e && e.message || e)); }\n";
+    code += "    },\n";
+    code += "    fs_read_fd: async (lib, param) => {\n";
+    code += "      try {\n";
+    code += "        var rec = HOST_FD[param]; if (!rec) return '1\\nclosed';\n";
+    code += "        var st = lib.fs.fstatSync(rec.fd);\n";
+    code += "        var buf = Buffer.alloc(st.size);\n";
+    code += "        lib.fs.readSync(rec.fd, buf, 0, buf.length, 0);\n";
+    code += "        return '0\\n' + buf.toString('utf8');\n";
+    code += "      } catch (e) { return '1\\n' + String(e && e.message || e); }\n";
+    code += "    },\n";
+    code += "    fs_close: async (lib, param) => {\n";
+    code += "      try {\n";
+    code += "        var rec = HOST_FD[param]; if (!rec) return '0\\n';\n";
+    code += "        lib.fs.closeSync(rec.fd); delete HOST_FD[param];\n";
+    code += "        HOST_RES = HOST_RES.filter(function(r) { return !(r.kind === 'fd' && r.id === param); });\n";
+    code += "        return '0\\n';\n";
+    code += "      } catch (e) { return '1\\n' + String(e && e.message || e); }\n";
+    code += "    },\n";
+    code += "    fs_temp_push: async (lib, param) => { HOST_RES.push({kind: 'temp', path: param}); return '0\\n'; },\n";
+    code += "    fs_temp_pop: async (lib, param) => {\n";
+    code += "      var path = param || '';\n";
+    code += "      HOST_RES = HOST_RES.filter(function(r) {\n";
+    code += "        if (r.kind === 'temp' && (!path || r.path === path)) {\n";
+    code += "          try { if (r.path) lib.fs.unlinkSync(r.path); } catch (eP) {}\n";
+    code += "          return false;\n";
+    code += "        }\n";
+    code += "        return true;\n";
+    code += "      });\n";
+    code += "      return '0\\n';\n";
+    code += "    },\n";
+    code += "    stream_open: async (lib, param) => {\n";
+    code += "      try {\n";
+    code += "        var fd = lib.fs.openSync(param, 'r');\n";
+    code += "        var id = String(++HOST_STREAM_N);\n";
+    code += "        HOST_STREAM[id] = {fd: fd, buf: '', done: false};\n";
+    code += "        HOST_RES.push({kind: 'stream', id: id});\n";
+    code += "        return '0\\n' + id;\n";
+    code += "      } catch (e) { return '1\\n' + ((e && e.code === 'ENOENT') ? 'ENOENT' : String(e && e.message || e)); }\n";
+    code += "    },\n";
+    code += "    stream_read: async (lib, param) => {\n";
+    code += "      var rec = HOST_STREAM[param]; if (!rec) return '1\\nclosed';\n";
+    code += "      if (rec.done) return '0\\n';\n";
+    code += "      var nl = rec.buf.indexOf('\\n');\n";
+    code += "      if (nl >= 0) { var line = rec.buf.slice(0, nl); rec.buf = rec.buf.slice(nl + 1); return '0\\n' + line; }\n";
+    code += "      var chunk = Buffer.alloc(4096);\n";
+    code += "      var n = lib.fs.readSync(rec.fd, chunk, 0, 4096, null);\n";
+    code += "      if (!n) { rec.done = true; var rest = rec.buf; rec.buf = ''; return rest ? ('0\\n' + rest) : '0\\n'; }\n";
+    code += "      rec.buf += chunk.slice(0, n).toString('utf8');\n";
+    code += "      nl = rec.buf.indexOf('\\n');\n";
+    code += "      if (nl >= 0) { var line2 = rec.buf.slice(0, nl); rec.buf = rec.buf.slice(nl + 1); return '0\\n' + line2; }\n";
+    code += "      return '0\\n' + rec.buf;\n";
+    code += "    },\n";
+    code += "    stream_close: async (lib, param) => {\n";
+    code += "      var rec = HOST_STREAM[param]; if (!rec) return '0\\n';\n";
+    code += "      try { lib.fs.closeSync(rec.fd); } catch (eC) {}\n";
+    code += "      delete HOST_STREAM[param];\n";
+    code += "      HOST_RES = HOST_RES.filter(function(r) { return !(r.kind === 'stream' && r.id === param); });\n";
+    code += "      return '0\\n';\n";
+    code += "    },\n";
     }
     if (hneed.http) {
     code += "    http: async (lib, param) => { return host_http(lib, param); },\n";
@@ -3221,7 +3327,7 @@ function compile_defs(defs, main, opts) {
     code += "    job_start: async (lib, param) => host_job_start(lib, param),\n";
     code += "    job_await: async (lib, param) => { var j = HOST_JOBS[param]; return j ? await j.promise : '1\\nno job'; },\n";
     code += "    job_race: async (lib, param) => { var ids = param.split('\\n'); var a = HOST_JOBS[ids[0]], b = HOST_JOBS[ids[1]]; if (!a||!b) return '1'; return Promise.race([a.promise.then(()=> '0'), b.promise.then(()=> '1')]); },\n";
-    code += "    job_cancel: async (lib, param) => { var j = HOST_JOBS[param]; if (j && j.ctrl && j.ctrl.cancel) j.ctrl.cancel(); return ''; },\n";
+    code += "    job_cancel: async (lib, param) => { var j = HOST_JOBS[param]; if (j && j.ctrl && j.ctrl.cancel) j.ctrl.cancel(); return host_ok(''); },\n";
     }
     if (hneed.dns) {
     code += "    dns: async (lib, param) => {\n";
@@ -3241,6 +3347,18 @@ function compile_defs(defs, main, opts) {
     }
     if (hneed.ws) {
     code += "    ws_connect: async (lib, param) => host_ws_connect(lib, param),\n";
+    code += "    ws_send: async (lib, param) => { var nl = param.indexOf('\\n'); return host_tcp_send(lib, param); },\n";
+    code += "    ws_recv: async (lib, param) => host_tcp_recv(lib, param),\n";
+    code += "    ws_close: async (lib, param) => {\n";
+    code += "      var rec = (typeof HOST_TCP !== 'undefined') ? HOST_TCP[param] : null;\n";
+    code += "      if (rec && rec.ws) {\n";
+    code += "        try { rec.sock.write(Buffer.from([0x88, 0x80, 0, 0, 0, 0])); } catch (eC) {}\n";
+    code += "        try { rec.sock.end(); } catch (eE) {}\n";
+    code += "        delete HOST_TCP[param];\n";
+    code += "      }\n";
+    code += "      HOST_RES = HOST_RES.filter(function(r) { return !(r.kind === 'ws' && r.id === param); });\n";
+    code += "      return '0\\n';\n";
+    code += "    },\n";
     }
     if (hneed.zlib) {
     code += "    gzip: async (lib, param) => { try { return '0\\n' + require('zlib').gzipSync(Buffer.from(param, 'utf8')).toString('hex'); } catch (e) { return '1\\n' + String(e && e.message || e); } },\n";
@@ -3260,7 +3378,7 @@ function compile_defs(defs, main, opts) {
     code += "    sse_close: async (lib, param) => host_sse_close(lib, param),\n";
     code += "    sse_count: async (lib, param) => host_sse_count(lib, param),\n";
     }
-    code += "    yield: async (lib, param) => { await Promise.resolve(); return ''; },\n";
+    code += "    yield: async (lib, param) => { await Promise.resolve(); return host_ok(''); },\n";
     if (hneed.ffi) {
     code += "    ffi: async (lib, param) => host_ffi(lib, param),\n";
     }
@@ -3276,7 +3394,10 @@ function compile_defs(defs, main, opts) {
     }
     if (hneed.proc) {
     code += "    proc_exec: async (lib, param) => host_proc_exec(lib, param),\n";
+    code += "    proc_unsafe_shell: async (lib, param) => host_proc_unsafe_shell(lib, param),\n";
+    code += "    proc_run: async (lib, param) => host_proc_run(lib, param),\n";
     code += "    proc_spawn: async (lib, param) => host_proc_spawn(lib, param),\n";
+    code += "    proc_spawn_ex: async (lib, param) => host_proc_spawn_ex(lib, param),\n";
     code += "    proc_kill: async (lib, param) => host_proc_kill(lib, param),\n";
     code += "    proc_wait: async (lib, param) => host_proc_wait(lib, param),\n";
     }
@@ -3314,24 +3435,24 @@ function compile_defs(defs, main, opts) {
     code += "    init_udp: async (lib, param) => {\n";
     code += "      try {\n";
     code += "        await init_udp(lib, Number(param));\n";
-    code += "        return '';\n";
+    code += "        return host_ok('');\n";
     code += "      } catch (e) {\n";
-    code += "        return '';\n";
+    code += "        return host_err(String(e && e.message || e));\n";
     code += "      }\n";
     code += "    },\n";
     code += "    send_udp: async (lib, param) => {\n";
     code += "      let [port_num, to_ip, to_port_num, data] = param.split(';');\n";
     code += "      await send_udp(lib, Number(port_num), to_ip, Number(to_port_num), data);\n";
-    code += "      return '';\n";
+    code += "      return host_ok('');\n";
     code += "    },\n";
     code += "    recv_udp: async (lib, param) => {\n";
     code += "      var mailbox = await recv_udp(lib, Number(param));\n";
     code += "      var reply = mailbox.map(x => x.ip + ',' + x.port + ',' + x.data).join(';');\n";
-    code += "      return reply;\n";
+    code += "      return host_ok(reply);\n";
     code += "    },\n";
     code += "    stop_udp: async (lib, param) => {\n";
     code += "      await stop_udp(lib, Number(param));\n";
-    code += "      return '';\n";
+    code += "      return host_ok('');\n";
     code += "    },\n";
     code += "    udp_bind: async (lib, param) => {\n";
     code += "      try {\n";
@@ -3369,14 +3490,24 @@ function compile_defs(defs, main, opts) {
     code += "    },\n";
     }
     code += "    sleep: async (lib, param) => {\n";
-    code += "      return await new Promise((resolve,reject) => {\n";
-    code += "        setTimeout(() => resolve(''), Number(param));\n";
+    code += "      var ac = lib && lib.abort;\n";
+    code += "      return await new Promise((resolve) => {\n";
+    code += "        var ms = Number(param);\n";
+    code += "        var t = setTimeout(function() { resolve(host_ok('')); }, Number.isFinite(ms) ? ms : 0);\n";
+    code += "        var onAbort = function() { clearTimeout(t); resolve(host_err('cancelled')); };\n";
+    code += "        if (ac && ac.signal) {\n";
+    code += "          if (ac.signal.aborted) { onAbort(); return; }\n";
+    code += "          ac.signal.addEventListener('abort', onAbort, {once: true});\n";
+    code += "        }\n";
     code += "      });\n";
     code += "    },\n";
     code += "  };\n";
-    code += "  var run_io = async (lib, io, depth = 0) => {\n";
+    code += "  var run_io = async (lib, io, depth, ac) => {\n";
+    code += "    ac = ac || lib.abort || new AbortController();\n";
+    code += "    lib.abort = ac;\n";
     code += "    try {\n";
-    code += "    if (!io || !io._) return null;\n";
+    code += "    if (ac.signal && ac.signal.aborted) throw new Error('cancelled');\n";
+    code += "    if (!io || !io._) throw new Error('empty IO');\n";
     code += "    switch (io._) {\n";
     code += "      case 'IO.end':\n";
     code += "        return Promise.resolve(io.value);\n";
@@ -3417,36 +3548,40 @@ function compile_defs(defs, main, opts) {
     code += "            console.error('sure debug ' + (_q ? ('host ' + _q + ' ' + _p + ' -> ' + _a) : ('host ? ' + _p + ' -> ' + _a)));\n";
     code += "          }\n";
     code += "        } catch (_de) {}\n";
-    code += "        if (typeof io.then !== 'function') return null;\n";
-    code += "        if (depth > 64) return Promise.resolve().then(() => run_io(lib, io.then(answer), 0));\n";
-    code += "        return await run_io(lib, io.then(answer), depth + 1);\n";
+    code += "        if (typeof io.then !== 'function') throw new Error('IO.ask missing then');\n";
+    code += "        if (depth > 64) return Promise.resolve().then(() => run_io(lib, io.then(answer), 0, ac));\n";
+    code += "        return await run_io(lib, io.then(answer), depth + 1, ac);\n";
     code += "      case 'IO.par':\n";
     code += "        try {\n";
-    code += "          var both = await Promise.all([run_io(lib, io.left, 0), run_io(lib, io.right, 0)]);\n";
-    code += "          if (typeof io.join !== 'function') return null;\n";
-    code += "          return await run_io(lib, io.join({_: 'Pair.new', fst: both[0], snd: both[1]}), 0);\n";
+    code += "          var cL = new AbortController(); var cR = new AbortController();\n";
+    code += "          if (ac.signal) ac.signal.addEventListener('abort', function() { cL.abort(); cR.abort(); });\n";
+    code += "          var both = await Promise.all([run_io(Object.assign({}, lib, {abort: cL}), io.left, 0, cL), run_io(Object.assign({}, lib, {abort: cR}), io.right, 0, cR)]);\n";
+    code += "          if (typeof io.join !== 'function') throw new Error('IO.par missing join');\n";
+    code += "          return await run_io(lib, io.join({_: 'Pair.new', fst: both[0], snd: both[1]}), 0, ac);\n";
     code += "        } catch (e) {\n";
-    code += "          return null;\n";
+    code += "          host_release_all(lib); throw e;\n";
     code += "        }\n";
     code += "      case 'IO.race':\n";
     code += "        try {\n";
+    code += "          var rL = new AbortController(); var rR = new AbortController();\n";
+    code += "          if (ac.signal) ac.signal.addEventListener('abort', function() { rL.abort(); rR.abort(); });\n";
     code += "          var winner = await Promise.race([\n";
-    code += "            run_io(lib, io.left, 0).then(function(v) { return {side: 0, value: v}; }),\n";
-    code += "            run_io(lib, io.right, 0).then(function(v) { return {side: 1, value: v}; })\n";
+    code += "            run_io(Object.assign({}, lib, {abort: rL}), io.left, 0, rL).then(function(v) { rR.abort(); return {side: 0, value: v}; }),\n";
+    code += "            run_io(Object.assign({}, lib, {abort: rR}), io.right, 0, rR).then(function(v) { rL.abort(); return {side: 1, value: v}; })\n";
     code += "          ]);\n";
-    code += "          if (typeof io.join !== 'function') return null;\n";
+    code += "          if (typeof io.join !== 'function') throw new Error('IO.race missing join');\n";
     code += "          var boxed = winner.side === 0\n";
     code += "            ? {_:'Either.left', value: winner.value}\n";
     code += "            : {_:'Either.right', value: winner.value};\n";
-    code += "          return await run_io(lib, io.join(boxed), 0);\n";
+    code += "          return await run_io(lib, io.join(boxed), 0, ac);\n";
     code += "        } catch (e) {\n";
-    code += "          return null;\n";
+    code += "          host_release_all(lib); throw e;\n";
     code += "        }\n";
     code += "      default:\n";
-    code += "        return null;\n";
+    code += "        throw new Error('unknown IO ctor ' + (io && io._));\n";
     code += "      }\n";
     code += "    } catch (e) {\n";
-    code += "      return null;\n";
+    code += "      host_release_all(lib); throw e;\n";
     code += "    }\n";
     code += "  };\n";
   }

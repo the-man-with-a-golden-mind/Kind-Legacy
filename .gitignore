@@ -10,16 +10,12 @@ bin/scm/bin/
 tmp.js
 .vscode
 *.orig
-web/*.lock
 base/.cache
 /base/playground.kind
-web/src/apps/*.js
-web/events/data/*
 *.so
 *.wpo
 .cache
 /.gtm/
-web/docs
 .env
 .sure.tmp.js
 examples/*/.sure.tmp.js

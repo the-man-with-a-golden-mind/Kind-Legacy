@@ -1,0 +1,23 @@
+Html.ok_ident.go(s: String, first: Bool): Bool
+  case s {
+    nil: Bool.not(first)
+    cons:
+      let ok =
+        if first then
+          Bool.or(Char.is_upper(s.head), Bool.and(U16.gte(s.head, 'a'), U16.lte(s.head, 'z')))
+        else
+          Bool.or(
+            Char.is_digit(s.head),
+            Bool.or(
+              Char.is_upper(s.head),
+              Bool.or(
+                Bool.and(U16.gte(s.head, 'a'), U16.lte(s.head, 'z')),
+                Bool.or(U16.eql(s.head, '-'), U16.eql(s.head, '_'))
+              )
+            )
+          )
+      if ok then Html.ok_ident.go(s.tail, false) else false
+  }
+
+Html.ok_ident(s: String): Bool
+  Html.ok_ident.go(s, true)

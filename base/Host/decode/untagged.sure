@@ -1,2 +1,2 @@
-Host.decode.untagged: Host.decode("nope") == Host.ok_string("nope")
+Host.decode.untagged: Host.decode("nope") == Host.err(Host.Err.bad_tag)
   refl

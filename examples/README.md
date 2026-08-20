@@ -2,7 +2,7 @@
 
 Each folder is a Sure application (`sure.json` + `src/` + `Main`). `sure run` starts it.
 
-Servers listen on 127.0.0.1. `sure prove` checks the theorems. For ui / excel / tweeter, `sure build --html Name.client` then `sure run` is required for clicks; without that file the page tells you to build.
+Servers listen on 127.0.0.1. `sure prove` checks the theorems. For ui / todo / excel / tweeter, `sure build --html Name.client` then `sure run` is required for clicks; without that file the page tells you to build.
 
 ```
 examples/
@@ -13,6 +13,7 @@ examples/
   routes/     HTTP API :8770      GET /health  GET /user/:id  POST /echo
   ssr/        website :8771       GET /  /about  /user/:id
   ui/         counter :8772       GET /   (build --html Ui.client)
+  todo/       todos :8775         GET /   (build --html App.client)
   excel/      grid :8765          10000 virtual rows, column resize
   tweeter/    tweets :8766        register, login, tweet, upload
   files/      files :8773         GET /read  POST /write

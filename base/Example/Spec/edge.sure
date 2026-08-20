@@ -121,7 +121,7 @@ Example.Spec.edge.dir_empty: List.length<String>(Dir.names("")) == 0
 Example.Spec.edge.dir_semi: List.length<String>(Dir.names(";")) == 0
   refl
 
-Example.Spec.edge.stream_over: Stream.take<Nat>(3, []) == []
+Example.Spec.edge.stream_over: Stream.take<Nat>(3, Stream.from_list<Nat>([])) == IO { return [] }
   refl
 
 Example.Spec.edge.semver_eq: Semver.lt(Semver.new(1, 0, 0), Semver.new(1, 0, 0)) == false

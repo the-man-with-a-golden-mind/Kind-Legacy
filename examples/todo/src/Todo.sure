@@ -1,0 +1,151 @@
+module Todo exposing (..)
+// Todo model. Empty add is "empty". Newline text is "bad_text". Unknown messages leave the model.
+
+type Item {
+  new(id: Nat, text: String, done: Bool)
+}
+
+type Filter {
+  all
+  active
+  done
+}
+
+type Model {
+  new(draft: String, next: Nat, items: List<Item>, filter: Filter, note: String)
+}
+
+init: Model
+  Model.new("", 0, [], Filter.all, "")
+
+ok_text(s: String): Bool
+  when {
+    String.is_empty(s): false
+    String.includes(s, "\n"): false
+  } default true
+
+is_active(it: Item): Bool
+  open it
+  Bool.not(it.done)
+
+is_done(it: Item): Bool
+  open it
+  it.done
+
+flip(it: Item, id: Nat): Item
+  open it
+  if Nat.eql(it.id, id) then Item.new(it.id, it.text, Bool.not(it.done)) else it
+
+toggle_id(id: Nat, xs: List<Item>): List<Item>
+  case xs {
+    nil: []
+    cons: List.cons<Item>(flip(xs.head, id), toggle_id(id, xs.tail))
+  }
+
+drop_id(id: Nat, xs: List<Item>): List<Item>
+  case xs {
+    nil: []
+    cons:
+      let it = xs.head
+      open it
+      if Nat.eql(it.id, id) then drop_id(id, xs.tail)
+      else List.cons<Item>(it, drop_id(id, xs.tail))
+  }
+
+add_item(m: Model): Model
+  open m
+  if String.is_empty(m.draft) then Model.new(m.draft, m.next, m.items, m.filter, "empty")
+  else if ok_text(m.draft) then
+    Model.new(
+      "",
+      Nat.succ(m.next),
+      List.concat<Item>(m.items, [Item.new(m.next, m.draft, false)]),
+      m.filter,
+      ""
+    )
+  else Model.new(m.draft, m.next, m.items, m.filter, "bad_text")
+
+visible(m: Model): List<Item>
+  open m
+  case m.filter {
+    all: m.items
+    active: List.filter<Item>(is_active, m.items)
+    done: List.filter<Item>(is_done, m.items)
+  }
+
+left(m: Model): Nat
+  open m
+  List.length<Item>(List.filter<Item>(is_active, m.items))
+
+count(m: Model): Nat
+  open m
+  List.length<Item>(m.items)
+
+note_of(m: Model): String
+  open m
+  m.note
+
+head_done(m: Model): Bool
+  open m
+  case m.items {
+    nil: false
+    cons:
+      let it = m.items.head
+      open it
+      it.done
+  }
+
+head_text(m: Model): String
+  open m
+  case m.items {
+    nil: ""
+    cons:
+      let it = m.items.head
+      open it
+      it.text
+  }
+
+update(msg: String, ev: Html.Event.Data, m: Model): Model
+  open m
+  open ev
+  if String.eql(msg, "draft") then Model.new(ev.value, m.next, m.items, m.filter, "")
+  else if String.eql(msg, "add") then add_item(m)
+  else if String.eql(msg, "all") then Model.new(m.draft, m.next, m.items, Filter.all, "")
+  else if String.eql(msg, "active") then Model.new(m.draft, m.next, m.items, Filter.active, "")
+  else if String.eql(msg, "done") then Model.new(m.draft, m.next, m.items, Filter.done, "")
+  else if String.eql(msg, "clear") then Model.new(m.draft, m.next, List.filter<Item>(is_active, m.items), m.filter, "")
+  else if String.starts_with(msg, "toggle-") then
+    case Parse.nat(String.drop(7, msg)) as id {
+      none: m
+      some: Model.new(m.draft, m.next, toggle_id(id.value, m.items), m.filter, "")
+    }
+  else if String.starts_with(msg, "drop-") then
+    case Parse.nat(String.drop(5, msg)) as id {
+      none: m
+      some: Model.new(m.draft, m.next, drop_id(id.value, m.items), m.filter, "")
+    }
+  else m
+
+empty_add: note_of(update("add", Html.Event.Data.parse(""), init)) == "empty"
+  refl
+
+junk_stays: update("nope", Html.Event.Data.parse(""), init) == init
+  refl
+
+empty_stays: update("", Html.Event.Data.parse(""), init) == init
+  refl
+
+add_one: count(add_item(Model.new("milk", 0, [], Filter.all, ""))) == 1
+  refl
+
+add_text: head_text(add_item(Model.new("milk", 0, [], Filter.all, ""))) == "milk"
+  refl
+
+toggle_done: head_done(Model.new("", 1, toggle_id(0, [Item.new(0, "milk", false)]), Filter.all, "")) == true
+  refl
+
+drop_empty: count(Model.new("", 1, drop_id(0, [Item.new(0, "milk", false)]), Filter.all, "")) == 0
+  refl
+
+ok_text_empty: ok_text("") == false
+  refl

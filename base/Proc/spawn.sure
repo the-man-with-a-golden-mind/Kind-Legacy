@@ -1,8 +1,9 @@
-Proc.spawn(cmd: String): IO<Outcome<Proc.Err, Nat>>
+Proc.spawn(file: String, args: List<String>): IO<Outcome<Proc.Err, Nat>>
   IO {
-    get raw = IO.ask<String>("proc_spawn", cmd, (t) IO.end<String>(t))
-    return case IO.tagged.read(raw) as tag {
-      err: Outcome.err<Proc.Err, Nat>(Proc.Err.io(tag.error))
-      ok: Outcome.ok<Proc.Err, Nat>(Nat.read(tag.value))
+    get e = Host.perform(Host.Op.proc_spawn_ex(file, Proc.join_args(args), "", ""))
+    return case e {
+      err: Outcome.err<Proc.Err, Nat>(Proc.Err.io(Host.Err.show(e.error)))
+      ok_unit: Outcome.err<Proc.Err, Nat>(Proc.Err.io("empty"))
+      ok_string: Outcome.ok<Proc.Err, Nat>(Nat.read(e.value))
     }
   }

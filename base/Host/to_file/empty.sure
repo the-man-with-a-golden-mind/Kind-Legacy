@@ -1,2 +1,2 @@
-Host.to_file.empty: Host.to_file(Host.decode("")) == Outcome.ok<File.Err, String>("")
+Host.to_file.empty: Host.to_file(Host.decode("")) == Outcome.err<File.Err, String>(File.Err.io("empty"))
   refl

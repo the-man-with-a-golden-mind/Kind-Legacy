@@ -4,7 +4,7 @@
   "description": "Sure — a fork of Legacy Kind",
   "main": "src/sure.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --stack-size=10000 src/main.js prove Example.Spec.add2 && node --stack-size=10000 src/main.js prove Host.decode.untagged && node --stack-size=10000 src/main.js prove Stream.take.zero && node src/gen-host.js --check"
   },
   "bin": {
     "sure": "src/main.js",

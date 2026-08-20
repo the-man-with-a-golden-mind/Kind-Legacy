@@ -10,6 +10,7 @@ codec/     JSON HTTP :8774
 routes/    HTTP API :8770
 ssr/       website :8771
 ui/        counter :8772
+todo/      todos :8775 (build --html App.client)
 excel/     10000-row grid :8765
 tweeter/   login + tweets + upload :8766
 files/     read/write :8773
@@ -28,4 +29,4 @@ sure run
 # open http://127.0.0.1:8765/
 ```
 
-ui / excel / tweeter need `sure build --html Name.client` before the page is interactive. `sure run` without that file serves a page that tells you to build.
+ui / todo / excel / tweeter need `sure build --html Name.client` before the page is interactive. `sure run` without that file serves a page that tells you to build.

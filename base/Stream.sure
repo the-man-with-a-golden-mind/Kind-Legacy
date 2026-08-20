@@ -1,0 +1,11 @@
+// Pull stream. rest is IO so take/from_file can wait without loading the whole source.
+type Stream<A: Type> {
+  done
+  more(head: A, rest: IO<Stream<A>>)
+}
+
+Stream.from_list<A: Type>(xs: List<A>): Stream<A>
+  case xs {
+    nil: Stream.done<A>
+    cons: Stream.more<A>(xs.head, IO { return Stream.from_list<A>(xs.tail) })
+  }

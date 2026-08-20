@@ -57,6 +57,9 @@ type Host.Op {
   udp_close(port: Nat)
   proc_exec(cmd: String)
   proc_spawn(cmd: String)
+  proc_run(file: String, args: String, workdir: String, environ: String)
+  proc_spawn_ex(file: String, args: String, workdir: String, environ: String)
+  proc_unsafe_shell(cmd: String)
   proc_wait(pid: Nat)
   proc_kill(pid: Nat, sig: String)
   job_start(spec: String)
@@ -81,6 +84,17 @@ type Host.Op {
   db_keys(id: String)
   db_clear(id: String)
   db_close(id: String)
+  fs_open(path: String)
+  fs_read_fd(id: String)
+  fs_close(id: String)
+  fs_temp_push(path: String)
+  fs_temp_pop(path: String)
+  stream_open(path: String)
+  stream_read(id: String)
+  stream_close(id: String)
+  ws_send(id: String, data: String)
+  ws_recv(id: String)
+  ws_close(id: String)
 }
 
 Host.ok_unit: Host.Event

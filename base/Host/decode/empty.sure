@@ -1,2 +1,2 @@
-Host.decode.empty: Host.decode("") == Host.ok_unit
+Host.decode.empty: Host.decode("") == Host.err(Host.Err.empty)
   refl

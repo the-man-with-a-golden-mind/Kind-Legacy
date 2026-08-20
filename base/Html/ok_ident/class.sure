@@ -1,0 +1,2 @@
+Html.ok_ident.class: Html.ok_ident("class") == true
+  refl

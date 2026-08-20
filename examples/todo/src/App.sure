@@ -1,0 +1,157 @@
+module App exposing (..)
+import Todo exposing (Item, Model, init, update, visible, left)
+
+port: Nat
+  Nat.read("8775")
+
+item_view(it: Item): DOM
+  open it
+  <div class="flex items-center gap-2">
+    <button class={if it.done then "btn btn-xs btn-success" else "btn btn-xs"} onClick={"toggle-" | Nat.show(it.id)}>
+      {Html.text(if it.done then "done" else "todo")}
+    </button>
+    <div class={if it.done then "flex-1 line-through opacity-60" else "flex-1"}>
+      {Html.text(it.text)}
+    </div>
+    <button class="btn btn-ghost btn-xs" onClick={"drop-" | Nat.show(it.id)}>
+      "x"
+    </button>
+  </div>
+
+items_view(xs: List<Item>): DOM
+  case xs {
+    nil:
+      <div class="opacity-60">
+        "No todos."
+      </div>
+    cons:
+      <div class="flex flex-col gap-2">
+        for it in xs:
+          item_view(it)
+      </div>
+  }
+
+note_view(s: String): List<DOM>
+  if String.is_empty(s) then []
+  else [
+    <div class="alert alert-warning">
+      {Html.text(s)}
+    </div>
+  ]
+
+view(m: Model): DOM
+  open m
+  <div class="min-h-screen bg-base-200">
+    <div class="navbar bg-primary text-primary-content">
+      <div class="px-4 text-xl font-bold">
+        "Todo"
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow-xl m-8 max-w-lg mx-auto">
+      <div class="card-body gap-3">
+        for n in note_view(m.note):
+          n
+        <div class="join w-full">
+          <input type="text" value={m.draft} placeholder="what needs doing" class="input input-bordered w-full" onChange="draft" />
+          <button class="btn btn-primary join-item" onClick="add">
+            "Add"
+          </button>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-sm" onClick="all">
+            "all"
+          </button>
+          <button class="btn btn-sm" onClick="active">
+            "active"
+          </button>
+          <button class="btn btn-sm" onClick="done">
+            "done"
+          </button>
+          <button class="btn btn-sm btn-ghost" onClick="clear">
+            "clear done"
+          </button>
+        </div>
+        <div class="opacity-70">
+          {Html.text(Nat.show(left(m)) | " left")}
+        </div>
+        {items_view(visible(m))}
+      </div>
+    </div>
+  </div>
+
+app: Sure.Ui.App<Model>
+  Sure.Ui.sandbox<Model>(init, view, update)
+
+client: Sure.Ui.Client<Model>
+  Sure.Ui.pack<Model>(app)
+
+document(body: String): String
+  "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width\"><title>Todo</title>"
+  | "<script src=\"https://cdn.tailwindcss.com\"></script>"
+  | "<link href=\"https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css\" rel=\"stylesheet\" type=\"text/css\">"
+  | "</head><body>"
+  | body
+  | "</body></html>"
+
+missing_html: String
+  document(
+    "<div class=\"min-h-screen bg-base-200\"><div class=\"card bg-base-100 shadow-xl m-8 max-w-lg mx-auto\"><div class=\"card-body\">"
+    | "<h1 class=\"card-title\">Todo</h1>"
+    | "<p>This page needs the compiled client.</p>"
+    | "<pre class=\"bg-base-200 p-4 rounded-box\">sure build --html App.client\nsure run</pre>"
+    | "<p>Then open <a class=\"link\" href=\"/\">/</a> again.</p>"
+    | "</div></div></div>"
+  )
+
+page_path: String
+  "dist/App.client.html"
+
+send_page(id: String): IO<Unit>
+  case Path.from_string(page_path) as p {
+    err: Http.Server.reply_ex(id, 200, "text/html; charset=utf-8", missing_html)
+    ok: IO {
+      get f = File.read(p.value)
+      case f {
+        err: Http.Server.reply_ex(id, 200, "text/html; charset=utf-8", missing_html)
+        ok: Http.Server.reply_ex(id, 200, "text/html; charset=utf-8", f.value)
+      }
+    }
+  }
+
+is_page(url: String): Bool
+  if String.is_empty(url) then true
+  else if String.eql(url, "/") then true
+  else if String.eql(url, "/index.html") then true
+  else if String.eql(url, "/client.html") then true
+  else false
+
+handle(req: Http.Server.Req): IO<Unit>
+  open req
+  if is_page(req.url) then send_page(req.id)
+  else Http.Server.reply_ex(req.id, Nat.read("404"), "text/plain; charset=utf-8", "not found")
+
+serve.go(port: Nat): IO<Unit>
+  IO {
+    get raw = Http.Server.recv(port)
+    case Http.Server.parse(raw) as req {
+      none: serve.go(port)
+      some: IO {
+        handle(req.value)
+        serve.go(port)
+      }
+    }
+  }
+
+serve: IO<Outcome<Http.Err, Unit>>
+  IO {
+    get l = Http.Server.listen(port)
+    case l {
+      err: IO {
+        return l
+      }
+      ok: IO {
+        serve.go(port)
+        return Http.Server.ok
+      }
+    }
+  }

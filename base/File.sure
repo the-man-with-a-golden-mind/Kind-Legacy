@@ -4,6 +4,15 @@ type File.Err {
   io(message: String)
 }
 
+type File.Handle {
+  new(id: String)
+}
+
+File.Handle.id(h: File.Handle): String
+  case h {
+    new: h.id
+  }
+
 File.Err.show(e: File.Err): String
   case e {
     bad_path:

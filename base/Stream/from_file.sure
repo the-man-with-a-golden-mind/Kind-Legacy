@@ -1,0 +1,36 @@
+Stream.from_file.go(id: String): IO<Stream<String>>
+  IO {
+    get ev = Host.perform(Host.Op.stream_read(id))
+    case ev {
+      err:
+        IO {
+          get closed = Host.perform(Host.Op.stream_close(id))
+          return Stream.done<String>
+        }
+      ok_unit:
+        IO {
+          get closed = Host.perform(Host.Op.stream_close(id))
+          return Stream.done<String>
+        }
+      ok_string:
+        if String.is_empty(ev.value) then IO {
+          get closed = Host.perform(Host.Op.stream_close(id))
+          return Stream.done<String>
+        } else IO {
+          return Stream.more<String>(ev.value, Stream.from_file.go(id))
+        }
+    }
+  }
+
+Stream.from_file(path: Path): IO<Stream<String>>
+  IO {
+    get ev = Host.perform(Host.Op.stream_open(Path.text(path)))
+    case ev {
+      err:
+        IO { return Stream.done<String> }
+      ok_unit:
+        IO { return Stream.done<String> }
+      ok_string:
+        Stream.from_file.go(ev.value)
+    }
+  }

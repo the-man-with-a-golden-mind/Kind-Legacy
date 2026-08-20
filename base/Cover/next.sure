@@ -178,9 +178,9 @@ Cover.next.days_before_year_0: Time.days_before_year(0) == 0
 Cover.next.days_before_year_epoch: Time.days_before_year(1970) == 0
   refl
 
-Cover.next.proc_run: Proc.run("") == IO {
-    get raw = IO.ask<String>("proc_exec", "", (t) IO.end<String>(t))
-    return Proc.decode(raw)
+Cover.next.proc_run: Proc.run("", []) == IO {
+    get e = Host.perform(Host.Op.proc_run("", Proc.join_args([]), "", ""))
+    return Proc.from_event(e)
   }
   refl
 

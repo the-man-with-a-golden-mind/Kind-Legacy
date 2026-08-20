@@ -1,0 +1,17 @@
+module Main exposing (Main)
+import App
+Main: IO<Unit>
+  IO {
+    IO.print("Todo http://127.0.0.1:8775")
+    IO.print("  sure build --html App.client   # then sure run, for add / toggle / filter")
+    get r = App.serve
+    case r {
+      err: IO {
+        IO.print("listen failed: " | Http.Err.show(r.error))
+        return unit
+      }
+      ok: IO {
+        return unit
+      }
+    }
+  }

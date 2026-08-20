@@ -10,6 +10,6 @@ Host.decode(raw: String): Host.Event
     else if String.eql(m, "ENOENT") then Host.err(Host.Err.missing)
     else Host.err(Host.Err.io(m))
   else if String.is_empty(raw) then
-    Host.ok_unit
+    Host.err(Host.Err.empty)
   else
-    Host.ok_string(raw)
+    Host.err(Host.Err.bad_tag)

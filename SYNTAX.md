@@ -47,6 +47,22 @@ Top-level definitions and datatype declarations (described below) are the only
 syntaxes that aren't expressions, which mean they can't appear anywhere in the
 program and, instead, must appear at the "global scope" of a file.
 
+HTML (DOM)
+----------
+
+```
+<div class="card" onClick="inc">
+  "Add"
+  {kid}
+  for x in xs:
+    item(x)
+</div>
+
+<input type={kind} value={val} />
+```
+
+`<tag` at the start of a term is `DOM.node`. `List<Nat>` is a type application (the `<` follows a name). `onClick` is the `on-click` property. `{e}` in an attribute is the term `e`. `{e}` as a child is one `DOM`. A `List<DOM>` child is `for x in xs: x`. `<input ... />` is `<input ...></input>`.
+
 Lambda
 ------
 

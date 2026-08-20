@@ -1,0 +1,2 @@
+Html.ok_ident.junk: Html.ok_ident("><script") == false
+  refl

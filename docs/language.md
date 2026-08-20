@@ -112,6 +112,8 @@ type Outcome <E: Type, A: Type> {
 
 `String` is its own datatype (`nil` / `cons` of `Char`), not `List<Char>`. `"hi"` is a `String`. `'a'` is a `Char` (`Word(16)`).
 
+A term may be HTML. `<div class="card" onClick="inc">"Add"</div>` is `DOM`. `{e}` in an attribute is the Sure term `e`. `{kid}` as a child is one `DOM`. `for x in xs: item(x)` fills children from a list. `<input ... />` closes the tag. `List<Nat>` is still a type — the `<` comes after a name. See [Web](web.md).
+
 A type with one constructor is a record. `open` unpacks it:
 
 ```

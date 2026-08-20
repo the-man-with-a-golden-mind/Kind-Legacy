@@ -1,34 +1,49 @@
 File.bracket.err<A: Type>(e: File.Err): Outcome<File.Err, A>
   Outcome.err<File.Err, A>(e)
 
-File.bracket.release(path: Path): IO<Unit>
+File.bracket.release(id: String): IO<Unit>
   IO {
+    get closed = Host.perform(Host.Op.fs_close(id))
     return Unit.new
   }
 
-File.bracket.go<A: Type>(
-  path: Path,
-  got: Outcome<File.Err, String>,
-  use: String -> IO<Outcome<File.Err, A>>
-): IO<Outcome<File.Err, A>>
+File.bracket.go<A: Type>(h: File.Handle, got: Outcome<File.Err, String>, use: String -> IO<Outcome<File.Err, A>>): IO<Outcome<File.Err, A>>
   case got as g {
     err:
       IO {
+        get closed = File.bracket.release(File.Handle.id(h))
         return File.bracket.err<A>(g.error)
       }
     ok:
       IO {
         get r = use(g.value)
-        get _ = File.bracket.release(path)
+        get closed = File.bracket.release(File.Handle.id(h))
         return r
       }
   }
 
-File.bracket<A: Type>(
-  path: Path,
-  use: String -> IO<Outcome<File.Err, A>>
-): IO<Outcome<File.Err, A>>
+File.bracket.read_fd(id: String): IO<Outcome<File.Err, String>>
   IO {
-    get got = File.read(path)
-    File.bracket.go<A>(path, got, use)
+    get e = Host.perform(Host.Op.fs_read_fd(id))
+    return Host.to_file(e)
+  }
+
+File.bracket.open_id(ev: Host.Event): Outcome<File.Err, String>
+  Host.to_file(ev)
+
+File.bracket<A: Type>(path: Path, use: String -> IO<Outcome<File.Err, A>>): IO<Outcome<File.Err, A>>
+  IO {
+    get opened = Host.perform(Host.Op.fs_open(Path.text(path)))
+    let got = File.bracket.open_id(opened)
+    case got as oid {
+      err:
+        IO {
+          return File.bracket.err<A>(oid.error)
+        }
+      ok:
+        IO {
+          get body = File.bracket.read_fd(oid.value)
+          File.bracket.go<A>(File.Handle.new(oid.value), body, use)
+        }
+    }
   }

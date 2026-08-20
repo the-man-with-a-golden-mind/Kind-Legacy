@@ -128,7 +128,7 @@ Crypto.sha256 / Crypto.hmac_sha256 / Crypto.hash
 Compress.gzip / Compress.gunzip
 ```
 
-Empty DNS names are `empty_name`. WebSocket is typed; the JS host does the RFC 6455 handshake and masked frames over TCP/TLS without a `ws` package. `Proc.exec` is JS-only. `Stream.take` is `List.take` (finite lists, not async streams). HTTP request headers are sent by the JS host. `Crypto.random` uses `crypto.randomBytes` and does not fall back to `Math.random`.
+Empty DNS names are `empty_name`. WebSocket is typed; the JS host does the RFC 6455 handshake and masked frames over TCP/TLS without a `ws` package. `Proc.exec(file, args)` and `Proc.run(file, args)` spawn argv (`shell: false`). `Proc.unsafe.shell(cmd)` is the shell-string hatch. `Stream.take` is a pull stream: `Stream.take(n, s): IO<List<A>>`. HTTP request headers are sent by the JS host. `Crypto.random` uses `crypto.randomBytes` and does not fall back to `Math.random`. Host replies are tagged `0\\n` / `1\\n`; empty and junk decode as protocol errors.
 
 ## Db
 

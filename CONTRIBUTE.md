@@ -96,13 +96,6 @@ type allows rendering text, HTML nodes and pixelated canvas. It would be amazing
 to have a render mode that integrated with WebGL. If you'd like to work on that,
 contact us for more instructions!
 
-## Create apps
-
-Sounds silly, but just creating apps using the `App` type would be amazing. Any
-app added to `base/App` will show up on [http://old.kindelia.org/](http://old.kindelia.org).
-Sadly, we don't have a tutorial on how apps work, but it should be learnable
-from looking the examples.
-
 ## Get rid of FormCoreJS
 
 Right now, the JavaScript compiler on

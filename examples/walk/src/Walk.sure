@@ -13,6 +13,7 @@ page: String
   | "<li><a href=\"http://127.0.0.1:8770/health\">routes :8770 API</a></li>"
   | "<li><a href=\"http://127.0.0.1:8771/\">ssr :8771 site</a></li>"
   | "<li><a href=\"http://127.0.0.1:8772/\">ui :8772 counter</a></li>"
+  | "<li><a href=\"http://127.0.0.1:8775/\">todo :8775 list</a></li>"
   | "<li><a href=\"http://127.0.0.1:8765/\">excel :8765 grid 10000</a></li>"
   | "<li><a href=\"http://127.0.0.1:8766/\">tweeter :8766 login + tweets + upload</a></li>"
   | "<li><a href=\"http://127.0.0.1:8773/\">files :8773 read/write</a></li>"

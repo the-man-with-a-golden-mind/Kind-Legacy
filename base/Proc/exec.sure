@@ -1,6 +1,6 @@
-Proc.exec(cmd: String): IO<Outcome<Proc.Err, Proc.Out>>
+Proc.exec(file: String, args: List<String>): IO<Outcome<Proc.Err, Proc.Out>>
   IO {
-    get o = Proc.run(cmd)
+    get o = Proc.run(file, args)
     return case o {
       err: o
       ok:

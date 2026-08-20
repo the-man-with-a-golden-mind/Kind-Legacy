@@ -1,2 +1,2 @@
-Stream.take.zero: Stream.take<Nat>(0, [1, 2]) == []
+Stream.take.zero: Stream.take<Nat>(0, Stream.from_list<Nat>([1, 2])) == IO { return [] }
   refl

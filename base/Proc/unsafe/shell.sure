@@ -1,0 +1,5 @@
+Proc.unsafe.shell(cmd: String): IO<Outcome<Proc.Err, Proc.Out>>
+  IO {
+    get e = Host.perform(Host.Op.proc_unsafe_shell(cmd))
+    return Proc.from_event(e)
+  }

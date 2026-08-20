@@ -1,5 +1,6 @@
 #!/usr/bin/env -S node --stack-size=10000
 
+var compiler = require("./compiler");
 var kind = require("./sure.js");
 (function alias_kind_ns(obj) {
   var keys = Object.keys(obj);
@@ -19,6 +20,17 @@ var fsp = require("fs").promises;
 var path = require("path");
 var exec = require("child_process").execSync;
 var spawnSync = require("child_process").spawnSync;
+
+function run_spawn(cmd, args, opts) {
+  var r = spawnSync(cmd, args || [], Object.assign({encoding: "utf8"}, opts || {}));
+  if (r.error) throw r.error;
+  if (r.status) {
+    var err = new Error(String(r.stderr || r.stdout || "spawn failed"));
+    err.status = r.status;
+    throw err;
+  }
+  return r.stdout;
+}
 var formcore_path = path.join(__dirname, "../../../vendor/formcore-js");
 var {fmc_to_js} = require(formcore_path);
 
@@ -908,10 +920,14 @@ function scan_src_theorems(dir) {
   for (var i = 0; i < files.length; i++) {
     var body;
     try { body = fs.readFileSync(files[i], "utf8"); } catch (e) { continue; }
-    var lines = body.split("\n");
-    for (var j = 0; j < lines.length; j++) {
-      var m = /^([A-Za-z][A-Za-z0-9._]*)(?:<[^>]*>)?(?:\([^)]*\))?\s*[:].*==/.exec(lines[j]);
-      if (m) out.push(m[1]);
+    var parsed = compiler.parse_module_headers(body);
+    var mod = parsed.mod && parsed.mod.name;
+    var syms = compiler.symbols(body);
+    for (var j = 0; j < syms.length; j++) {
+      if (!syms[j].theorem) continue;
+      var name = syms[j].name;
+      if (mod && name.indexOf(".") < 0) name = mod + "." + name;
+      out.push(name);
     }
   }
   return out;
@@ -1198,12 +1214,19 @@ function compiler_input_hash() {
   var h = crypto.createHash("sha256");
   h.update(String(SURE_VERSION || ""));
   h.update("\0");
-  h.update(file_fingerprint(path.join(__dirname, "main.js")));
-  h.update("\0");
-  try { h.update(fs.readFileSync(path.join(__dirname, "sure.js"))); } catch (e) { h.update("no-sure-js"); }
-  h.update("\0");
-  try { h.update(fs.readFileSync(path.join(formcore_path, "FmcToJs.js"))); } catch (e) { h.update("no-fmc"); }
-  h.update("\0");
+  [
+    path.join(__dirname, "main.js"),
+    path.join(__dirname, "compiler.js"),
+    path.join(__dirname, "gen-host.js"),
+    path.join(__dirname, "sure.js"),
+    path.join(formcore_path, "FmcToJs.js"),
+    path.join(formcore_path, "host-schema.js")
+  ].forEach(function(p) {
+    h.update(file_fingerprint(p));
+    h.update("\0");
+    try { h.update(fs.readFileSync(p)); } catch (e) { h.update("missing:" + p); }
+    h.update("\0");
+  });
   hash_kind_tree(h, STDLIB_BASE || process.cwd());
   _compiler_input_hash = h.digest("hex");
   return _compiler_input_hash;
@@ -1237,10 +1260,25 @@ function project_src_hash(manFile, extra) {
   }
   h.update("\0");
   var dirs = man_src_dirs(man, root);
-  var deps = man_direct(man);
-  Object.keys(deps).forEach(function(n) {
-    dep_src_paths(root, n, deps[n]).forEach(function(p) { dirs.push(p); });
-  });
+  var seenDep = {};
+  function walk_deps(atRoot, atMan) {
+    var d = man_direct(atMan);
+    var ind = (atMan.dependencies && atMan.dependencies.indirect) || {};
+    var lock = {};
+    try { lock = read_lock(atRoot, path.join(atRoot, "sure.json")); } catch (eL) {}
+    Object.keys(d).concat(Object.keys(ind)).concat(Object.keys(lock)).forEach(function(n) {
+      if (seenDep[n]) return;
+      seenDep[n] = true;
+      var spec = d[n] || ind[n] || {};
+      dep_src_paths(atRoot, n, spec).forEach(function(p) { dirs.push(p); });
+      var dest = dep_root(atRoot, n, spec);
+      var depManFile = path.join(dest, "sure.json");
+      if (fs.existsSync(depManFile)) {
+        try { walk_deps(dest, read_manifest(depManFile)); } catch (eW) {}
+      }
+    });
+  }
+  walk_deps(root, man);
   String(process.env.SURE_PATH || "").split(":").forEach(function(p) {
     if (p) dirs.push(path.resolve(p));
   });
@@ -2093,14 +2131,7 @@ function when_expand_source(src) {
   return out;
 }
 
-fs.readFileSync = function(p, enc) {
-  var t = _fs_readFileSync(p, enc);
-  if (typeof t === "string" && String(p).slice(-5) === ".sure") {
-    try { t = when_expand_source(t); } catch (e) {}
-    try { return mod_expand_source(String(p), t); } catch (e) { return t; }
-  }
-  return t;
-};
+fs.readFileSync = _fs_readFileSync;
 
 function file_to_mod_name(srcRoot, file) {
   var rel = path.relative(srcRoot, file).replace(/\\/g, "/");
@@ -2465,6 +2496,9 @@ function cmd_install() {
   var direct = man_direct(man);
   var lock = read_lock(root, manFile);
   var names = Object.keys(direct);
+  Object.keys(lock).forEach(function(n) {
+    if (names.indexOf(n) < 0) names.push(n);
+  });
   if (!names.length) {
     console.log("up to date");
     return;
@@ -3368,13 +3402,13 @@ function lsp_apply_changes(text, changes) {
 }
 
 function lsp_defs_in_text(text) {
-  var lines = String(text || "").split("\n");
-  var out = [];
-  for (var j = 0; j < lines.length; j++) {
-    var m = def_header(lines[j]);
-    if (m) out.push({name: m[1], line: j, type: (m[2] || "").trim(), theorem: /==/.test(m[2] || "")});
-  }
-  return out;
+  var parsed = compiler.parse_module_headers(text);
+  var mod = parsed.mod && parsed.mod.name;
+  return compiler.symbols(text).map(function(s) {
+    var name = s.name;
+    if (mod && name.indexOf(".") < 0) name = mod + "." + name;
+    return {name: name, line: s.line, type: s.type, theorem: s.theorem};
+  });
 }
 
 function lsp_find_name_range(text, name) {
@@ -3401,14 +3435,22 @@ function lsp_range_from_origin(text, origin) {
   return {start: lsp_pos_at(text, from), end: lsp_pos_at(text, upto)};
 }
 
-function lsp_diag(report, text) {
+function lsp_diag(report, text, file) {
   text = String(text || "");
+  var mapped = compiler.get_map(file || "");
   var raw = (report && report.diagnostics) || [];
   return raw.map(function(d) {
     var err = d.error || d;
     var code = err.code || "error";
-    var sev = code === "show_goal" ? 2 : 1;
-    var range = lsp_range_from_origin(text, err.origin) || lsp_find_name_range(text, err.name);
+    var sev = code === "show_goal" || code === "residual_hole" ? 2 : 1;
+    var origin = err.origin;
+    if (origin && mapped && mapped.map && typeof origin.from === "number") {
+      origin = {
+        from: compiler.map_offset(mapped.map, origin.from),
+        upto: compiler.map_offset(mapped.map, origin.upto)
+      };
+    }
+    var range = lsp_range_from_origin(text, origin) || lsp_find_name_range(text, err.name);
     var msg = code + (err.name ? " " + err.name : "");
     if (err.message) msg += ": " + err.message;
     return {message: msg, severity: sev, source: "sure", code: code, range: range};
@@ -3482,14 +3524,17 @@ function lsp_parse_frames(buf) {
 
 async function lsp_publish(state, uri, text) {
   var report = {ok: true, diagnostics: []};
+  var file = lsp_uri_to_path(uri) || "buffer.sure";
   if (text) {
-    try { report = await agent_check_code(text); }
-    catch (e) { report = {ok: false, diagnostics: [{error: {code: "error", message: String(e && e.message || e)}}]}; }
+    try {
+      var expanded = compiler.prepare_source(file, text);
+      report = await agent_check_code(expanded);
+    } catch (e) { report = {ok: false, diagnostics: [{error: {code: "error", message: String(e && e.message || e)}}]}; }
   }
   return {
     jsonrpc: "2.0",
     method: "textDocument/publishDiagnostics",
-    params: {uri: uri, diagnostics: lsp_diag(report, text)}
+    params: {uri: uri, diagnostics: lsp_diag(report, text, file)}
   };
 }
 
@@ -3637,23 +3682,7 @@ async function lsp_handle(state, msg) {
   }
   if (method === "textDocument/formatting") {
     if (!text) { result([]); return {state: state, out: out}; }
-    var names = [];
-    String(text).split("\n").forEach(function(line) {
-      var hm = /^([A-Za-z][A-Za-z0-9._]*)\s*[:(]/.exec(line);
-      if (hm) names.push(hm[1]);
-    });
-    if (!names.length) { result([]); return {state: state, out: out}; }
-    var parts = [];
-    var ok_fmt = true;
-    for (var fi = 0; fi < names.length; fi++) {
-      try {
-        var shown = await agent_show(names[fi], false);
-        if (!shown || !shown.ok) { ok_fmt = false; break; }
-        parts.push(shown.term);
-      } catch (e) { ok_fmt = false; break; }
-    }
-    if (!ok_fmt) { result([]); return {state: state, out: out}; }
-    var formatted = parts.join("\n\n") + "\n";
+    var formatted = compiler.format_source(text);
     result([{range: lsp_full_range(text), newText: formatted}]);
     return {state: state, out: out};
   }
@@ -5034,6 +5063,10 @@ async function run_prove_edges() {
   if (wh.indexOf("if String.is_empty(s) then false") < 0 || wh.indexOf("if String.includes(s, \" \") then false") < 0 || /\bwhen\s*\{/.test(wh)) {
     console.log("fail when expand " + wh); failed += 1;
   } else console.log("ok   when expand");
+  var hx = compiler.html_expand_source("<input type={kind} class=\"x\" />\nList<Nat>\nn < m\n");
+  if (hx.indexOf("<input type=kind class=\"x\"") < 0 || hx.indexOf("</input>") < 0 || hx.indexOf("List<Nat>") < 0 || hx.indexOf("n < m") < 0 || hx.indexOf("type={kind}") >= 0) {
+    console.log("fail html expand " + hx); failed += 1;
+  } else console.log("ok   html expand");
   var shad = mod_expand_source("Routes.sure", "module Routes exposing (..)\nreq(method: String): String\n  method\necho(req: String): String\n  open req\n  req\n");
   if (shad.indexOf("open Routes.req") >= 0 || shad.indexOf("echo(Routes.req") >= 0 || shad.indexOf("Routes.echo") < 0 || shad.indexOf("Routes.req") < 0) {
     console.log("fail binder shadow " + shad); failed += 1;
@@ -5132,7 +5165,7 @@ async function run_prove_edges() {
     var tmpb = path.join(require("os").tmpdir(), "sure-bun-edge-" + process.pid + ".js");
     try {
       fs.writeFileSync(tmpb, "console.log('sure-bun-ok');\n");
-      var bout = exec("bun " + JSON.stringify(tmpb), {encoding: "utf8", timeout: 10000});
+      var bout = run_spawn("bun", [tmpb], {timeout: 10000});
       if (String(bout).indexOf("sure-bun-ok") < 0) {
         console.log("fail bun smoke " + bout); failed += 1;
       } else console.log("ok   bun smoke");
@@ -5379,25 +5412,14 @@ async function cmd_fmt(target) {
   if (target.slice(-5) === ".sure") {
     var file = path.resolve(ORIG_CWD, target);
     if (!fs.existsSync(file)) { console.error("no such file: " + file); process.exit(1); }
-    var body = fs.readFileSync(file, "utf8");
-    var names = [];
-    body.split("\n").forEach(function(line) {
-      var m = /^([A-Za-z][A-Za-z0-9._]*)\s*[:(]/.exec(line);
-      if (m) names.push(m[1]);
-    });
-    if (!names.length) { process.stdout.write(body); return; }
-    var out = [];
-    for (var i = 0; i < names.length; i++) {
-      var shown = await agent_show(names[i], false);
-      if (!shown.ok) { console.error(shown.error || shown.term || "fmt failed"); process.exit(1); }
-      out.push(names[i] + ": " + shown.term);
-    }
-    process.stdout.write(out.join("\n\n") + "\n");
+    var body = _fs_readFileSync(file, "utf8");
+    process.stdout.write(compiler.format_source(body));
     return;
   }
-  var shown = await agent_show(target, false);
-  if (!shown.ok) { console.error(shown.error || shown.term || "fmt failed"); process.exit(1); }
-  process.stdout.write(shown.term + "\n");
+  var file = file_of_name(target);
+  if (!file || !fs.existsSync(file)) { console.error("sure fmt: no source file for " + target); process.exit(1); }
+  var body = _fs_readFileSync(file, "utf8");
+  process.stdout.write(compiler.format_source(body));
 }
 
 var REPL_CMDS = {
@@ -5523,7 +5545,7 @@ function sure_runtime_pick(flag, env, native) {
 
 function bun_available() {
   try {
-    exec("bun --version", {stdio: "pipe", timeout: 5000});
+    run_spawn("bun", ["--version"], {stdio: "pipe", timeout: 5000});
     return true;
   } catch (e) {
     return false;
@@ -5554,7 +5576,7 @@ function sure_run_js(js_path, use_bun, extra) {
   if (want && !bun_native()) {
     if (!bun_available()) return {ok: false, error: "bun not found"};
     try {
-      exec("bun " + JSON.stringify(abs) + more, {stdio: "inherit"});
+      run_spawn("bun", [abs].concat(extra), {stdio: "inherit"});
       return {ok: true, runtime: "bun", file: abs};
     } catch (e) {
       return {ok: false, error: String(e && e.message || e), runtime: "bun", file: abs};
@@ -5581,20 +5603,20 @@ function run_compiled_js(js_path, use_bun, extra) {
 }
 
 function spawn_term_run(term) {
-  var env = "SURE_BASE=" + JSON.stringify(process.cwd()) + " KIND_BASE=" + JSON.stringify(process.cwd()) + " ";
-  if (process.env.SURE_DEBUG) env += "SURE_DEBUG=" + JSON.stringify(process.env.SURE_DEBUG) + " ";
-  if (process.env.SURE_DEBUG_OPT) env += "SURE_DEBUG_OPT=" + JSON.stringify(process.env.SURE_DEBUG_OPT) + " ";
   var main_js = path.join(__dirname, "main.js");
+  var env = Object.assign({}, process.env, {
+    SURE_BASE: process.cwd(),
+    KIND_BASE: process.cwd()
+  });
   var want = sure_runtime_pick(false, process.env.SURE_RUNTIME, bun_native()) === "bun"
     || process.argv.indexOf("--bun") >= 0;
   if (want) {
     if (!bun_native() && !bun_available()) throw new Error("bun not found");
     var bun_bin = bun_native() ? process.execPath : "bun";
-    exec(env + JSON.stringify(bun_bin) + " " + JSON.stringify(main_js) + " " + term + " --run", {stdio: "inherit"});
+    run_spawn(bun_bin, [main_js, term, "--run"], {stdio: "inherit", env: env});
     return;
   }
-  exec(env + JSON.stringify(process.execPath) + " --stack-size=10000 " +
-    JSON.stringify(main_js) + " " + term + " --run", {stdio: "inherit"});
+  run_spawn(process.execPath, ["--stack-size=10000", main_js, term, "--run"], {stdio: "inherit", env: env});
 }
 
 (async () => {
@@ -5902,9 +5924,11 @@ function spawn_term_run(term) {
   if (name === "cover" || name === "--cover") {
     var cover_fail = argv.indexOf("--fail") >= 0 || argv.indexOf("--check") >= 0;
     var cover_js = path.join(__dirname, "cover.js");
-    var cover_cmd = process.execPath + " " + JSON.stringify(cover_js) + (cover_fail ? " --fail" : "");
     try {
-      exec(cover_cmd, { stdio: "inherit", cwd: path.join(__dirname, "../../..") });
+      run_spawn(process.execPath, cover_fail ? [cover_js, "--fail"] : [cover_js], {
+        stdio: "inherit",
+        cwd: path.join(__dirname, "../../..")
+      });
       process.exit(0);
     } catch (e) {
       process.exit((e && e.status) || 1);

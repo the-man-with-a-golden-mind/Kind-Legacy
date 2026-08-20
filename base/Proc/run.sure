@@ -1,5 +1,8 @@
-Proc.run(cmd: String): IO<Outcome<Proc.Err, Proc.Out>>
+Proc.run(file: String, args: List<String>): IO<Outcome<Proc.Err, Proc.Out>>
+  Proc.run.at(file, args, "", "")
+
+Proc.run.at(file: String, args: List<String>, cwd: String, env: String): IO<Outcome<Proc.Err, Proc.Out>>
   IO {
-    get raw = IO.ask<String>("proc_exec", cmd, (t) IO.end<String>(t))
-    return Proc.decode(raw)
+    get e = Host.perform(Host.Op.proc_run(file, Proc.join_args(args), cwd, env))
+    return Proc.from_event(e)
   }

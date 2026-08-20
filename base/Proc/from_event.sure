@@ -1,0 +1,11 @@
+Proc.from_event(e: Host.Event): Outcome<Proc.Err, Proc.Out>
+  case e {
+    err: Outcome.err<Proc.Err, Proc.Out>(Proc.Err.io(Host.Err.show(e.error)))
+    ok_unit: Outcome.err<Proc.Err, Proc.Out>(Proc.Err.io("empty"))
+    ok_string:
+      let parts = String.split(e.value, "\n")
+      case parts {
+        nil: Outcome.err<Proc.Err, Proc.Out>(Proc.Err.io("decode"))
+        cons: Outcome.ok<Proc.Err, Proc.Out>(Proc.Out.new(Nat.read(parts.head), String.join("\n", parts.tail)))
+      }
+  }

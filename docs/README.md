@@ -26,7 +26,7 @@ The language is Sure. Lineage is Legacy Kind 1.0.121.
 3. [Language](language.md) — modules, types, functions, `case`, `IO`, holes
 4. [Prove](prove.md) — `Equal`, `refl`, induction, `sure prove`
 5. [Standard library](stdlib.md) — `Outcome`, files, env, JSON, HTTP, Db, time, tasks
-6. [Web](web.md) — HTML pages, Elm-like UI, SSR, Sheet, Tweeter
+6. [Web](web.md) — HTML pages, Elm-like UI, SSR, Todo, Sheet, Tweeter
 7. [Projects](projects.md) — `sure.json`, packages, emit, FFI, LSP
 8. [CLI](cli.md) — every command
 9. [Style](style.md) — how Sure is written

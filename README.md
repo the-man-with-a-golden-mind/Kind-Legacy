@@ -39,7 +39,7 @@ The language is Sure. Lineage is Legacy Kind 1.0.121.
 | [Language](docs/language.md) | Types, functions, `case`, `IO`, holes |
 | [Prove](docs/prove.md) | `Equal`, `refl`, induction, `sure prove` |
 | [Standard library](docs/stdlib.md) | Files, env, JSON, HTTP, Db, time |
-| [Web](docs/web.md) | HTML, Elm-like UI, SSR, Sheet, Tweeter |
+| [Web](docs/web.md) | HTML, Elm-like UI, SSR, Todo, Sheet, Tweeter |
 | [Projects](docs/projects.md) | `sure.json`, packages, emit, FFI, LSP |
 | [CLI](docs/cli.md) | Every command |
 | [Style](docs/style.md) | How Sure is written |

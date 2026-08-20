@@ -1,12 +1,19 @@
 ## Sure 0.1.0
 
+Removed the Kind-era `blog/` posts and `web/` Kindelia website (webpack, pm2, events.moonad.org). HTML/UI in Sure is `docs/web.md` and the `Html` / `Http` stdlib, not a site in this tree.
+
+`examples/todo` is an Elm-like (`Sure.Ui`) todo list on :8775. Empty add is `empty`. Unknown clicks leave the model. Views may be HTML: `<input type={kind} />` is `DOM`; `onClick` is `on-click`; `List<Nat>` is still a type.
+
 Truth pass (audit):
 
 - Residual `_` / `admit` / `?hole` fail `sure check`, `sure prove`, and `sure build`. `_` can no longer prove `Nat.add(2,2) == 5`.
 - `sure prove` only treats completed equality/`Equal` terms as proved. Aggregate JSON `proved` is true only when every result is proved. `Nat.add` checks; it is not a theorem.
-- Incremental build cache hashes compiler + stdlib + lockfile + every `source-directories` entry + dependency sources. Stale JS after a compiler or lock change is not reused.
-- `sure install` materializes `sure.lock` git revisions instead of cloning latest HEAD.
-- HTTP request headers are sent. `Crypto.random` does not fall back to `Math.random`. WebSocket client frames are masked. Generated HTML inlines CSS (no CDN). `File.bracket` is acquire / use / release. `Stream.take` is documented as `List.take`.
+- Incremental build cache hashes `compiler.js`, `host-schema.js`, `gen-host.js`, the checker blob, FormCore, stdlib, lockfile, every `source-directories` entry, and transitive dependency sources.
+- `sure install` materializes `sure.lock` git revisions (direct and lock-listed transitive names) instead of cloning latest HEAD.
+- HTTP request headers are sent. `Crypto.random` does not fall back to `Math.random`. WebSocket client frames are masked. Generated HTML inlines CSS (no CDN). `File.bracket` is acquire / use / release. `Stream.take` is a pull stream (`IO<List<A>>`), not `List.take`.
+- `Host.decode` accepts only tagged `0\\n` / `1\\n` replies. Empty and untagged payloads are `Host.Err.empty` / `Host.Err.bad_tag`.
+- `Proc.exec(file, args)` / `Proc.run(file, args)` spawn argv with `shell: false`. `Proc.unsafe.shell(cmd)` is the shell-string hatch.
+- Bootstrap writes `sure.js` atomically, injects the prepare hook as a fixed point, and uses `process.execPath` (no shell). `node bin/bootstrap.js --check` is in CI. Full compile-twice regeneration is unbounded and is not CI.
 
 `when { pred: val ... } default rest` is the table form of nested `if` (first true wins). `case` stays constructor matching. `switch f { key: v }` stays one `A -> Bool`. `String.ok(s, banned)` is nonempty and none of those substrings. `String.has_none` is the same without the empty check.
 
@@ -398,7 +405,7 @@ Compile-time proving (general language, people and AI):
 Prompt remainder (semver, streams, compress, TLS/WS, Chez files, rename):
 
 - `Semver.parse` / `lt` (`1.2.3`, `1.0.0 < 1.0.1`) proven
-- `Stream.take` (List.take) proven
+- `Stream.take` (pull stream) proven
 - `Compress.gzip` / `gunzip` (Node zlib, hex)
 - Real `tcp_connect` / `send` / `recv` / `close` (net + tls); WS handshake without `ws`
 - Chez: tagged `fs_write_ex` / `fs_del_ex` / `set_file2` / `get_dir_ex`

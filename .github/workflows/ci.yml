@@ -18,9 +18,36 @@ jobs:
         run: node --stack-size=10000 bin/js/src/main.js --version
       - name: Check Nat.add
         run: node --stack-size=10000 bin/js/src/main.js Nat.add
+      - name: Prove Example.Spec.add2
+        run: node --stack-size=10000 bin/js/src/main.js prove Example.Spec.add2
+      - name: Hole does not prove false
+        run: |
+          set +e
+          node --stack-size=10000 bin/js/src/main.js prove --json $'Bad: Nat.add(2,2) == 5\n  _'
+          test $? -ne 0
+      - name: Nat.add is not a theorem
+        run: |
+          set +e
+          node --stack-size=10000 bin/js/src/main.js prove Nat.add
+          test $? -ne 0
+      - name: Stream.take
+        run: node --stack-size=10000 bin/js/src/main.js prove Stream.take.zero
+      - name: Host encode
+        run: node --stack-size=10000 bin/js/src/main.js prove Host.encode.all.fs_open
       - name: Run Main
         run: node --stack-size=10000 bin/js/src/main.js Main --run
-      - name: Prover
-        run: node --stack-size=10000 bin/js/src/main.js Prove.all
-      - name: Tests
-        run: node --stack-size=10000 bin/js/src/main.js --test
+      - name: Generate host encode matches source
+        run: node bin/js/src/gen-host.js --check
+      - name: Strict host decode
+        run: |
+          node --stack-size=10000 bin/js/src/main.js prove Host.decode.untagged
+          node --stack-size=10000 bin/js/src/main.js prove Host.decode.empty
+      - name: HTML expand does not eat List
+        run: node -e 'var c=require("./bin/js/src/compiler.js"); var s=c.html_expand_source("<input type={k} />\\nList<Nat>"); if(s.indexOf("type=k")<0||s.indexOf("List<Nat>")<0) process.exit(1)'
+      - name: Bootstrap integrity
+        run: node bin/bootstrap.js --check
+      - name: DOM junk tag is empty
+        run: node --stack-size=10000 bin/js/src/main.js prove DOM.render.junk_tag
+      - name: Fmt uses source, not show_term
+        run: |
+          node --stack-size=10000 bin/js/src/main.js fmt examples/hello/src/Hello.sure | grep -q 'module Hello'

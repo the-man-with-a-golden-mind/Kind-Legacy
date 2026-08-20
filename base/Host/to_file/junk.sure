@@ -1,2 +1,2 @@
-Host.to_file.junk: Host.to_file(Host.decode("nope")) == Outcome.ok<File.Err, String>("nope")
+Host.to_file.junk: Host.to_file(Host.decode("nope")) == Outcome.err<File.Err, String>(File.Err.io("bad host tag"))
   refl

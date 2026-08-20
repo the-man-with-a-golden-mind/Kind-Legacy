@@ -1,2 +1,2 @@
-Host.to_env.empty: Host.to_env(Host.decode("")) == Outcome.err<Sure.Env.Err, String>(Sure.Env.Err.junk)
+Host.to_env.empty: Host.to_env(Host.decode("")) == Outcome.err<Sure.Env.Err, String>(Sure.Env.Err.empty_name)
   refl

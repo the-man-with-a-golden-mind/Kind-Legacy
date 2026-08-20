@@ -51,6 +51,13 @@ Sure.Synth.one(name: Sure.Name, defs: Sure.Defs): IO<Maybe<Sure.Defs>>
               result:
                 //let skip = Debug.log!(String.join("\n", List.mapped!(checked.errors)!((x) String.concat("-- ", Sure.Error.show(x,Sure.Map.new!)))), (x) Unit.new);
                 if List.is_empty!(checked.errors) then IO {
+                  if Sure.Term.has_holes(term) then IO {
+                    let stat = Sure.Status.fail([
+                      Sure.Error.show_goal("_", [], false, some(type), [])
+                    ]);
+                    let defs = Sure.Map.set!(name, Sure.Def.new(file, code, orig, name, term, type, isct, arit, stat), defs);
+                    return some(defs);
+                  } else IO {
                   let defs = Sure.Map.def(file, code, orig, name, term, type, isct, arit, true, defs);
                   //get time = IO.get_file_mtime(file)
                   //IO.set_file(".cache/" | name | ".term", Sure.Core.show(term))
@@ -60,6 +67,7 @@ Sure.Synth.one(name: Sure.Name, defs: Sure.Defs): IO<Maybe<Sure.Defs>>
                   //IO.set_file(".cache/" | name | ".time", time)
                   //IO.set_file(".cache/" | name | ".file", file)
                   return some(defs);
+                  };
                 } else IO {
                   get fixed = Sure.Synth.fix(file, code, orig, name, term, type, isct, arit, defs, checked.errors, Bool.false);
                   case fixed {

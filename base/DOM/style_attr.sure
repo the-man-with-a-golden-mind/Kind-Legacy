@@ -1,10 +1,12 @@
 DOM.style_pair(p: Pair<String, String>): String
   open p
-  p.fst | ":" | p.snd | ";"
+  if Html.ok_ident(p.fst) then
+    p.fst | ":" | Html.escape(p.snd) | ";"
+  else
+    ""
 
 DOM.style_attr(style: Map<String>): String
   let xs = Map.to_list<String>(style)
-  case xs {
-    nil: ""
-    cons: " style=\"" | String.flatten(List.map<Pair<String,String>, String>(DOM.style_pair, xs)) | "\""
-  }
+  let body = String.flatten(List.map<Pair<String,String>, String>(DOM.style_pair, xs))
+  if String.is_empty(body) then ""
+  else " style=\"" | body | "\""

@@ -1,7 +1,8 @@
 File.with_temp.go<A: Type>(path: Path, use: Path -> IO<A>): IO<A>
   IO {
+    get _ = Host.perform(Host.Op.fs_temp_push(Path.text(path)))
     get r = use(path)
-    get _ = File.delete(path)
+    get _ = Host.perform(Host.Op.fs_temp_pop(Path.text(path)))
     return r
   }
 

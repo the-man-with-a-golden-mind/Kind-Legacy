@@ -51,6 +51,29 @@ open dist/Html.Counter.client.html
 
 Helpers: `Html.button`, `Html.input`, `Html.p`, `Html.text`, `Html.div`. Styling in the shipped apps is Tailwind + daisyUI only.
 
+## HTML DSL
+
+A view can be HTML, not nested `Html.el` / `Html.attr`. `<div` at the start of a term is `DOM`. `List<Nat>` is still a type: the `<` sits after a name.
+
+```
+input(kind: String, val: String, ph: String, msg: String): DOM
+  <input type={kind} value={val} placeholder={ph} class="input input-bordered w-full" onChange={msg} />
+```
+
+| Write | Meaning |
+|---|---|
+| `<div class="card"> ... </div>` | `DOM.node` |
+| `<input ... />` | same as `</input>` (void tags) |
+| `class="x"` / `type={kind}` | attribute; `{e}` is the Sure term `e` |
+| `onClick="add"` / `onChange={msg}` | `on-click` / `on-change` (camelCase → kebab) |
+| `"Add"` as a child | `Html.text("Add")` |
+| `{item_view(it)}` | one child `DOM` |
+| `for it in xs: item_view(it)` | children from a list |
+| `{xs}` when `xs: List<DOM>` | not a child list — use `for` |
+
+`n < m` and `List<Nat>` are not tags. Empty `{ }` is not an attribute. Unknown tags do not parse as HTML.
+
+
 ## Sure.Ui
 
 `sandbox` is init / view / update with no effects.
@@ -75,6 +98,9 @@ sure build --html Sure.Ui.Counter.client
 sure build --html Sure.Ui.Tick.client    # Sub.every
 sure build --html Sure.Ui.Probe.client   # Cmd + Sub edges
 sure build --html Sure.Ui.Boot.client    # boot Cmd
+
+cd examples/todo && sure prove && sure build --html App.client && sure run
+# open http://127.0.0.1:8775/   add / toggle / filter / drop
 ```
 
 The page runtime runs Cmd (fetch / timeout / push, depth 32) and Sub (interval / EventSource).

@@ -1,0 +1,2 @@
+Proc.join_args(xs: List<String>): String
+  String.join("\n", xs)

@@ -1,0 +1,2 @@
+DOM.style_attr.junk: DOM.style_attr(Map.set<String>("x;y", "1", Map.new<String>)) == ""
+  refl
