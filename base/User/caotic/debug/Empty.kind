@@ -1,5 +1,0 @@
-type Empty {
-}
-
-Empty.absurd<A: Type>(contra: Empty): A
-  case contra {}

@@ -1,8 +1,0 @@
-// Returns a list of coordinates within a given range
-Hexagonal.Axial.range(
-  coord: Hexagonal.Axial
-  distance: I32
-): List<Hexagonal.Axial>
-
-  let center = Hexagonal.Axial.to_cubic(coord)
-  List.map!!(Hexagonal.Cubic.to_axial, Hexagonal.Cubic.range(center, distance))

@@ -1,6 +1,0 @@
-// Returns an Axial coordinate as a String
-Hexagonal.Axial.show(
-  coord: Hexagonal.Axial
-): String
-
-  " {i: "|I32.show(coord@i) | " : " | " j: " | I32.show(coord@j) | " } "

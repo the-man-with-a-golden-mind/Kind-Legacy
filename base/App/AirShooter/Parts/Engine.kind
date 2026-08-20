@@ -1,5 +1,0 @@
-type App.AirShooter.Parts.Engine {
-  new(
-    velocity: F64
-  )
-}

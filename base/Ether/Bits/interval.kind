@@ -1,3 +1,0 @@
-Ether.Bits.interval(n : Bits, pair : Pair<Bits, Bits>) : Bool
-  open pair
-  (n >=? pair.fst) && (n <? pair.snd)

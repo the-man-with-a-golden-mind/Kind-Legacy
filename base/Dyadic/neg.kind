@@ -1,3 +1,0 @@
-Dyadic.neg(a: Dyadic): Dyadic
-  open a
-  Dyadic.new(Int.neg(a.num), a.exp)

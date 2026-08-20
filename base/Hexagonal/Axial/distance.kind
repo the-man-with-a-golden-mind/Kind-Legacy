@@ -1,9 +1,0 @@
-// Returns the distance between 2 Coords
-Hexagonal.Axial.distance(
-  fst_coord: Hexagonal.Axial,
-  snd_coord: Hexagonal.Axial
-): I32
-
-  let convert_fst = Hexagonal.Axial.to_cubic(fst_coord)
-  let convert_snd = Hexagonal.Axial.to_cubic(snd_coord)
-  Hexagonal.Cubic.distance(convert_fst, convert_snd)

@@ -1,2 +1,0 @@
-Shape.Rectangle.collision.polygon(rectangle: Shape.Rectangle, polygon: Shape.Polygon): Bool
-  Shape.Polygon.collision.rectangle(polygon, rectangle)

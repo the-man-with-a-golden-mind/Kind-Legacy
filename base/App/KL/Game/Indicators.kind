@@ -1,2 +1,0 @@
-App.KL.Game.Indicators: Type
-  Hexagonal.Axial.Map<App.KL.Game.Indicator>

@@ -1,3 +1,0 @@
-V2.rot90(v: V2): V2
-  open v
-  {F64.sub(0, v.y), v.x} :: V2

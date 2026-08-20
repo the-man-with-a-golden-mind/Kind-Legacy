@@ -1,2 +1,0 @@
-Dyadic.div2(a: Dyadic): Dyadic
-  Dyadic.new(a@num, a@exp + 1)

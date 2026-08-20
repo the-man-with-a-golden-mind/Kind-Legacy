@@ -1,6 +1,0 @@
-Shape.Point.collision.circle(point: Shape.Point, circle: Shape.Circle): Bool
-  let p = point
-  let c = circle@center
-  let r = circle@radius
-  let d = V2.dist(p, c)
-  d <=? r

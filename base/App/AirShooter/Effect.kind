@@ -1,6 +1,0 @@
-type App.AirShooter.Effect {
-  new(
-    timer: Nat
-    type: App.AirShooter.Drop.Type
-  )
-}

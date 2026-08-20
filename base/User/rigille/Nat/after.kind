@@ -1,2 +1,0 @@
-User.rigille.Nat.after(a: Nat, b: Nat): Type
-  Nat.lte(a, b) == true

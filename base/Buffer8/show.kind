@@ -1,2 +1,0 @@
-Buffer8.show(buf: Buffer8): String
-"<Buffer8"|Buffer8.to_string(buf)|">"

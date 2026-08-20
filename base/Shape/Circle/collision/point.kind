@@ -1,2 +1,0 @@
-Shape.Circle.collision.point(circle: Shape.Circle, point: Shape.Point): Bool
-  Shape.Point.collision.circle(point, circle)

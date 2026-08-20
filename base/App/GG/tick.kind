@@ -1,3 +1,0 @@
-// Global ticker: not used
-App.GG.tick: App.Tick<App.GG.State>
-  App.no_tick<App.GG.State>

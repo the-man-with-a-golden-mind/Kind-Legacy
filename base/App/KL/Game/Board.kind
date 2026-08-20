@@ -1,3 +1,0 @@
-App.KL.Game.Board: Type
-  Hexagonal.Axial.Map<App.KL.Game.Tile>
-

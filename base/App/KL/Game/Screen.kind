@@ -1,7 +1,0 @@
-type App.KL.Game.Screen { 
-  new(
-    size: Pair<U32, U32>
-    scale: F64   
-    position: Pair<U32, U32>
-  )
-}

@@ -1,7 +1,0 @@
-App.KL.Game.Tile.effect.get_data(
-  tile: App.KL.Game.Tile
-): Maybe<Pair<Char,String>>
-
-  let effect = tile@effect
-  without effect: none
-  some(effect@cast_data)

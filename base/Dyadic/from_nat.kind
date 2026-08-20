@@ -1,2 +1,0 @@
-Dyadic.from_nat(n: Nat): Dyadic
-  Dyadic.new(Nat.to_int(n), 0)

@@ -1,2 +1,0 @@
-User.rigille.List.Perm.push_back<A: Type>(x: A, xs: List<A>, ys: List<A>, Hyp: User.rigille.List.Perm<A>(xs, ys)): User.rigille.List.Perm<A>(List.concat!(xs, x & List.nil<A>), List.concat!(ys, x & List.nil<A>))
-  User.rigille.List.Perm.push_tail<A>(xs, ys, [x], Hyp)

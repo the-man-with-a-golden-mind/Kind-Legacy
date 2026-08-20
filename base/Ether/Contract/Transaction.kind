@@ -1,3 +1,0 @@
-type Ether.Contract.Transaction {
-  new(from : Bits, nonce : Nat)
-}

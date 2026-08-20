@@ -1,3 +1,0 @@
-App.TicTacToe.post: App.Post<App.TicTacToe.State>
-  (time, room, addr, data, glob)
-     glob

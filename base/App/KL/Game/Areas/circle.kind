@@ -1,8 +1,0 @@
-App.KL.Game.Areas.circle(
-  coord: Hexagonal.Axial
-  radius: I32
-): List<Hexagonal.Axial>
-
-  let circle = Hexagonal.Axial.range(coord, radius)
-  circle
-

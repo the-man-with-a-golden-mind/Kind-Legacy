@@ -1,7 +1,0 @@
-type App.Drawing.Style {
-  new(
-    tool: App.Drawing.Tool
-    size: U32
-    color: Col32
-  )
-}

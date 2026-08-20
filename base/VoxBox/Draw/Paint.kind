@@ -1,3 +1,0 @@
-type VoxBox.Draw.Paint {
-    new(x : U32, y : U32, z : U32, col : Col32, img : VoxBox)
-}

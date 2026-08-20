@@ -1,9 +1,0 @@
-App.ATB.when : App.When<App.ATB.State>
-   (event, state) 
-   open state 
-   open state.local
-   case state.local.phase {
-       room : App.ATB.when.room(state.local.phase.status, event, state)
-       draft : App.ATB.when.draft(state.local.phase.status, event, state)
-       play :  App.pass!
-   }

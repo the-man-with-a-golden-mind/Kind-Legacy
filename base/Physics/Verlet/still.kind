@@ -1,3 +1,0 @@
-// creates an object that's standing still
-Physics.Verlet.still(pos: V2): Physics.Verlet
-  Physics.Verlet.new(pos, pos, {0, 0})

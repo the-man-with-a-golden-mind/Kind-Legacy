@@ -1,3 +1,0 @@
-type Shape.Rectangle.Edges {
-  new(a: Shape.Line, b: Shape.Line, c: Shape.Line, d: Shape.Line)
-}

@@ -1,3 +1,0 @@
-App.GG.Effect.game.get: App.GG.Effect<App.GG.Game>
-  (center, origin, local)
-  App.GG.Effect.Result.new!(local, center, origin, local, (enemy, img) img, 0, "")

@@ -1,6 +1,0 @@
-type App.KL.Game.Scroll {
-  new(
-    time: U32
-    last_pos: Pair<U32, U32>
-  )
-}

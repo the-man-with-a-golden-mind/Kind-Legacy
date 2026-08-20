@@ -1,3 +1,0 @@
-App.KL.Game.Board.Creature.get.name(creature: App.KL.Game.Creature): String
-  open creature@category as category
-    category.data@name

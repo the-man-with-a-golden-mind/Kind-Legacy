@@ -1,3 +1,0 @@
-type Shape.Points {
-  new(x0: F64, x1: F64, y0: F64, y1: F64)
-}

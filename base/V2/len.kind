@@ -1,3 +1,0 @@
-V2.len(a: V2): F64
-  open a
-  F64.sqrt((a.x*a.x) + (a.y*a.y))

@@ -1,3 +1,0 @@
-type Shape.Line {
-  new(a: V2, b: V2)
-}

@@ -1,3 +1,0 @@
-App.GG.post: App.Post<App.GG.State>
-  (time, room, addr, data, global_state)
-  global_state

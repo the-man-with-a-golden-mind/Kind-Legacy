@@ -1,4 +1,0 @@
-BVH.split<K: Type, V: Type>(count: Nat, list: List<Pair<K,V>>): Pair<List<Pair<K,V>>, List<Pair<K,V>>>
-  let len = List.length!(list)
-  let mod = Nat.mod(count, 2)
-  List.split!(list, (len/2) + mod)

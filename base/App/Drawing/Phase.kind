@@ -1,4 +1,0 @@
-type App.Drawing.Phase {
-  active(turn: Nat)
-  results
-}

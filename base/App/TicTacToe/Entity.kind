@@ -1,4 +1,0 @@
-type App.TicTacToe.Entity {
-  circle
-  x
-}

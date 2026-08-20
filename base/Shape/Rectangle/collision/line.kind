@@ -1,2 +1,0 @@
-Shape.Rectangle.collision.line(rectangle: Shape.Rectangle, line: Shape.Line): Bool
-  Shape.Line.collision.rectangle(line, rectangle)

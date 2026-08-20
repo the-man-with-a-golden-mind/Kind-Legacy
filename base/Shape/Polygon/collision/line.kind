@@ -1,2 +1,0 @@
-Shape.Polygon.collision.line(polygon: Shape.Polygon, line: Shape.Line): Bool
-  Shape.Polygon.collision.to_line<Shape.Line>(Shape.Line.collision.line, polygon, line)

@@ -1,3 +1,0 @@
-type Shape.Triangle {
-  new(a: V2, b: V2, c: V2)
-}

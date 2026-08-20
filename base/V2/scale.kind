@@ -1,4 +1,0 @@
-V2.scale(c: F64, v: V2): V2
-  open v
-  {c*v.x, c*v.y} :: V2
-

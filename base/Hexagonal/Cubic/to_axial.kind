@@ -1,9 +1,0 @@
-// Converts a Cubic coordinate to an Axial coordinate
-Hexagonal.Cubic.to_axial(
-  coord: Hexagonal.Cubic
-): Hexagonal.Axial
-
-  open coord
-  let i = coord.x
-  let j = coord.z
-  Hexagonal.Axial.new(i, j)

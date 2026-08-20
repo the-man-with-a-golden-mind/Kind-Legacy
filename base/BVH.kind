@@ -1,5 +1,0 @@
-type BVH <K: Type, V: Type> {
-  tip,
-  box(val: V, lft: BVH<K, V>, rgt: BVH<K, V>)
-  end(key: K, val: V)
-}

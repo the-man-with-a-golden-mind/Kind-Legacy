@@ -1,2 +1,0 @@
-VoxBox.Draw(A : Type) : Type
-   VoxBox.Draw.Paint -> Pair<A, VoxBox.Draw.Paint>

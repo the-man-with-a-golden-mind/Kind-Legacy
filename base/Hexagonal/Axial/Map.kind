@@ -1,3 +1,0 @@
-// Type for Balanced Binary Tree in an Hexagonal Axial environment
-Hexagonal.Axial.Map<A : Type> : Type
-  BBT<Hexagonal.Axial, A>

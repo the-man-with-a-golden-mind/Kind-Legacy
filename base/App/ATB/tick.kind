@@ -1,2 +1,0 @@
-App.ATB.tick : App.Tick<App.ATB.State>
-    App.no_tick(App.ATB.State)

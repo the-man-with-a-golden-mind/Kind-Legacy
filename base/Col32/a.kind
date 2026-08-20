@@ -1,2 +1,0 @@
-Col32.a(col: Col32): U32
-  U32.and(U32.shr(col, 24), 0xFF)

@@ -1,3 +1,0 @@
-App.TicTacToe.tick: App.Tick<App.TicTacToe.State>
-  (tick, glob)
-    glob

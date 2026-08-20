@@ -1,2 +1,0 @@
-Ether.RLP.decode(bytes: Bytes): Ether.RLP
-  List.head!(Ether.RLP.decode.many(bytes)) <> Ether.RLP.data([])

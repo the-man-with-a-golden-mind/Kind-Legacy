@@ -1,3 +1,0 @@
-App.Drawing.App.post: App.Post<App.Drawing.State>
-  (time, room, addr, data, glob)
-     glob

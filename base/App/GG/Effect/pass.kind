@@ -1,4 +1,0 @@
-App.GG.Effect.pass: App.GG.Effect<Unit>
-App.GG.Effect {
-  return unit
-}

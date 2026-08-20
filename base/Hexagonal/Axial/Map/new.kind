@@ -1,3 +1,0 @@
-// A new Hexagonal Axial Map tree
-Hexagonal.Axial.Map.new<A : Type> : Hexagonal.Axial.Map<A>
-    BBT.tip!!

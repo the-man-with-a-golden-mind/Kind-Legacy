@@ -1,2 +1,0 @@
-VoxBox.monad.pure<A : Type>(x : A) : VoxBox.Draw<A>
-  (vox) {x, vox}
