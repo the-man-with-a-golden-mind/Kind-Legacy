@@ -4,12 +4,12 @@
 (let ([args (cdr (command-line))])
   (if (null? args)
     (print-lines
-    '("# kind-scm 1.0.104"
+    '("# Sure kind-scm (Legacy Kind 1.0.121)"
       ""
       "Usage:"
       ""
       "  kind-scm Module/               # type-checks a module"
-      "  kind-scm Module/file.kind      # type-checks a file"
+      "  kind-scm Module/file.sure      # type-checks a file"
       "  kind-scm full_term_name --run  # runs a term"
       "  kind-scm full_term_name --show # prints a term"
       "  kind-scm full_term_name --norm # prints a term's λ-normal form"
@@ -25,8 +25,8 @@
       "  # Type-check all files inside the 'Nat' module:"
       "  kind-scm Nat/"
       ""
-      "  # Type-check the 'Nat/add.kind' file:"
-      "  kind-scm Nat/add.kind"
+      "  # Type-check the 'Nat/add.sure' file:"
+      "  kind-scm Nat/add.sure"
       ""
       "  # Type-check the 'Nat.add' term:"
       "  kind-scm Nat.add"
@@ -42,7 +42,7 @@
     (let ((fst_arg (car args))
           (tail_args (cdr args)))
       (if (null? tail_args)
-        (if (suffix? fst_arg ".kind")
+        (if (suffix? fst_arg ".sure")
           (run_io (Kind.api.io.check_file fst_arg))
           (if (suffix? fst_arg "/")
             (run_io (Kind.api.io.check_files (find-all-kind-files fst_arg)))
