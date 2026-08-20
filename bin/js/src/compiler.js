@@ -910,16 +910,13 @@ function prepare_source(file, src) {
   src = String(src || "");
   var with_html = html_expand_source(src);
   var with_when = when_expand_source(with_html);
-  // Parser.file elaborates `module` / `import`. Do not rewrite idents here.
-  // `import M exposing (..)` becomes an explicit list; Parser.file cannot
-  // see the other file while parsing this one.
-  var with_open = expand_open_imports(file, with_when);
+  // Parser.file elaborates `module` / `import`, including `exposing (..)`.
   SOURCE_MAPS[path.resolve(String(file || "."))] = {
     original: src,
-    expanded: with_open,
-    map: [{orig: 0, exp: 0, olen: src.length, elen: with_open.length}]
+    expanded: with_when,
+    map: [{orig: 0, exp: 0, olen: src.length, elen: with_when.length}]
   };
-  return with_open;
+  return with_when;
 }
 
 function get_map(file) {

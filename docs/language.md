@@ -38,7 +38,7 @@ Other files must **import** the module. Only names in `exposing` are public.
 ```
 import Boxes                       # Boxes.empty, Boxes.push
 import Boxes exposing (empty, len) # empty, len
-import Boxes exposing (..)         # every name Boxes exposes
+import Boxes exposing (..)         # every name currently defined in Boxes
 ```
 
 `module Boxes exposing (Boxes, empty, push, len)` hides the rest (`len_empty` stays private). Exposing a type also exposes its constructors (`Boxes.new`, `Sess.none`). Stdlib (`Nat.add`) needs no import. Compilation drops unused names: a `Main` that only calls `demo` does not emit private proofs or unused host slices.

@@ -89,7 +89,12 @@ Sure.Synth.load.cached(names: List(Sure.Name), defs: Sure.Defs): IO<Maybe<Sure.D
   }
 
 Sure.Synth.load(name: Sure.Name, defs: Sure.Defs): IO<Maybe<Sure.Defs>>
-  IO {
+  Sure.Synth.load.with(name, defs, [])
+
+Sure.Synth.load.with(name: Sure.Name, defs: Sure.Defs, stack: List<String>): IO<Maybe<Sure.Defs>>
+  if Sure.Mod.has(name, stack) then IO {
+    return some(defs)
+  } else IO {
     // Cache is keyed by name. A project file on SURE_PATH/KIND_PATH must
     // not lose to a cached stdlib term of the same name (e.g. Main).
     get paths = Sure.Synth.path_env
@@ -97,7 +102,7 @@ Sure.Synth.load(name: Sure.Name, defs: Sure.Defs): IO<Maybe<Sure.Defs>>
       Sure.Synth.files_of(name),
       String.split(paths, ":"))
     if Bool.not(String.is_empty(shadowed)) then IO {
-      Sure.Synth.load.go(name, Sure.Synth.files_of(name), defs)
+      Sure.Synth.load.go(name, Sure.Synth.files_of(name), defs, stack)
     } else IO {
       get cached_defs = Sure.Synth.load.cached([name], defs)
       case cached_defs {
@@ -105,10 +110,33 @@ Sure.Synth.load(name: Sure.Name, defs: Sure.Defs): IO<Maybe<Sure.Defs>>
           return some(cached_defs.value)
         }
         none: IO {
-          Sure.Synth.load.go(name, Sure.Synth.files_of(name), defs)
+          Sure.Synth.load.go(name, Sure.Synth.files_of(name), defs, stack)
         }
       }
     }
+  }
+
+Sure.Synth.load.imports(
+  imps: List<Pair<String, List<String>>>,
+  defs: Sure.Defs,
+  stack: List<String>
+): IO<Sure.Defs>
+  case imps {
+    nil: IO {
+      return defs
+    }
+    cons:
+      open imps.head
+      if Sure.Mod.has("..", imps.head.snd) then IO {
+        get got = Sure.Synth.load.with(imps.head.fst, defs, stack)
+        let defs = case got {
+          none: defs
+          some: got.value
+        }
+        Sure.Synth.load.imports(imps.tail, defs, stack)
+      } else IO {
+        Sure.Synth.load.imports(imps.tail, defs, stack)
+      }
   }
 
 Sure.Synth.get_kind_code(file: String): IO(String)
@@ -161,20 +189,21 @@ Sure.Synth.get_kind_code.search_files(files: List<String>, paths: List<String>):
     }
   }
 
-Sure.Synth.load.go(name: String, files: List<String>, defs: Sure.Defs): IO<Maybe<Sure.Defs>>
+Sure.Synth.load.go(name: String, files: List<String>, defs: Sure.Defs, stack: List<String>): IO<Maybe<Sure.Defs>>
   case files {
     nil: IO {
       return none
     }
     cons: IO {
       get code = Sure.Synth.get_kind_code(files.head)
+      get defs = Sure.Synth.load.imports(Sure.Parser.file.imps_of(code), defs, List.cons<String>(name, stack))
       let read = Sure.Defs.read(files.head, code, defs)
       case read {
-        left: Sure.Synth.load.go(name, files.tail, defs)
+        left: Sure.Synth.load.go(name, files.tail, defs, stack)
         right: IO {
           let defs = read.value
           case Sure.Map.get!(name, defs) as got {
-            none: Sure.Synth.load.go(name, files.tail, defs),
+            none: Sure.Synth.load.go(name, files.tail, defs, stack),
             some: IO {
               return some(defs)
             }

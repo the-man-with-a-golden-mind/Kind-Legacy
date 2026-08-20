@@ -9,6 +9,18 @@ Sure.Parser.file(file: String, code: String, defs: Sure.Defs): Parser(Sure.Defs)
     Sure.Parser.file.go(file, code, mod, imps, [], defs)
   }
 
+Sure.Parser.file.header: Parser(List<Pair<String, List<String>>>)
+  Parser {
+    Parser.maybe!(Sure.Parser.file.mod)
+    Parser.many!(Sure.Parser.file.imp)
+  }
+
+Sure.Parser.file.imps_of(code: String): List<Pair<String, List<String>>>
+  case Sure.Parser.file.header(Parser.State.new(none, "", 0, 0, code)) as parsed {
+    error: []
+    value: parsed.val
+  }
+
 Sure.Parser.file.exposing: Parser(List<String>)
   Parser {
     Sure.Parser.text("exposing")
@@ -36,9 +48,7 @@ Sure.Parser.file.imp: Parser(Pair<String, List<String>>)
     get exp = Parser.maybe!(Sure.Parser.file.exposing)
     let names = case exp {
       none: []
-      some:
-        if Sure.Mod.has("..", exp.value) then []
-        else exp.value
+      some: exp.value
     }
     return Pair.new<String, List<String>>(nam, names)
   }
@@ -106,7 +116,7 @@ Sure.Parser.file.rewrite.one(
     none: defs
     some:
       open got.value
-      let resolve = (n) Sure.Mod.resolve(mod, locals, imps, n)
+      let resolve = (n) Sure.Mod.resolve.defs(mod, locals, imps, n, defs)
       let term = Sure.Term.qualify(resolve, got.value.term)
       let type = Sure.Term.qualify(resolve, got.value.type)
       Sure.Map.set<Sure.Def>(

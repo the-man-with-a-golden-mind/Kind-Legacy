@@ -61,6 +61,8 @@ var BOUNDED_THEOREMS = [
   "Sure.Mod.resolve.short",
   "Sure.Mod.resolve.imp",
   "Sure.Mod.resolve.imp_type",
+  "Sure.Mod.from_imp.dotdot",
+  "Sure.Mod.from_imp.open.miss",
   "Host.encode.all.fs_open"
 ];
 var BOUNDED_CHECKS = [
@@ -2341,6 +2343,32 @@ function write_lock(root, manFile, lock) {
   fs.writeFileSync(lock_path(root, manFile), JSON.stringify(lock, null, 2) + "\n");
 }
 
+function dep_tree_hash(dir) {
+  var crypto = require("crypto");
+  var h = crypto.createHash("sha256");
+  function walk(p, rel) {
+    var names;
+    try { names = fs.readdirSync(p).sort(); } catch (e) { return; }
+    names.forEach(function(n) {
+      if (n === ".git" || n === "node_modules" || n === ".cache") return;
+      var fp = path.join(p, n);
+      var r = rel ? rel + "/" + n : n;
+      var st;
+      try { st = fs.statSync(fp); } catch (eS) { return; }
+      if (st.isDirectory()) walk(fp, r);
+      else {
+        h.update(r);
+        h.update("\0");
+        try { h.update(fs.readFileSync(fp)); } catch (eR) { h.update("missing"); }
+        h.update("\0");
+      }
+    });
+  }
+  if (!dir || !fs.existsSync(dir)) return "";
+  walk(dir, "");
+  return h.digest("hex");
+}
+
 function run_git(args, opts) {
   var r = spawnSync("git", args, Object.assign({encoding: "utf8"}, opts || {}));
   if (r.status !== 0) {
@@ -2502,6 +2530,7 @@ function cmd_add(spec) {
     source: spec,
     git: rec.git || "",
     rev: rec.git ? (git_rev_parse(dep_root(root, slug, rec)) || "") : "",
+    sha256: dep_tree_hash(dep_root(root, slug, rec)),
     added: new Date().toISOString()
   };
   write_lock(root, manFile, lock);
@@ -2553,11 +2582,19 @@ function cmd_install() {
       if (!fs.existsSync(abs)) {
         console.error("missing path: " + n);
         failed += 1;
+        return;
+      }
+      var pathHash = dep_tree_hash(abs);
+      if (pin.sha256 && pin.sha256 !== pathHash) {
+        console.error("install failed: " + n + " (sha256 mismatch)");
+        failed += 1;
+        return;
       }
       lock[n] = {
         version: dep_version_of(root, n, spec),
         source: spec.path,
         rev: "",
+        sha256: pathHash,
         added: pin.added || new Date().toISOString()
       };
       return;
@@ -2572,12 +2609,15 @@ function cmd_install() {
     var dest = path.join(root, "sure_modules", n);
     if (fs.existsSync(dest) && rev) {
       var have = git_rev_parse(dest);
-      if (have && (have === rev || have.indexOf(rev) === 0 || rev.indexOf(have) === 0)) {
+      var haveHash = dep_tree_hash(dest);
+      if (have && (have === rev || have.indexOf(rev) === 0 || rev.indexOf(have) === 0)
+          && (!pin.sha256 || pin.sha256 === haveHash)) {
         lock[n] = {
           version: dep_version_of(root, n, spec),
           source: url,
           git: url,
           rev: have,
+          sha256: haveHash,
           added: pin.added || new Date().toISOString()
         };
         return;
@@ -2585,22 +2625,36 @@ function cmd_install() {
       try { fs.rmSync(dest, {recursive: true, force: true}); } catch (eR) {}
     } else if (fs.existsSync(dest) && !rev) {
       var have2 = git_rev_parse(dest);
+      var haveHash2 = dep_tree_hash(dest);
+      if (pin.sha256 && pin.sha256 !== haveHash2) {
+        console.error("install failed: " + n + " (sha256 mismatch)");
+        failed += 1;
+        return;
+      }
       lock[n] = {
         version: dep_version_of(root, n, spec),
         source: url,
         git: url,
         rev: have2,
+        sha256: haveHash2,
         added: pin.added || new Date().toISOString()
       };
       return;
     }
     try {
       var got = git_clone_pinned(url, dest, rev || null);
+      var gotHash = dep_tree_hash(dest);
+      if (pin.sha256 && pin.sha256 !== gotHash) {
+        console.error("install failed: " + n + " (sha256 mismatch)");
+        failed += 1;
+        return;
+      }
       lock[n] = {
         version: dep_version_of(root, n, spec),
         source: url,
         git: url,
         rev: got,
+        sha256: gotHash,
         added: pin.added || new Date().toISOString()
       };
     } catch (e) {
@@ -5103,6 +5157,10 @@ async function run_prove_edges() {
   if (prep.indexOf("module Hello") < 0 || prep.indexOf("// module Hello") >= 0) {
     console.log("fail parser-owned module " + prep); failed += 1;
   } else console.log("ok   parser-owned module");
+  var openimp = compiler.prepare_source("Audit.sure", "module Audit exposing (..)\nimport Boxes exposing (..)\nreport: Nat\n  empty\n");
+  if (openimp.indexOf("import Boxes exposing (..)") < 0 || openimp.indexOf("Boxes.empty") >= 0) {
+    console.log("fail open import host " + openimp); failed += 1;
+  } else console.log("ok   open import host");
   var impsrc = mod_expand_source("Audit.sure", "module Audit exposing (..)\nimport Boxes exposing (empty)\nreport: Nat\n  empty\n");
   if (impsrc.indexOf("Boxes.empty") < 0) {
     console.log("fail import exposing " + impsrc); failed += 1;
@@ -5143,6 +5201,18 @@ async function run_prove_edges() {
   if (github_url_of("") || github_url_of("ada/boxes") !== "https://github.com/ada/boxes.git" || pkg_mod_name("ada/boxes") !== "Boxes") {
     console.log("fail pkg url"); failed += 1;
   } else console.log("ok   pkg url");
+  var hasht = path.join(require("os").tmpdir(), "sure-lock-hash-" + process.pid);
+  fs.mkdirSync(path.join(hasht, "src"), {recursive: true});
+  fs.writeFileSync(path.join(hasht, "src", "A.sure"), "A: Nat\n  0\n");
+  var ha = dep_tree_hash(hasht);
+  var hb = dep_tree_hash(hasht);
+  if (!ha || ha !== hb) { console.log("fail lock hash stable"); failed += 1; }
+  else console.log("ok   lock hash stable");
+  fs.appendFileSync(path.join(hasht, "src", "A.sure"), "\n");
+  if (dep_tree_hash(hasht) === ha) { console.log("fail lock hash dirty"); failed += 1; }
+  else console.log("ok   lock hash dirty");
+  if (dep_tree_hash("") || dep_tree_hash(path.join(hasht, "missing"))) { console.log("fail lock hash missing"); failed += 1; }
+  else console.log("ok   lock hash missing");
   var mk = {type: "package", "source-directories": ["lib"], dependencies: {direct: {a: {path: "../a"}}, indirect: {}}};
   if (man_kind(mk) !== "package" || man_src_dirs(mk, "/p")[0] !== path.resolve("/p", "lib") || !man_direct(mk).a) {
     console.log("fail man shape"); failed += 1;

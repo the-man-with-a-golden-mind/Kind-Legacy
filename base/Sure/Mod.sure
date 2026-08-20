@@ -225,7 +225,9 @@ Sure.Mod.from_imp(
     nil: none
     cons:
       open imps.head
-      if Bool.and(Sure.Mod.has(name, imps.head.snd), String.eql(name, imps.head.fst)) then
+      if Sure.Mod.has("..", imps.head.snd) then
+        Sure.Mod.from_imp(imps.tail, name)
+      else if Bool.and(Sure.Mod.has(name, imps.head.snd), String.eql(name, imps.head.fst)) then
         some(name)
       else if Sure.Mod.has(name, imps.head.snd) then
         some(imps.head.fst | "." | name)
@@ -284,4 +286,45 @@ Sure.Mod.resolve.imp_type: Sure.Mod.resolve(
   [Pair.new<String, List<String>>("Boxes", ["Boxes", "empty", "len"])],
   "Boxes"
 ) == "Boxes"
+  refl
+
+Sure.Mod.from_imp.open(
+  imps: List<Pair<String, List<String>>>,
+  name: String,
+  defs: Sure.Defs
+): Maybe<String>
+  case imps {
+    nil: none
+    cons:
+      open imps.head
+      if Bool.not(Sure.Mod.has("..", imps.head.snd)) then
+        Sure.Mod.from_imp.open(imps.tail, name, defs)
+      else if String.includes(name, ".") then
+        Sure.Mod.from_imp.open(imps.tail, name, defs)
+      else
+        let q = if String.eql(name, imps.head.fst) then name else imps.head.fst | "." | name
+        case Sure.Map.get<Sure.Def>(q, defs) as got {
+          some: some(q)
+          none: Sure.Mod.from_imp.open(imps.tail, name, defs)
+        }
+  }
+
+Sure.Mod.resolve.defs(
+  mod: String,
+  locals: List<String>,
+  imps: List<Pair<String, List<String>>>,
+  name: String,
+  defs: Sure.Defs
+): String
+  let got = Sure.Mod.resolve(mod, locals, imps, name)
+  if Bool.not(String.eql(got, name)) then got
+  else case Sure.Mod.from_imp.open(imps, name, defs) as a {
+    some: a.value
+    none: name
+  }
+
+Sure.Mod.from_imp.dotdot: Sure.Mod.from_imp([Pair.new<String, List<String>>("Boxes", [".."])], "empty") == none
+  refl
+
+Sure.Mod.from_imp.open.miss: Sure.Mod.from_imp.open([Pair.new<String, List<String>>("Boxes", [".."])], "empty", Sure.Map.new!) == none
   refl

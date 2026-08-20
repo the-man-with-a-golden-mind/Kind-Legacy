@@ -1,0 +1,8 @@
+module Open exposing (n, Spec)
+import Boxes exposing (..)
+
+n: Nat
+  len(empty)
+
+Spec: n == 0
+  refl
