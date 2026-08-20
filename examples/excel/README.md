@@ -1,0 +1,14 @@
+# sure/excel
+
+Spreadsheet on `127.0.0.1:8765`. 10000 rows in the scroller, ~30 DOM rows in the window. Drag a column edge to resize; widths write to `excel-cols.txt`.
+
+```bash
+sure prove
+sure build --html Excel.client
+sure run
+# open http://127.0.0.1:8765/          # scroll + resize
+curl http://127.0.0.1:8765/sheet/state
+curl 'http://127.0.0.1:8765/sheet/save?w=80,80,80,80,80,80,80,80'
+```
+
+`sure run` without `dist/Excel.client.html` serves a page that tells you to build. Scroll and resize need that file.

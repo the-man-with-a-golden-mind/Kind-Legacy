@@ -1,0 +1,14 @@
+{
+  "type": "package",
+  "name": "sure/boxes",
+  "version": "1.0.0",
+  "language": "Sure",
+  "summary": "A library: two modules, many functions per file.",
+  "source-directories": ["src"],
+  "exposed-modules": ["Boxes", "Audit"],
+  "theorems": ["Boxes.len_empty", "Boxes.len_one", "Audit.empty_ok"],
+  "dependencies": {
+    "direct": {},
+    "indirect": {}
+  }
+}

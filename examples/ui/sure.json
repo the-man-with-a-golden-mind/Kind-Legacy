@@ -1,0 +1,14 @@
+{
+  "type": "application",
+  "name": "sure/ui",
+  "version": "1.0.0",
+  "language": "Sure",
+  "summary": "Elm-like counter served on :8772.",
+  "source-directories": ["src"],
+  "exposed-modules": ["Ui"],
+  "theorems": ["Ui.inc_one", "Ui.junk_stays", "Ui.empty_stays", "Ui.page_doctype"],
+  "dependencies": {
+    "direct": {},
+    "indirect": {}
+  }
+}

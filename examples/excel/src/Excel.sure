@@ -1,0 +1,460 @@
+module Excel exposing (..)
+// Spreadsheet: 10000 virtual rows, column resize, widths saved to disk.
+// The view draws only the window. Empty URL is the page. Junk messages leave the model.
+
+type Drag {
+  none
+  col(i: Nat, x: Nat, w: Nat)
+}
+
+type Model {
+  new(scroll: Nat, widths: List<Nat>, drag: Drag)
+}
+
+port: Nat
+  Nat.read("8765")
+
+total: Nat
+  Nat.read("10000")
+
+cols: Nat
+  8
+
+row_h: Nat
+  Nat.read("24")
+
+view_h: Nat
+  Nat.read("480")
+
+overscan: Nat
+  5
+
+min_w: Nat
+  Nat.read("24")
+
+def_w: Nat
+  Nat.read("120")
+
+num_w: Nat
+  Nat.read("48")
+
+letters: List<String>
+  ["A", "B", "C", "D", "E", "F", "G", "H"]
+
+widths_new.go(n: Nat, acc: List<Nat>): List<Nat>
+  case n {
+    zero: acc
+    succ: widths_new.go(n.pred, List.cons<Nat>(def_w, acc))
+  }
+
+widths_new: List<Nat>
+  widths_new.go(cols, [])
+
+init: Model
+  Model.new(0, widths_new, Drag.none)
+
+letter(i: Nat): String
+  case List.get<String>(i, letters) as a {
+    none: "?"
+    some: a.value
+  }
+
+cell(row: Nat, col: Nat): String
+  letter(col) | Nat.show(Nat.succ(row))
+
+first(scroll: Nat): Nat
+  if Nat.is_zero(row_h) then 0
+  else Nat.div(scroll, row_h)
+
+start(scroll: Nat): Nat
+  let raw = first(scroll)
+  if Nat.lte(raw, overscan) then 0 else Nat.sub(raw, overscan)
+
+need: Nat
+  if Nat.is_zero(row_h) then 0
+  else Nat.add(Nat.succ(Nat.div(view_h, row_h)), Nat.mul(2, overscan))
+
+count(start: Nat): Nat
+  let left = Nat.sub(total, start)
+  if Nat.lte(left, need) then left
+  else need
+
+window(scroll: Nat): Pair<Nat, Nat>
+  let s = start(scroll)
+  Pair.new<Nat, Nat>(s, count(s))
+
+window_rows(scroll: Nat): Nat
+  let w = window(scroll)
+  open w
+  w.snd
+
+sum(xs: List<Nat>): Nat
+  case xs {
+    nil: 0
+    cons: Nat.add(xs.head, sum(xs.tail))
+  }
+
+clamp_w(w: Nat): Nat
+  if Nat.lte(w, min_w) then min_w else w
+
+resize_w(start_w: Nat, start_x: Nat, x: Nat): Nat
+  if Nat.lte(start_x, x) then clamp_w(Nat.add(start_w, Nat.sub(x, start_x)))
+  else
+    let d = Nat.sub(start_x, x)
+    if Nat.lte(start_w, Nat.add(d, min_w)) then min_w
+    else Nat.sub(start_w, d)
+
+set_w(i: Nat, w: Nat, xs: List<Nat>): List<Nat>
+  List.set<Nat>(i, clamp_w(w), xs)
+
+col_of(msg: String): Maybe<Nat>
+  if String.starts_with(msg, "down-") then Parse.nat(String.drop(5, msg))
+  else none
+
+show_widths.go(xs: List<Nat>, acc: String): String
+  case xs {
+    nil: acc
+    cons:
+      if String.is_empty(acc) then show_widths.go(xs.tail, Nat.show(xs.head))
+      else show_widths.go(xs.tail, acc | "," | Nat.show(xs.head))
+  }
+
+show_widths(xs: List<Nat>): String
+  show_widths.go(xs, "")
+
+read_widths.go(xs: List<String>, acc: List<Nat>): List<Nat>
+  case xs {
+    nil: acc
+    cons:
+      case Parse.nat(xs.head) as n {
+        none: read_widths.go(xs.tail, acc)
+        some: read_widths.go(xs.tail, List.concat<Nat>(acc, [n.value]))
+      }
+  }
+
+read_widths(s: String): List<Nat>
+  if String.is_empty(s) then widths_new
+  else
+    let xs = read_widths.go(String.split(s, ","), [])
+    let n = List.length<Nat>(xs)
+    if Nat.eql(n, cols) then xs else widths_new
+
+box(cls: String, props: Map<String>, kids: List<DOM>): DOM
+  Html.el(Html.Tag.div, Html.attr("class", cls, props), Map.new<String>, kids)
+
+w_cls(w: Nat): String
+  "w-[" | Nat.show(w) | "px] min-w-[" | Nat.show(w) | "px] max-w-[" | Nat.show(w) | "px] shrink-0 box-border"
+
+grip(i: Nat): DOM
+  box(
+    "tooltip tooltip-left absolute inset-y-0 right-0 w-1.5 cursor-col-resize bg-base-300 hover:bg-primary",
+    Html.on(Html.Event.mousedown, "down-" | Nat.show(i), Html.attr("data-tip", "Resize", Map.new<String>)),
+    []
+  )
+
+head_cell(i: Nat, w: Nat): DOM
+  box(
+    w_cls(w) | " relative h-6 overflow-hidden border-r border-b border-base-300 bg-base-200 px-1 text-xs font-semibold leading-6",
+    Map.new<String>,
+    [Html.text(letter(i)), grip(i)]
+  )
+
+head_cells.go(i: Nat, ws: List<Nat>): List<DOM>
+  case ws {
+    nil: []
+    cons: List.cons<DOM>(head_cell(i, ws.head), head_cells.go(Nat.succ(i), ws.tail))
+  }
+
+num_cell(txt: String): DOM
+  box(
+    "w-12 shrink-0 h-6 overflow-hidden border-r border-b border-base-300 bg-base-200 px-1 text-xs font-semibold leading-6",
+    Map.new<String>,
+    [Html.text(txt)]
+  )
+
+header(ws: List<Nat>): DOM
+  box(
+    "sticky top-0 z-10 flex select-none",
+    Map.new<String>,
+    List.cons<DOM>(num_cell("#"), head_cells.go(0, ws))
+  )
+
+body_cells.go(row: Nat, col: Nat, ws: List<Nat>): List<DOM>
+  case ws {
+    nil: []
+    cons: List.cons<DOM>(
+      box(
+        w_cls(ws.head) | " h-6 overflow-hidden truncate border-r border-b border-base-300 bg-base-100 px-1 text-xs leading-6",
+        Map.new<String>,
+        [Html.text(cell(row, col))]
+      ),
+      body_cells.go(row, Nat.succ(col), ws.tail)
+    )
+  }
+
+row_view(idx: Nat, ws: List<Nat>): DOM
+  let top = Nat.mul(idx, row_h)
+  let wide = Nat.add(num_w, sum(ws))
+  box(
+    "absolute left-0 flex h-6 top-[" | Nat.show(top) | "px] w-[" | Nat.show(wide) | "px]",
+    Html.attr("data-sure-row", Nat.show(idx), Map.new<String>),
+    List.cons<DOM>(num_cell(Nat.show(Nat.succ(idx))), body_cells.go(idx, 0, ws))
+  )
+
+rows.go(i: Nat, n: Nat, ws: List<Nat>): List<DOM>
+  case n {
+    zero: []
+    succ: List.cons<DOM>(row_view(i, ws), rows.go(Nat.succ(i), n.pred, ws))
+  }
+
+overlay: DOM
+  box(
+    "fixed inset-0 z-50 cursor-col-resize",
+    Html.on(Html.Event.mousemove, "move", Html.on(Html.Event.mouseup, "up", Map.new<String>)),
+    []
+  )
+
+view(m: Model): DOM
+  open m
+  let win = window(m.scroll)
+  open win
+  let h = Nat.mul(total, row_h)
+  let wide = Nat.add(num_w, sum(m.widths))
+  let space = box(
+    "relative h-[" | Nat.show(h) | "px] w-[" | Nat.show(wide) | "px]",
+    Map.new<String>,
+    rows.go(win.fst, win.snd, m.widths)
+  )
+  let port = box(
+    "relative h-[480px] overflow-auto bg-base-100",
+    Html.on(Html.Event.scroll, "scroll", Html.attr("data-sure-scroll", "1", Map.new<String>)),
+    [header(m.widths), space]
+  )
+  let bar = box("navbar bg-primary text-primary-content min-h-12 py-0", Map.new<String>, [
+    box("navbar-start gap-2 px-2", Map.new<String>, [
+      box("btn btn-ghost text-xl", Map.new<String>, [Html.text("Excel")]),
+      box("badge badge-ghost", Map.new<String>, [Html.text(Nat.show(total) | " rows")])
+    ])
+  ])
+  let card = box("card bg-base-100 shadow-xl m-2", Map.new<String>, [
+    box("card-body p-0", Map.new<String>, [port])
+  ])
+  let kids = case m.drag {
+    none: [bar, card]
+    col: [bar, card, overlay]
+  }
+  box("min-h-screen bg-base-200", Map.new<String>, kids)
+
+save_cmd(m: Model): Sure.Ui.Cmd
+  open m
+  Sure.Ui.Cmd.http("/sheet/save?w=" | show_widths(m.widths), "saved")
+
+update(msg: String, ev: Html.Event.Data, m: Model): Pair<Model, Sure.Ui.Cmd>
+  open m
+  open ev
+  if String.eql(msg, "scroll") then
+    let n = case Parse.nat(ev.value) as v {
+      none: 0
+      some: v.value
+    }
+    Pair.new<Model, Sure.Ui.Cmd>(Model.new(n, m.widths, m.drag), Sure.Ui.Cmd.none)
+  else if String.eql(msg, "load") then
+    Pair.new<Model, Sure.Ui.Cmd>(Model.new(m.scroll, read_widths(ev.value), m.drag), Sure.Ui.Cmd.none)
+  else if String.eql(msg, "saved") then
+    Pair.new<Model, Sure.Ui.Cmd>(m, Sure.Ui.Cmd.none)
+  else if String.eql(msg, "move") then
+    case m.drag {
+      none: Pair.new<Model, Sure.Ui.Cmd>(m, Sure.Ui.Cmd.none)
+      col:
+        let w = resize_w(m.drag.w, m.drag.x, ev.x)
+        Pair.new<Model, Sure.Ui.Cmd>(
+          Model.new(m.scroll, set_w(m.drag.i, w, m.widths), Drag.col(m.drag.i, m.drag.x, m.drag.w)),
+          Sure.Ui.Cmd.none
+        )
+    }
+  else if String.eql(msg, "up") then
+    let next = Model.new(m.scroll, m.widths, Drag.none)
+    Pair.new<Model, Sure.Ui.Cmd>(next, save_cmd(next))
+  else
+    case col_of(msg) as d {
+      none: Pair.new<Model, Sure.Ui.Cmd>(m, Sure.Ui.Cmd.none)
+      some:
+        case List.get<Nat>(d.value, m.widths) as w {
+          none: Pair.new<Model, Sure.Ui.Cmd>(m, Sure.Ui.Cmd.none)
+          some: Pair.new<Model, Sure.Ui.Cmd>(
+            Model.new(m.scroll, m.widths, Drag.col(d.value, ev.x, w.value)),
+            Sure.Ui.Cmd.none
+          )
+        }
+    }
+
+app: Sure.Ui.App<Model>
+  Sure.Ui.element<Model>(
+    init,
+    Sure.Ui.Cmd.http("/sheet/state", "load"),
+    view,
+    update,
+    (m) Sure.Ui.Sub.none
+  )
+
+client: Sure.Ui.Client<Model>
+  Sure.Ui.pack<Model>(app)
+
+document(body: String): String
+  "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width\"><title>Excel</title>"
+  | "<script src=\"https://cdn.tailwindcss.com\"></script>"
+  | "<link href=\"https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css\" rel=\"stylesheet\" type=\"text/css\">"
+  | "</head><body>"
+  | body
+  | "</body></html>"
+
+page_html: String
+  document(Sure.Ui.draw_of<Model>(client, init))
+
+missing_html: String
+  document(
+    "<div class=\"min-h-screen bg-base-200\"><div class=\"card bg-base-100 shadow-xl m-8 max-w-lg mx-auto\"><div class=\"card-body\">"
+    | "<h1 class=\"card-title\">Excel</h1>"
+    | "<p>This page needs the compiled client (virtual scroll + column resize).</p>"
+    | "<pre class=\"bg-base-200 p-4 rounded-box\">sure build --html client\nsure run</pre>"
+    | "<p>Then open <a class=\"link\" href=\"/\">/</a> again.</p>"
+    | "</div></div></div>"
+  )
+
+page_path: String
+  "dist/Excel.client.html"
+
+cols_path: String
+  "excel-cols.txt"
+
+load_state: IO<String>
+  case Path.from_string(cols_path) as p {
+    err: IO {
+      return show_widths(widths_new)
+    }
+    ok: IO {
+      get f = File.read(p.value)
+      case f {
+        err: IO {
+          return show_widths(widths_new)
+        }
+        ok: IO {
+          return f.value
+        }
+      }
+    }
+  }
+
+save_state(w: String): IO<Unit>
+  if String.is_empty(w) then IO.end<Unit>(unit)
+  else case Path.from_string(cols_path) as p {
+    err: IO.end<Unit>(unit)
+    ok: IO {
+      File.write(p.value, w)
+      return unit
+    }
+  }
+
+qget.go(xs: List<String>, key: String): String
+  case xs {
+    nil: ""
+    cons:
+      let k = List.head_with_default<String>("", String.split(xs.head, "="))
+      if String.eql(k, key) then String.join("=", List.drop<String>(1, String.split(xs.head, "=")))
+      else qget.go(xs.tail, key)
+  }
+
+query(url: String): String
+  List.head_with_default<String>("", List.drop<String>(1, String.split(url, "?")))
+
+qget(q: String, key: String): String
+  if String.is_empty(key) then ""
+  else if String.is_empty(q) then ""
+  else qget.go(String.split(q, "&"), key)
+
+is_page(url: String): Bool
+  if String.is_empty(url) then true
+  else if String.eql(url, "/") then true
+  else if String.eql(url, "/index.html") then true
+  else if String.eql(url, "/excel") then true
+  else if String.eql(url, "/client.html") then true
+  else false
+
+is_state(url: String): Bool
+  if String.eql(url, "/sheet/state") then true
+  else String.starts_with(url, "/sheet/state?")
+
+is_save(url: String): Bool
+  if String.eql(url, "/sheet/save") then true
+  else String.starts_with(url, "/sheet/save?")
+
+send_page(id: String): IO<Unit>
+  case Path.from_string(page_path) as p {
+    err: Http.Server.reply_ex(id, 200, "text/html; charset=utf-8", missing_html)
+    ok: IO {
+      get f = File.read(p.value)
+      case f {
+        err: Http.Server.reply_ex(id, 200, "text/html; charset=utf-8", missing_html)
+        ok: Http.Server.reply_ex(id, 200, "text/html; charset=utf-8", f.value)
+      }
+    }
+  }
+
+handle(req: Http.Server.Req): IO<Unit>
+  open req
+  if is_page(req.url) then send_page(req.id)
+  else if is_state(req.url) then
+    IO {
+      get body = load_state
+      Http.Server.reply_ex(req.id, 200, "text/plain; charset=utf-8", body)
+    }
+  else if is_save(req.url) then
+    IO {
+      save_state(qget(query(req.url), "w"))
+      Http.Server.reply_ex(req.id, 200, "text/plain; charset=utf-8", "ok")
+    }
+  else Http.Server.reply_ex(req.id, Nat.read("404"), "text/plain; charset=utf-8", "not found")
+
+serve.go(port: Nat): IO<Unit>
+  IO {
+    get raw = Http.Server.recv(port)
+    case Http.Server.parse(raw) as req {
+      none: serve.go(port)
+      some: IO {
+        handle(req.value)
+        serve.go(port)
+      }
+    }
+  }
+
+serve: IO<Outcome<Http.Err, Unit>>
+  IO {
+    get l = Http.Server.listen(port)
+    case l {
+      err: IO {
+        return l
+      }
+      ok: IO {
+        serve.go(port)
+        return Http.Server.ok
+      }
+    }
+  }
+
+cell_a1: cell(0, 0) == "A1"
+  refl
+
+cell_b2: cell(1, 1) == "B2"
+  refl
+
+is_page_root: is_page("/") == true
+  refl
+
+is_page_empty: is_page("") == true
+  refl
+
+is_page_junk: is_page("/nope") == false
+  refl
+
+first_zero: Nat.div(0, Nat.read("24")) == 0
+  refl

@@ -1,0 +1,153 @@
+module Ui exposing (..)
+// Elm-like counter in the browser. Unknown messages leave the model.
+
+type Model {
+  new(n: Nat)
+}
+
+port: Nat
+  Nat.read("8772")
+
+init: Model
+  Model.new(0)
+
+box(cls: String, kids: List<DOM>): DOM
+  Html.el(Html.Tag.div, Html.attr("class", cls, Map.new<String>), Map.new<String>, kids)
+
+btn(msg: String, label: String): DOM
+  Html.el(
+    Html.Tag.button,
+    Html.on(Html.Event.click, msg, Html.attr("class", "btn btn-primary", Map.new<String>)),
+    Map.new<String>,
+    [Html.text(label)]
+  )
+
+view(m: Model): DOM
+  open m
+  box("min-h-screen bg-base-200", [
+    box("navbar bg-primary text-primary-content", [
+      box("px-4 text-xl font-bold", [Html.text("Counter")])
+    ]),
+    box("card bg-base-100 shadow-xl m-8 max-w-sm mx-auto", [
+      box("card-body items-center text-center gap-4", [
+        box("stat-value", [Html.text(Nat.show(m.n))]),
+        box("flex gap-2", [
+          btn("dec", "-"),
+          btn("reset", "reset"),
+          btn("inc", "+")
+        ])
+      ])
+    ])
+  ])
+
+update(msg: String, _ev: Html.Event.Data, m: Model): Model
+  open m
+  if String.eql(msg, "inc") then Model.new(Nat.succ(m.n))
+  else if String.eql(msg, "dec") then
+    case m.n {
+      zero: m
+      succ: Model.new(m.n.pred)
+    }
+  else if String.eql(msg, "reset") then init
+  else m
+
+app: Sure.Ui.App<Model>
+  Sure.Ui.sandbox<Model>(init, view, update)
+
+client: Sure.Ui.Client<Model>
+  Sure.Ui.pack<Model>(app)
+
+document(body: String): String
+  "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width\"><title>Counter</title>"
+  | "<script src=\"https://cdn.tailwindcss.com\"></script>"
+  | "<link href=\"https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css\" rel=\"stylesheet\" type=\"text/css\">"
+  | "</head><body>"
+  | body
+  | "</body></html>"
+
+page_html: String
+  document(Sure.Ui.draw_of<Model>(client, init))
+
+missing_html: String
+  document(
+    "<div class=\"min-h-screen bg-base-200\"><div class=\"card bg-base-100 shadow-xl m-8 max-w-lg mx-auto\"><div class=\"card-body\">"
+    | "<h1 class=\"card-title\">Counter</h1>"
+    | "<p>This page needs the compiled client.</p>"
+    | "<pre class=\"bg-base-200 p-4 rounded-box\">sure build --html client\nsure run</pre>"
+    | "<p>Then open <a class=\"link\" href=\"/\">/</a> again.</p>"
+    | "</div></div></div>"
+  )
+
+page_path: String
+  "dist/Ui.client.html"
+
+send_page(id: String): IO<Unit>
+  case Path.from_string(page_path) as p {
+    err: Http.Server.reply_ex(id, 200, "text/html; charset=utf-8", missing_html)
+    ok: IO {
+      get f = File.read(p.value)
+      case f {
+        err: Http.Server.reply_ex(id, 200, "text/html; charset=utf-8", missing_html)
+        ok: Http.Server.reply_ex(id, 200, "text/html; charset=utf-8", f.value)
+      }
+    }
+  }
+
+is_page(url: String): Bool
+  if String.is_empty(url) then true
+  else if String.eql(url, "/") then true
+  else if String.eql(url, "/index.html") then true
+  else if String.eql(url, "/client.html") then true
+  else false
+
+handle(req: Http.Server.Req): IO<Unit>
+  open req
+  if is_page(req.url) then send_page(req.id)
+  else Http.Server.reply_ex(req.id, Nat.read("404"), "text/plain; charset=utf-8", "not found")
+
+serve.go(port: Nat): IO<Unit>
+  IO {
+    get raw = Http.Server.recv(port)
+    case Http.Server.parse(raw) as req {
+      none: serve.go(port)
+      some: IO {
+        handle(req.value)
+        serve.go(port)
+      }
+    }
+  }
+
+serve: IO<Outcome<Http.Err, Unit>>
+  IO {
+    get l = Http.Server.listen(port)
+    case l {
+      err: IO {
+        return l
+      }
+      ok: IO {
+        serve.go(port)
+        return Http.Server.ok
+      }
+    }
+  }
+
+inc: Model
+  Sure.Ui.step_model<Model>(client, Sure.Ui.wire("click", "inc", "", ""), init)
+
+junk: Model
+  Sure.Ui.step_model<Model>(client, Sure.Ui.wire("click", "nope", "", ""), Model.new(4))
+
+empty: Model
+  Sure.Ui.step_model<Model>(client, "", init)
+
+inc_one: Sure.Ui.step_model<Model>(client, Sure.Ui.wire("click", "inc", "", ""), init) == Model.new(1)
+  refl
+
+junk_stays: Sure.Ui.step_model<Model>(client, Sure.Ui.wire("click", "nope", "", ""), Model.new(4)) == Model.new(4)
+  refl
+
+empty_stays: Sure.Ui.step_model<Model>(client, "", init) == init
+  refl
+
+page_doctype: String.starts_with(page_html, "<!DOCTYPE html>") == true
+  refl

@@ -1,0 +1,15 @@
+module Add exposing (Add, two, zero, demo)
+
+Add(n: Nat): Nat
+  Nat.add(n, 2)
+
+two: Add(2) == 4
+  refl
+
+zero: Add(0) == 2
+  refl
+
+demo: IO<Unit>
+  IO {
+    IO.print(Nat.show(Add(2)))
+  }

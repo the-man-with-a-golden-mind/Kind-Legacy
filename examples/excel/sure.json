@@ -1,0 +1,21 @@
+{
+  "type": "application",
+  "name": "sure/excel",
+  "version": "1.0.0",
+  "language": "Sure",
+  "summary": "Spreadsheet on :8765. 10000 virtual rows, column resize saved.",
+  "source-directories": ["src"],
+  "exposed-modules": ["Excel"],
+  "theorems": [
+    "Excel.cell_a1",
+    "Excel.cell_b2",
+    "Excel.is_page_root",
+    "Excel.is_page_empty",
+    "Excel.is_page_junk",
+    "Excel.first_zero"
+  ],
+  "dependencies": {
+    "direct": {},
+    "indirect": {}
+  }
+}

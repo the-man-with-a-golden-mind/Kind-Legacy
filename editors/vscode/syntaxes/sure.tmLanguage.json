@@ -1,0 +1,76 @@
+{
+  "name": "Sure",
+  "scopeName": "source.sure",
+  "fileTypes": ["sure"],
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#holes" },
+    { "include": "#keywords" },
+    { "include": "#constants" },
+    { "include": "#numbers" },
+    { "include": "#types" },
+    { "include": "#operators" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.sure",
+          "match": "//.*$"
+        }
+      ]
+    },
+    "strings": {
+      "name": "string.quoted.double.sure",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.sure",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "holes": {
+      "name": "invalid.illegal.hole.sure",
+      "match": "\\?implement"
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.sure",
+          "match": "\\b(type|case|let|open|as|if|then|else|with)\\b"
+        },
+        {
+          "name": "keyword.other.sure",
+          "match": "\\b(some|none|refl|unit)\\b"
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.language.boolean.sure",
+          "match": "\\b(true|false)\\b"
+        }
+      ]
+    },
+    "numbers": {
+      "name": "constant.numeric.sure",
+      "match": "\\b[0-9]+\\b"
+    },
+    "types": {
+      "name": "entity.name.type.sure",
+      "match": "\\b[A-Z][A-Za-z0-9._]*\\b"
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.sure",
+          "match": "(==|->|<=|>=|<>|::|\\|)"
+        }
+      ]
+    }
+  }
+}

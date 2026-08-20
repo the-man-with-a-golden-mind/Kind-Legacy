@@ -1,0 +1,14 @@
+{
+  "type": "package",
+  "name": "sure/add",
+  "version": "1.0.0",
+  "language": "Sure",
+  "summary": "A function with empty and concrete proofs.",
+  "source-directories": ["src"],
+  "exposed-modules": ["Add"],
+  "theorems": ["Add.two", "Add.zero"],
+  "dependencies": {
+    "direct": {},
+    "indirect": {}
+  }
+}

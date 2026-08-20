@@ -26,9 +26,11 @@ by Eloi (thanks!). That kind of contribution is always welcome!
 
 ## Improve the Numeric libraries
 
-There are many missing numeric types on `Kind/base`, such as `I128`. The
-existing types, such as `U32`, may also have missing functions here and there.
-Additions are welcome!
+`I8`–`I256` and `U8`–`U1024` already exist as `Word` wrappers (including `I128`).
+The existing types may still have missing functions. Additions are welcome.
+
+Implicits (`$` / `id(7)`), nested get/set (`list[0][0] <- 7`), and `Prove` /
+`Test` libraries are already in tree. Check before re-implementing.
 
 ## Implement missing Word algorithms
 

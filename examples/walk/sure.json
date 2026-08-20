@@ -1,0 +1,14 @@
+{
+  "type": "application",
+  "name": "walk",
+  "version": "1.0.0",
+  "language": "Sure",
+  "summary": "Catalog of example servers on :8760.",
+  "source-directories": ["src"],
+  "exposed-modules": [],
+  "theorems": ["Walk.page_doctype"],
+  "dependencies": {
+    "direct": {},
+    "indirect": {}
+  }
+}

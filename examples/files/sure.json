@@ -1,0 +1,14 @@
+{
+  "type": "application",
+  "name": "sure/files",
+  "version": "1.0.0",
+  "language": "Sure",
+  "summary": "File server on :8773. Empty path and .. are errors.",
+  "source-directories": ["src"],
+  "exposed-modules": ["Files"],
+  "theorems": ["Files.empty_err", "Files.dotdot_err", "Files.ok_name", "Files.page_doctype"],
+  "dependencies": {
+    "direct": {},
+    "indirect": {}
+  }
+}

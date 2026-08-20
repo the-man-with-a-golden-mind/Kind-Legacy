@@ -1,0 +1,23 @@
+module Boxes exposing (Boxes, empty, push, len)
+// Library module: several functions and proofs in one file.
+
+type Boxes {
+  new(items: List<Nat>)
+}
+
+empty: Boxes
+  Boxes.new([])
+
+push(box: Boxes, n: Nat): Boxes
+  open box
+  Boxes.new(List.cons!(n, box.items))
+
+len(box: Boxes): Nat
+  open box
+  List.length!(box.items)
+
+len_empty: len(empty) == 0
+  refl
+
+len_one: len(push(empty, 7)) == 1
+  refl

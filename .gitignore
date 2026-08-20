@@ -21,3 +21,10 @@ web/events/data/*
 /.gtm/
 web/docs
 .env
+.sure.tmp.js
+examples/*/.sure.tmp.js
+examples/*/dist/
+examples/*/.sure/
+/dist/
+examples/files/note.txt
+examples/excel/excel-cols.txt

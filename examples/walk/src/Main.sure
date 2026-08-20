@@ -1,0 +1,16 @@
+module Main exposing (Main)
+import Walk
+Main: IO<Unit>
+  IO {
+    IO.print("Examples http://127.0.0.1:8760")
+    get r = Walk.serve
+    case r {
+      err: IO {
+        IO.print("listen failed: " | Http.Err.show(r.error))
+        return unit
+      }
+      ok: IO {
+        return unit
+      }
+    }
+  }

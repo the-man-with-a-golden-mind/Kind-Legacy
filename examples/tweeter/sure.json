@@ -1,0 +1,22 @@
+{
+  "type": "application",
+  "name": "sure/tweeter",
+  "version": "1.0.0",
+  "language": "Sure",
+  "summary": "Tweeter on :8766. Register, login, session, tweets.",
+  "source-directories": ["src"],
+  "exposed-modules": ["Tweeter"],
+  "theorems": [
+    "Tweeter.empty_user",
+    "Tweeter.no_session",
+    "Tweeter.ok_user_empty",
+    "Tweeter.ok_data_empty",
+    "Tweeter.is_upload_root",
+    "Tweeter.is_page_root",
+    "Tweeter.page_doctype"
+  ],
+  "dependencies": {
+    "direct": {},
+    "indirect": {}
+  }
+}

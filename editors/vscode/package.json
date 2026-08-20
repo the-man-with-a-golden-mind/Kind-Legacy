@@ -1,0 +1,85 @@
+{
+  "name": "sure",
+  "displayName": "Sure",
+  "description": "Sure language — the type checker is the prover. Language Server, syntax, prove/debug commands.",
+  "version": "0.1.0",
+  "publisher": "sure",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Snippets"
+  ],
+  "activationEvents": [
+    "onLanguage:sure",
+    "workspaceContains:**/*.sure",
+    "onCommand:sure.prove",
+    "onCommand:sure.debug",
+    "onCommand:sure.goal",
+    "onCommand:sure.restart"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "sure",
+        "aliases": ["Sure", "sure"],
+        "extensions": [".sure"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "sure",
+        "scopeName": "source.sure",
+        "path": "./syntaxes/sure.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "sure.prove",
+        "title": "Sure: Prove"
+      },
+      {
+        "command": "sure.debug",
+        "title": "Sure: Debug"
+      },
+      {
+        "command": "sure.goal",
+        "title": "Sure: Remaining holes"
+      },
+      {
+        "command": "sure.fill",
+        "title": "Sure: Fill ?implement"
+      },
+      {
+        "command": "sure.restart",
+        "title": "Sure: Restart language server"
+      }
+    ],
+    "configuration": {
+      "title": "Sure",
+      "properties": {
+        "sure.path": {
+          "type": "string",
+          "default": "sure",
+          "description": "Path to the sure executable (or the word sure on PATH)."
+        },
+        "sure.base": {
+          "type": "string",
+          "default": "",
+          "description": "SURE_BASE directory. Empty uses the workspace (or Kind-Legacy/base)."
+        },
+        "sure.trace.server": {
+          "type": "string",
+          "enum": ["off", "messages", "verbose"],
+          "default": "off",
+          "description": "Trace the language server on the Sure output channel."
+        }
+      }
+    }
+  }
+}

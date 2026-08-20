@@ -1,6 +1,21 @@
 Theorem Proving
 ===============
 
+Shorter Sure chapter: [docs/prove.md](docs/prove.md). This page is the long tutorial.
+
+In Sure, proofs are checked **during compilation**. Write a term whose type is
+the claim (`got == want`), then:
+
+```
+sure prove Spec.add2
+sure prove --json Spec.add2
+sure agent --client prove Spec.add2
+```
+
+`sure build` and `sure check` prove the names in `sure.json` `"theorems"`.
+If the type does not check, compilation fails. The type checker is the prover;
+people and AI use the same mechanism. Tutorial below still applies.
+
 Theorem proving is the main difference between Kind and traditional pure
 functional languages like Haskell. Since proving theorems require certain
 techniques that aren't common in these languages, this tutorial aims to fill

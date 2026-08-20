@@ -1,0 +1,14 @@
+{
+  "type": "package",
+  "name": "sure/hello",
+  "version": "1.0.0",
+  "language": "Sure",
+  "summary": "Print Sure. The smallest package.",
+  "source-directories": ["src"],
+  "exposed-modules": ["Hello"],
+  "theorems": ["Hello.Spec"],
+  "dependencies": {
+    "direct": {},
+    "indirect": {}
+  }
+}

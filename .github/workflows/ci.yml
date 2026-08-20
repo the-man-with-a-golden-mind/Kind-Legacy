@@ -1,0 +1,26 @@
+name: sure
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  js:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install JS CLI deps
+        run: npm install --omit=dev --prefix bin/js
+      - name: Version
+        run: node --stack-size=10000 bin/js/src/main.js --version
+      - name: Check Nat.add
+        run: node --stack-size=10000 bin/js/src/main.js Nat.add
+      - name: Run Main
+        run: node --stack-size=10000 bin/js/src/main.js Main --run
+      - name: Prover
+        run: node --stack-size=10000 bin/js/src/main.js Prove.all
+      - name: Tests
+        run: node --stack-size=10000 bin/js/src/main.js --test

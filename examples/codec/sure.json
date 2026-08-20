@@ -1,0 +1,18 @@
+{
+  "type": "application",
+  "name": "sure/codec",
+  "version": "1.0.0",
+  "language": "Sure",
+  "summary": "JSON HTTP server on :8774. Junk and empty are none.",
+  "source-directories": ["src"],
+  "exposed-modules": ["Codec"],
+  "theorems": [
+    "Codec.none_show",
+    "Codec.json_none_show",
+    "Codec.body_empty"
+  ],
+  "dependencies": {
+    "direct": {},
+    "indirect": {}
+  }
+}

@@ -1,0 +1,144 @@
+module Files exposing (..)
+// File HTTP server. Empty path, .., and NUL are errors. Missing is missing.
+
+port: Nat
+  Nat.read("8773")
+
+qget.go(xs: List<String>, key: String): String
+  case xs {
+    nil: ""
+    cons:
+      let k = List.head_with_default<String>("", String.split(xs.head, "="))
+      if String.eql(k, key) then String.join("=", List.drop<String>(1, String.split(xs.head, "=")))
+      else qget.go(xs.tail, key)
+  }
+
+query(url: String): String
+  List.head_with_default<String>("", List.drop<String>(1, String.split(url, "?")))
+
+qget(url: String, key: String): String
+  qget.go(String.split(query(url), "&"), key)
+
+show(r: Outcome<File.Err, String>): String
+  case r {
+    err: File.Err.show(r.error)
+    ok: r.value
+  }
+
+page_html: String
+  "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Files</title>"
+  | "<script src=\"https://cdn.tailwindcss.com\"></script>"
+  | "<link href=\"https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css\" rel=\"stylesheet\" type=\"text/css\">"
+  | "</head><body class=\"p-8 bg-base-200\"><div class=\"card bg-base-100 shadow-xl max-w-lg mx-auto\"><div class=\"card-body\">"
+  | "<h1 class=\"card-title\">Files</h1>"
+  | "<p>GET /read?path=name.txt</p>"
+  | "<p>POST /write?path=name.txt  (body is the file)</p>"
+  | "<p>Empty path and .. are errors.</p>"
+  | "</div></div></body></html>"
+
+read_path(url: String): IO<String>
+  let s = qget(url, "path")
+  case Path.from_string(s) as p {
+    err: IO {
+      return File.Err.show(File.Err.bad_path(p.error))
+    }
+    ok: IO {
+      get f = File.read(p.value)
+      return show(f)
+    }
+  }
+
+write_path(url: String, body: String): IO<String>
+  let s = qget(url, "path")
+  case Path.from_string(s) as p {
+    err: IO {
+      return File.Err.show(File.Err.bad_path(p.error))
+    }
+    ok: IO {
+      get w = File.write(p.value, body)
+      case w {
+        err: IO {
+          return File.Err.show(w.error)
+        }
+        ok: IO {
+          return "ok"
+        }
+      }
+    }
+  }
+
+is_page(url: String): Bool
+  if String.is_empty(url) then true
+  else if String.eql(url, "/") then true
+  else false
+
+is_read(url: String): Bool
+  if String.eql(url, "/read") then true
+  else String.starts_with(url, "/read?")
+
+is_write(url: String): Bool
+  if String.eql(url, "/write") then true
+  else String.starts_with(url, "/write?")
+
+handle(req: Http.Server.Req): IO<Unit>
+  open req
+  if is_page(req.url) then
+    Http.Server.reply_ex(req.id, 200, "text/html; charset=utf-8", page_html)
+  else if is_read(req.url) then
+    IO {
+      get body = read_path(req.url)
+      Http.Server.reply_ex(req.id, 200, "text/plain; charset=utf-8", body)
+    }
+  else if is_write(req.url) then
+    if String.eql(req.method, "POST") then
+      IO {
+        get body = write_path(req.url, req.body)
+        Http.Server.reply_ex(req.id, 200, "text/plain; charset=utf-8", body)
+      }
+    else Http.Server.reply_ex(req.id, Nat.read("405"), "text/plain; charset=utf-8", "method")
+  else Http.Server.reply_ex(req.id, Nat.read("404"), "text/plain; charset=utf-8", "not found")
+
+serve.go(port: Nat): IO<Unit>
+  IO {
+    get raw = Http.Server.recv(port)
+    case Http.Server.parse(raw) as req {
+      none: serve.go(port)
+      some: IO {
+        handle(req.value)
+        serve.go(port)
+      }
+    }
+  }
+
+serve: IO<Outcome<Http.Err, Unit>>
+  IO {
+    get l = Http.Server.listen(port)
+    case l {
+      err: IO {
+        return l
+      }
+      ok: IO {
+        serve.go(port)
+        return Http.Server.ok
+      }
+    }
+  }
+
+is_err(s: String): Bool
+  case Path.from_string(s) {
+    err: true
+    ok: false
+  }
+
+empty_err: is_err("") == true
+  refl
+
+dotdot_err: is_err("../secret") == true
+  refl
+
+ok_name: is_err("note.txt") == false
+  refl
+
+page_doctype: String.starts_with(page_html, "<!DOCTYPE html>") == true
+  refl
+

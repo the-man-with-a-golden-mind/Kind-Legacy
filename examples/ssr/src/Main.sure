@@ -1,0 +1,16 @@
+module Main exposing (Main)
+import Ssr
+Main: IO<Unit>
+  IO {
+    IO.print("Ssr http://127.0.0.1:8771  GET /  /about  /user/:id")
+    get r = Ssr.serve
+    case r {
+      err: IO {
+        IO.print("listen failed: " | Http.Err.show(r.error))
+        return unit
+      }
+      ok: IO {
+        return unit
+      }
+    }
+  }

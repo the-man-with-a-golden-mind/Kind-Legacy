@@ -1,0 +1,17 @@
+module Main exposing (Main)
+import Tweeter
+Main: IO<Unit>
+  IO {
+    IO.print("Tweeter http://127.0.0.1:8766  POST /register /login /tweet /upload  GET /feed /file")
+    IO.print("  sure build --html Tweeter.client   # then sure run, for the page")
+    get r = Tweeter.serve
+    case r {
+      err: IO {
+        IO.print("listen failed: " | Http.Err.show(r.error))
+        return unit
+      }
+      ok: IO {
+        return unit
+      }
+    }
+  }

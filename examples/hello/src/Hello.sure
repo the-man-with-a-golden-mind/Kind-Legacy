@@ -1,0 +1,12 @@
+module Hello exposing (greet, Spec, demo)
+
+greet: String
+  "Sure"
+
+Spec: greet == "Sure"
+  refl
+
+demo: IO<Unit>
+  IO {
+    IO.print(greet)
+  }

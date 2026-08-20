@@ -1,0 +1,4 @@
+module Main exposing (Main)
+import Audit exposing (demo)
+Main: IO<Unit>
+  demo

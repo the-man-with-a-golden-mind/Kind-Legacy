@@ -1,0 +1,14 @@
+{
+  "type": "application",
+  "name": "sure/routes",
+  "version": "1.0.0",
+  "language": "Sure",
+  "summary": "HTTP API: GET /health, GET /user/:id, POST /echo.",
+  "source-directories": ["src"],
+  "exposed-modules": ["Routes"],
+  "theorems": ["Routes.user_7", "Routes.empty_none", "Routes.miss_none", "Routes.health_hit"],
+  "dependencies": {
+    "direct": {},
+    "indirect": {}
+  }
+}

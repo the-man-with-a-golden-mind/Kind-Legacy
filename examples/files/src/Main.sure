@@ -1,0 +1,16 @@
+module Main exposing (Main)
+import Files
+Main: IO<Unit>
+  IO {
+    IO.print("Files http://127.0.0.1:8773  GET /read?path=  POST /write?path=")
+    get r = Files.serve
+    case r {
+      err: IO {
+        IO.print("listen failed: " | Http.Err.show(r.error))
+        return unit
+      }
+      ok: IO {
+        return unit
+      }
+    }
+  }

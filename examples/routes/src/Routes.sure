@@ -1,0 +1,51 @@
+module Routes exposing (..)
+// HTTP API. Empty URL and unknown paths are 404. :id is bound.
+
+port: Nat
+  Nat.read("8770")
+
+req(method: String, url: String, body: String): Http.Server.Req
+  Http.Server.Req.new("t", method, url, "", body)
+
+health(_req: Http.Server.Req, _b: List<Pair<String, String>>): IO<Http.Response>
+  IO {
+    return Http.Response.new(200, "ok")
+  }
+
+user(req: Http.Server.Req, b: List<Pair<String, String>>): IO<Http.Response>
+  let id = Http.Path.lookup("id", b)
+  if String.is_empty(id) then IO {
+    return Http.Response.new(404, "not found")
+  } else IO {
+    return Http.Response.new(200, id)
+  }
+
+echo(req: Http.Server.Req, _b: List<Pair<String, String>>): IO<Http.Response>
+  open req
+  if String.is_empty(req.body) then IO {
+    return Http.Response.new(400, "empty")
+  } else IO {
+    return Http.Response.new(200, req.body)
+  }
+
+routes: List<Http.App.Route>
+  [
+    Http.App.get("/health", health),
+    Http.App.get("/user/:id", user),
+    Http.App.post("/echo", echo)
+  ]
+
+user_7: Http.App.hit(Http.Method.get, "/user/:id", "GET", "/user/7", "id") == "7"
+  refl
+
+empty_none: Http.App.hit(Http.Method.get, "/user/:id", "GET", "", "id") == ""
+  refl
+
+miss_none: Http.App.hit(Http.Method.get, "/user/:id", "GET", "/post/7", "id") == ""
+  refl
+
+health_hit: Maybe.is_none<List<Pair<String, String>>>(Http.App.match(Http.Method.get, "/health", req("GET", "/health", ""))) == false
+  refl
+
+serve: IO<Outcome<Http.Err, Unit>>
+  Http.App.run(port, routes)

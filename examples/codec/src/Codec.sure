@@ -1,0 +1,90 @@
+module Codec exposing (..)
+show_nat(m: Maybe<Nat>): String
+  case m {
+    none: "none"
+    some: Nat.show(m.value)
+  }
+
+show_json(m: Maybe<JSON>): String
+  case m {
+    none: "none"
+    some: "json"
+  }
+
+nat_ok: Maybe<Nat>
+  JSON.dec.nat(JSON.string("42"))
+
+nat_empty: Maybe<Nat>
+  JSON.dec.nat(JSON.string(""))
+
+nat_junk: Maybe<Nat>
+  JSON.dec.nat(JSON.string("12x"))
+
+parse_empty: Maybe<JSON>
+  JSON.parse("")
+
+demo: IO<Unit>
+  IO {
+    IO.print(show_nat(nat_ok))
+    IO.print(show_nat(nat_junk))
+    IO.print(show_json(parse_empty))
+    return unit
+  }
+
+port: Nat
+  Nat.read("8774")
+
+decode_body(body: String): String
+  if String.is_empty(body) then "none"
+  else if JSON.digits(body) then Nat.show(Nat.read(body))
+  else case JSON.parse(body) as j {
+    none: "none"
+    some: case JSON.dec.nat(j.value) as n {
+      none: "json"
+      some: Nat.show(n.value)
+    }
+  }
+
+handle(req: Http.Server.Req): IO<Unit>
+  open req
+  if String.is_empty(req.url) then Http.Server.reply_ex(req.id, 200, "text/plain; charset=utf-8", "POST /  body is JSON")
+  else if String.eql(req.url, "/") then
+    if String.eql(req.method, "POST") then
+      Http.Server.reply_ex(req.id, 200, "text/plain; charset=utf-8", decode_body(req.body))
+    else Http.Server.reply_ex(req.id, 200, "text/plain; charset=utf-8", "POST /  body is JSON")
+  else Http.Server.reply_ex(req.id, Nat.read("404"), "text/plain; charset=utf-8", "not found")
+
+serve.go(port: Nat): IO<Unit>
+  IO {
+    get raw = Http.Server.recv(port)
+    case Http.Server.parse(raw) as req {
+      none: serve.go(port)
+      some: IO {
+        handle(req.value)
+        serve.go(port)
+      }
+    }
+  }
+
+serve: IO<Outcome<Http.Err, Unit>>
+  IO {
+    get l = Http.Server.listen(port)
+    case l {
+      err: IO {
+        return l
+      }
+      ok: IO {
+        serve.go(port)
+        return Http.Server.ok
+      }
+    }
+  }
+
+none_show: show_nat(none) == "none"
+  refl
+
+json_none_show: show_json(none) == "none"
+  refl
+
+body_empty: decode_body("") == "none"
+  refl

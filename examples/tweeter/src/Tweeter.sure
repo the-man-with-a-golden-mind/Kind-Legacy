@@ -1,0 +1,710 @@
+module Tweeter exposing (..)
+// Login, session, tweets. Empty user / empty pass / no session are errors.
+
+type Sess {
+  none
+  some(sid: String, user: String)
+}
+
+type Tweet {
+  new(user: String, text: String)
+}
+
+type Model {
+  new(
+    user: String
+    pass: String
+    draft: String
+    note: String
+    sess: Sess
+    feed: List<Tweet>
+  )
+}
+
+port: Nat
+  Nat.read("8766")
+
+db: String
+  "suremem:tweeter"
+
+init: Model
+  Model.new("", "", "", "", Sess.none, [])
+
+ok_user(s: String): Bool
+  when {
+    String.is_empty(s): false
+    String.includes(s, " "): false
+    String.includes(s, "\n"): false
+    String.includes(s, "&"): false
+    String.includes(s, "="): false
+  } default true
+
+ok_pass(s: String): Bool
+  when {
+    String.is_empty(s): false
+    String.includes(s, "\n"): false
+    String.includes(s, "&"): false
+    String.includes(s, "="): false
+  } default true
+
+ok_text(s: String): Bool
+  when {
+    String.is_empty(s): false
+    String.includes(s, "\n"): false
+    String.includes(s, "|"): false
+    Nat.gtn(String.length(s), Nat.read("140")): false
+  } default true
+
+ok_sid(s: String): Bool
+  Crypto.hex64(s)
+
+qget.go(xs: List<String>, key: String): String
+  case xs {
+    nil: ""
+    cons:
+      let k = List.head_with_default<String>("", String.split(xs.head, "="))
+      if String.eql(k, key) then String.join("=", List.drop<String>(1, String.split(xs.head, "=")))
+      else qget.go(xs.tail, key)
+  }
+
+qget(q: String, key: String): String
+  if String.is_empty(key) then ""
+  else if String.is_empty(q) then ""
+  else qget.go(String.split(q, "&"), key)
+
+box(cls: String, kids: List<DOM>): DOM
+  Html.el(Html.Tag.div, Html.attr("class", cls, Map.new<String>), Map.new<String>, kids)
+
+input(msg: String, kind: String, val: String, ph: String): DOM
+  Html.el(
+    Html.Tag.input,
+    Html.on(
+      Html.Event.change,
+      msg,
+      Html.attr(
+        "value",
+        val,
+        Html.attr(
+          "placeholder",
+          ph,
+          Html.attr("type", kind, Html.attr("class", "input input-bordered w-full", Map.new<String>))
+        )
+      )
+    ),
+    Map.new<String>,
+    []
+  )
+
+btn(msg: String, label: String, cls: String): DOM
+  Html.el(
+    Html.Tag.button,
+    Html.on(Html.Event.click, msg, Html.attr("class", cls, Map.new<String>)),
+    Map.new<String>,
+    [Html.text(label)]
+  )
+
+note_view(s: String): List<DOM>
+  if String.is_empty(s) then []
+  else [box("alert alert-warning", [Html.text(s)])]
+
+tweet_view(t: Tweet): DOM
+  open t
+  box("chat chat-start", [
+    box("chat-header font-bold", [Html.text(t.user)]),
+    box("chat-bubble", [Html.text(t.text)])
+  ])
+
+feed_view(xs: List<Tweet>): List<DOM>
+  case xs {
+    nil: [box("opacity-60", [Html.text("No tweets.")])]
+    cons: List.map<Tweet, DOM>(tweet_view, xs)
+  }
+
+view(m: Model): DOM
+  open m
+  let nav = box("navbar bg-primary text-primary-content", [
+    box("px-4 text-xl font-bold", [Html.text("Tweeter")])
+  ])
+  let body = case m.sess {
+    none: box("card bg-base-100 shadow-xl m-8 max-w-sm mx-auto", [
+      box("card-body gap-3", List.concat<DOM>(
+        note_view(m.note),
+        [
+          input("user", "text", m.user, "user"),
+          input("pass", "password", m.pass, "password"),
+          box("card-actions justify-end", [
+            btn("register", "Register", "btn"),
+            btn("login", "Login", "btn btn-primary")
+          ])
+        ]
+      ))
+    ])
+    some: box("max-w-xl mx-auto p-4 flex flex-col gap-4", List.concat<DOM>(
+      note_view(m.note),
+      [
+        box("flex items-center justify-between", [
+          Html.text(m.sess.user),
+          btn("logout", "Logout", "btn btn-ghost btn-sm")
+        ]),
+        box("join w-full", [
+          input("draft", "text", m.draft, "tweet"),
+          btn("tweet", "Tweet", "btn btn-primary join-item")
+        ]),
+        box("flex flex-col gap-2", feed_view(m.feed))
+      ]
+    ))
+  }
+  box("min-h-screen bg-base-200", [nav, body])
+
+note_of(m: Model): String
+  open m
+  m.note
+
+hash(s: String): IO<String>
+  IO {
+    get h = Crypto.sha256("tweeter|" | s)
+    case h {
+      err: IO {
+        return ""
+      }
+      ok: IO {
+        return h.value
+      }
+    }
+  }
+
+new_sid(user: String): IO<String>
+  IO {
+    get t = Time.now
+    hash("sid|" | user | "|" | Time.Stamp.show(t))
+  }
+
+reply_err(e: String): String
+  "err " | e
+
+reply_ok(s: String): String
+  if String.is_empty(s) then "ok" else "ok " | s
+
+user_key(u: String): String
+  "u/" | u
+
+sess_key(s: String): String
+  "s/" | s
+
+file_key(id: String): String
+  "f/" | id
+
+max_file: Nat
+  Nat.read("4096")
+
+ok_data(s: String): Bool
+  when {
+    String.is_empty(s): false
+    String.includes(s, "\n"): false
+    Nat.gtn(String.length(s), max_file): false
+  } default true
+
+show_feed.go(xs: List<Tweet>, acc: String): String
+  case xs {
+    nil: acc
+    cons:
+      open xs.head
+      let line = xs.head.user | "|" | xs.head.text
+      if String.is_empty(acc) then show_feed.go(xs.tail, line)
+      else show_feed.go(xs.tail, acc | "\n" | line)
+  }
+
+show_feed(xs: List<Tweet>): String
+  show_feed.go(xs, "")
+
+read_feed.go(xs: List<String>, acc: List<Tweet>): List<Tweet>
+  case xs {
+    nil: acc
+    cons:
+      let u = List.head_with_default<String>("", String.split(xs.head, "|"))
+      let t = String.join("|", List.drop<String>(1, String.split(xs.head, "|")))
+      if String.is_empty(u) then read_feed.go(xs.tail, acc)
+      else read_feed.go(xs.tail, List.concat<Tweet>(acc, [Tweet.new(u, t)]))
+  }
+
+read_feed(s: String): List<Tweet>
+  if String.is_empty(s) then []
+  else read_feed.go(String.split(s, "\n"), [])
+
+do_register(c: Db.Conn, user: String, pass: String): IO<String>
+  if Bool.not(ok_user(user)) then IO.end<String>(reply_err("empty_user"))
+  else if Bool.not(ok_pass(pass)) then IO.end<String>(reply_err("empty_pass"))
+  else IO {
+    get g = Db.get(c, user_key(user))
+    case g {
+      ok: IO {
+        return reply_err("taken")
+      }
+      err: IO {
+        get ph = hash(pass)
+        get w = Db.set(c, user_key(user), ph)
+        case w {
+          err: IO {
+            return reply_err("junk")
+          }
+          ok: IO {
+            get sid = new_sid(user)
+            if Bool.not(ok_sid(sid)) then IO {
+              return reply_err("junk")
+            } else IO {
+              get s = Db.set(c, sess_key(sid), user)
+              case s {
+                err: IO {
+                  return reply_err("junk")
+                }
+                ok: IO {
+                  return reply_ok(sid | " " | user)
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+do_login(c: Db.Conn, user: String, pass: String): IO<String>
+  if Bool.not(ok_user(user)) then IO.end<String>(reply_err("empty_user"))
+  else if Bool.not(ok_pass(pass)) then IO.end<String>(reply_err("empty_pass"))
+  else IO {
+    get g = Db.get(c, user_key(user))
+    case g {
+      err: IO {
+        return reply_err("bad_user")
+      }
+      ok: IO {
+        get ph = hash(pass)
+        if String.eql(ph, g.value) then IO {
+          get sid = new_sid(user)
+          if Bool.not(ok_sid(sid)) then IO {
+            return reply_err("junk")
+          } else IO {
+            get s = Db.set(c, sess_key(sid), user)
+            case s {
+              err: IO {
+                return reply_err("junk")
+              }
+              ok: IO {
+                return reply_ok(sid | " " | user)
+              }
+            }
+          }
+        } else IO {
+          return reply_err("bad_pass")
+        }
+      }
+    }
+  }
+
+open_sess(c: Db.Conn, sid: String): IO<String>
+  if Bool.not(ok_sid(sid)) then IO.end<String>("")
+  else IO {
+    get g = Db.get(c, sess_key(sid))
+    case g {
+      err: IO {
+        return ""
+      }
+      ok: IO {
+        return g.value
+      }
+    }
+  }
+
+do_me(c: Db.Conn, sid: String): IO<String>
+  IO {
+    get u = open_sess(c, sid)
+    if String.is_empty(u) then IO {
+      return reply_err("no_session")
+    } else IO {
+      return reply_ok(sid | " " | u)
+    }
+  }
+
+do_logout(c: Db.Conn, sid: String): IO<String>
+  if Bool.not(ok_sid(sid)) then IO.end<String>(reply_err("no_session"))
+  else IO {
+    get u = open_sess(c, sid)
+    if String.is_empty(u) then IO {
+      return reply_err("no_session")
+    } else IO {
+      get d = Db.set(c, sess_key(sid), "")
+      case d {
+        err: IO {
+          return reply_err("junk")
+        }
+        ok: IO {
+          return reply_ok("")
+        }
+      }
+    }
+  }
+
+do_feed(c: Db.Conn, sid: String): IO<String>
+  IO {
+    get u = open_sess(c, sid)
+    if String.is_empty(u) then IO {
+      return reply_err("no_session")
+    } else IO {
+      get g = Db.get(c, "feed")
+      case g {
+        err: IO {
+          return "ok"
+        }
+        ok: IO {
+          return reply_ok(g.value)
+        }
+      }
+    }
+  }
+
+do_tweet(c: Db.Conn, sid: String, text: String): IO<String>
+  IO {
+    get u = open_sess(c, sid)
+    if String.is_empty(u) then IO {
+      return reply_err("no_session")
+    } else if Bool.not(ok_text(text)) then IO {
+      return reply_err("empty_text")
+    } else IO {
+      get g = Db.get(c, "feed")
+      let old = case g {
+        err: ""
+        ok: g.value
+      }
+      let line = u | "|" | text
+      let next = if String.is_empty(old) then line else line | "\n" | old
+      get w = Db.set(c, "feed", next)
+      case w {
+        err: IO {
+          return reply_err("junk")
+        }
+        ok: IO {
+          return reply_ok(next)
+        }
+      }
+    }
+  }
+
+do_upload(c: Db.Conn, sid: String, body: String): IO<String>
+  IO {
+    get u = open_sess(c, sid)
+    if String.is_empty(u) then IO {
+      return reply_err("no_session")
+    } else if String.is_empty(body) then IO {
+      return reply_err("empty_file")
+    } else if Bool.not(ok_data(body)) then IO {
+      return reply_err("bad_file")
+    } else IO {
+      get id = hash(body)
+      if Bool.not(ok_sid(id)) then IO {
+        return reply_err("junk")
+      } else IO {
+        get w = Db.set(c, file_key(id), body)
+        case w {
+          err: IO {
+            return reply_err("junk")
+          }
+          ok: IO {
+            return reply_ok(id)
+          }
+        }
+      }
+    }
+  }
+
+do_file(c: Db.Conn, id: String): IO<String>
+  if Bool.not(ok_sid(id)) then IO.end<String>(reply_err("bad_file"))
+  else IO {
+    get g = Db.get(c, file_key(id))
+    case g {
+      err: IO {
+        return reply_err("missing")
+      }
+      ok: IO {
+        return g.value
+      }
+    }
+  }
+
+db_str(fn: Db.Conn -> IO<String>): IO<String>
+  IO {
+    get o = Db.with<String>(db, (c) IO {
+      get s = fn(c)
+      return Outcome.ok<Db.Err, String>(s)
+    })
+    return case o {
+      err: reply_err("junk")
+      ok: o.value
+    }
+  }
+
+form(u: String, p: String): String
+  "u=" | u | "&p=" | p
+
+update(msg: String, ev: Html.Event.Data, m: Model): Pair<Model, Sure.Ui.Cmd>
+  open m
+  open ev
+  if String.eql(msg, "user") then
+    Pair.new<Model, Sure.Ui.Cmd>(Model.new(ev.value, m.pass, m.draft, m.note, m.sess, m.feed), Sure.Ui.Cmd.none)
+  else if String.eql(msg, "pass") then
+    Pair.new<Model, Sure.Ui.Cmd>(Model.new(m.user, ev.value, m.draft, m.note, m.sess, m.feed), Sure.Ui.Cmd.none)
+  else if String.eql(msg, "draft") then
+    Pair.new<Model, Sure.Ui.Cmd>(Model.new(m.user, m.pass, ev.value, m.note, m.sess, m.feed), Sure.Ui.Cmd.none)
+  else if String.eql(msg, "login") then
+    if Bool.not(ok_user(m.user)) then
+      Pair.new<Model, Sure.Ui.Cmd>(Model.new(m.user, m.pass, m.draft, "empty_user", m.sess, m.feed), Sure.Ui.Cmd.none)
+    else if Bool.not(ok_pass(m.pass)) then
+      Pair.new<Model, Sure.Ui.Cmd>(Model.new(m.user, m.pass, m.draft, "empty_pass", m.sess, m.feed), Sure.Ui.Cmd.none)
+    else Pair.new<Model, Sure.Ui.Cmd>(
+      Model.new(m.user, m.pass, m.draft, "", m.sess, m.feed),
+      Sure.Ui.Cmd.post("/login", form(m.user, m.pass), "authed")
+    )
+  else if String.eql(msg, "register") then
+    if Bool.not(ok_user(m.user)) then
+      Pair.new<Model, Sure.Ui.Cmd>(Model.new(m.user, m.pass, m.draft, "empty_user", m.sess, m.feed), Sure.Ui.Cmd.none)
+    else if Bool.not(ok_pass(m.pass)) then
+      Pair.new<Model, Sure.Ui.Cmd>(Model.new(m.user, m.pass, m.draft, "empty_pass", m.sess, m.feed), Sure.Ui.Cmd.none)
+    else Pair.new<Model, Sure.Ui.Cmd>(
+      Model.new(m.user, m.pass, m.draft, "", m.sess, m.feed),
+      Sure.Ui.Cmd.post("/register", form(m.user, m.pass), "authed")
+    )
+  else if String.eql(msg, "tweet") then
+    case m.sess {
+      none: Pair.new<Model, Sure.Ui.Cmd>(Model.new(m.user, m.pass, m.draft, "no_session", m.sess, m.feed), Sure.Ui.Cmd.none)
+      some:
+        if Bool.not(ok_text(m.draft)) then
+          Pair.new<Model, Sure.Ui.Cmd>(Model.new(m.user, m.pass, m.draft, "empty_text", m.sess, m.feed), Sure.Ui.Cmd.none)
+        else Pair.new<Model, Sure.Ui.Cmd>(
+          Model.new(m.user, m.pass, "", "", m.sess, m.feed),
+          Sure.Ui.Cmd.post("/tweet", "s=" | m.sess.sid | "&t=" | m.draft, "feeded")
+        )
+    }
+  else if String.eql(msg, "logout") then
+    case m.sess {
+      none: Pair.new<Model, Sure.Ui.Cmd>(init, Sure.Ui.Cmd.none)
+      some: Pair.new<Model, Sure.Ui.Cmd>(init, Sure.Ui.Cmd.post("/logout", "s=" | m.sess.sid, "bye"))
+    }
+  else if String.eql(msg, "authed") then
+    if String.starts_with(ev.value, "ok ") then
+      let rest = String.drop(3, ev.value)
+      let sid = List.head_with_default<String>("", String.split(rest, " "))
+      let user = String.join(" ", List.drop<String>(1, String.split(rest, " ")))
+      if Bool.not(ok_sid(sid)) then
+        Pair.new<Model, Sure.Ui.Cmd>(Model.new(m.user, m.pass, m.draft, "junk", m.sess, m.feed), Sure.Ui.Cmd.none)
+      else Pair.new<Model, Sure.Ui.Cmd>(
+        Model.new(user, "", "", "", Sess.some(sid, user), []),
+        Sure.Ui.Cmd.http("/feed?s=" | sid, "feeded")
+      )
+    else if String.starts_with(ev.value, "err ") then
+      Pair.new<Model, Sure.Ui.Cmd>(Model.new(m.user, m.pass, m.draft, String.drop(4, ev.value), m.sess, m.feed), Sure.Ui.Cmd.none)
+    else Pair.new<Model, Sure.Ui.Cmd>(Model.new(m.user, m.pass, m.draft, "junk", m.sess, m.feed), Sure.Ui.Cmd.none)
+  else if String.eql(msg, "feeded") then
+    if String.starts_with(ev.value, "err ") then
+      Pair.new<Model, Sure.Ui.Cmd>(Model.new(m.user, m.pass, m.draft, String.drop(4, ev.value), m.sess, m.feed), Sure.Ui.Cmd.none)
+    else
+      let raw = if String.starts_with(ev.value, "ok ") then String.drop(3, ev.value) else ev.value
+      Pair.new<Model, Sure.Ui.Cmd>(Model.new(m.user, m.pass, m.draft, "", m.sess, read_feed(raw)), Sure.Ui.Cmd.none)
+  else if String.eql(msg, "bye") then
+    Pair.new<Model, Sure.Ui.Cmd>(init, Sure.Ui.Cmd.none)
+  else Pair.new<Model, Sure.Ui.Cmd>(m, Sure.Ui.Cmd.none)
+
+app: Sure.Ui.App<Model>
+  Sure.Ui.element<Model>(
+    init,
+    Sure.Ui.Cmd.none,
+    view,
+    update,
+    (m) Sure.Ui.Sub.none
+  )
+
+client: Sure.Ui.Client<Model>
+  Sure.Ui.pack<Model>(app)
+
+document(body: String): String
+  "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width\"><title>Tweeter</title>"
+  | "<script src=\"https://cdn.tailwindcss.com\"></script>"
+  | "<link href=\"https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css\" rel=\"stylesheet\" type=\"text/css\">"
+  | "</head><body>"
+  | body
+  | "</body></html>"
+
+page_html: String
+  document(Sure.Ui.draw_of<Model>(client, init))
+
+missing_html: String
+  document(
+    "<div class=\"min-h-screen bg-base-200\"><div class=\"card bg-base-100 shadow-xl m-8 max-w-lg mx-auto\"><div class=\"card-body\">"
+    | "<h1 class=\"card-title\">Tweeter</h1>"
+    | "<p>This page needs the compiled client.</p>"
+    | "<pre class=\"bg-base-200 p-4 rounded-box\">sure build --html client\nsure run</pre>"
+    | "<p>HTTP still works without it: POST /register /login /tweet /upload.</p>"
+    | "</div></div></div>"
+  )
+
+page_path: String
+  "dist/Tweeter.client.html"
+
+is_page(url: String): Bool
+  if String.is_empty(url) then true
+  else if String.eql(url, "/") then true
+  else if String.eql(url, "/index.html") then true
+  else if String.eql(url, "/tweeter") then true
+  else if String.eql(url, "/client.html") then true
+  else false
+
+is_upload(url: String): Bool
+  if String.eql(url, "/upload") then true
+  else String.starts_with(url, "/upload?")
+
+is_file(url: String): Bool
+  if String.eql(url, "/file") then true
+  else String.starts_with(url, "/file?")
+
+is_post(m: String): Bool
+  if String.eql(m, "POST") then true
+  else if String.eql(m, "post") then true
+  else false
+
+send_page(id: String): IO<Unit>
+  case Path.from_string(page_path) as p {
+    err: Http.Server.reply_ex(id, 200, "text/html; charset=utf-8", missing_html)
+    ok: IO {
+      get f = File.read(p.value)
+      case f {
+        err: Http.Server.reply_ex(id, 200, "text/html; charset=utf-8", missing_html)
+        ok: Http.Server.reply_ex(id, 200, "text/html; charset=utf-8", f.value)
+      }
+    }
+  }
+
+plain(id: String, body: String): IO<Unit>
+  Http.Server.reply_ex(id, 200, "text/plain; charset=utf-8", body)
+
+cookie_sid.go(xs: List<String>): String
+  case xs {
+    nil: ""
+    cons:
+      let p = String.trim_left(xs.head)
+      let k = List.head_with_default<String>("", String.split(p, "="))
+      if String.eql(k, "sure_sid") then
+        let v = String.join("=", List.drop<String>(1, String.split(p, "=")))
+        if ok_sid(v) then v else ""
+      else cookie_sid.go(xs.tail)
+  }
+
+pick_sid(body: String, url: String, cookie: String): String
+  let a = qget(body, "s")
+  if ok_sid(a) then a
+  else
+    let b = qget(List.head_with_default<String>("", List.drop<String>(1, String.split(url, "?"))), "s")
+    if ok_sid(b) then b
+    else cookie_sid.go(String.split(cookie, ";"))
+
+handle(req: Http.Server.Req): IO<Unit>
+  open req
+  if is_page(req.url) then send_page(req.id)
+  else if String.eql(req.url, "/register") then
+    if Bool.not(is_post(req.method)) then plain(req.id, reply_err("method"))
+    else IO {
+      get body = db_str((c) do_register(c, qget(req.body, "u"), qget(req.body, "p")))
+      plain(req.id, body)
+    }
+  else if String.eql(req.url, "/login") then
+    if Bool.not(is_post(req.method)) then plain(req.id, reply_err("method"))
+    else IO {
+      get body = db_str((c) do_login(c, qget(req.body, "u"), qget(req.body, "p")))
+      plain(req.id, body)
+    }
+  else if String.starts_with(req.url, "/logout") then
+    IO {
+      get body = db_str((c) do_logout(c, pick_sid(req.body, req.url, req.cookie)))
+      plain(req.id, body)
+    }
+  else if String.starts_with(req.url, "/feed") then
+    IO {
+      get body = db_str((c) do_feed(c, pick_sid(req.body, req.url, req.cookie)))
+      plain(req.id, body)
+    }
+  else if String.eql(req.url, "/tweet") then
+    if Bool.not(is_post(req.method)) then plain(req.id, reply_err("method"))
+    else IO {
+      get body = db_str((c) do_tweet(c, pick_sid(req.body, req.url, req.cookie), qget(req.body, "t")))
+      plain(req.id, body)
+    }
+  else if String.starts_with(req.url, "/me") then
+    IO {
+      get body = db_str((c) do_me(c, pick_sid(req.body, req.url, req.cookie)))
+      plain(req.id, body)
+    }
+  else if is_upload(req.url) then
+    if Bool.not(is_post(req.method)) then plain(req.id, reply_err("method"))
+    else IO {
+      get body = db_str((c) do_upload(c, pick_sid(req.body, req.url, req.cookie), req.body))
+      plain(req.id, body)
+    }
+  else if is_file(req.url) then
+    IO {
+      get body = db_str((c) do_file(c, qget(List.head_with_default<String>("", List.drop<String>(1, String.split(req.url, "?"))), "id")))
+      if String.starts_with(body, "err ") then plain(req.id, body)
+      else plain(req.id, body)
+    }
+  else Http.Server.reply_ex(req.id, Nat.read("404"), "text/plain; charset=utf-8", "not found")
+
+serve.go(port: Nat): IO<Unit>
+  IO {
+    get raw = Http.Server.recv(port)
+    case Http.Server.parse(raw) as req {
+      none: serve.go(port)
+      some: IO {
+        handle(req.value)
+        serve.go(port)
+      }
+    }
+  }
+
+serve: IO<Outcome<Http.Err, Unit>>
+  IO {
+    get l = Http.Server.listen(port)
+    case l {
+      err: IO {
+        return l
+      }
+      ok: IO {
+        serve.go(port)
+        return Http.Server.ok
+      }
+    }
+  }
+
+empty_user: note_of(Sure.Ui.step_model<Model>(
+  client,
+  Sure.Ui.wire("click", "login", "", ""),
+  init
+)) == "empty_user"
+  refl
+
+no_session: note_of(Sure.Ui.step_model<Model>(
+  client,
+  Sure.Ui.wire("click", "tweet", "", ""),
+  init
+)) == "no_session"
+  refl
+
+ok_user_empty: ok_user("") == false
+  refl
+
+ok_data_empty: ok_data("") == false
+  refl
+
+is_upload_root: is_upload("/upload") == true
+  refl
+
+is_page_root: is_page("/") == true
+  refl
+
+page_doctype: String.starts_with(page_html, "<!DOCTYPE html>") == true
+  refl

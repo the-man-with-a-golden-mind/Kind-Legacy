@@ -1,0 +1,57 @@
+module Walk exposing (..)
+// Catalog of the example servers.
+
+port: Nat
+  Nat.read("8760")
+
+page: String
+  "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Sure examples</title>"
+  | "<script src=\"https://cdn.tailwindcss.com\"></script>"
+  | "<link href=\"https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css\" rel=\"stylesheet\" type=\"text/css\">"
+  | "</head><body class=\"bg-base-200 min-h-screen\"><div class=\"navbar bg-primary text-primary-content\"><div class=\"px-4 text-xl font-bold\">Sure examples</div></div>"
+  | "<ul class=\"menu bg-base-100 shadow-xl m-8 max-w-lg mx-auto rounded-box\">"
+  | "<li><a href=\"http://127.0.0.1:8770/health\">routes :8770 API</a></li>"
+  | "<li><a href=\"http://127.0.0.1:8771/\">ssr :8771 site</a></li>"
+  | "<li><a href=\"http://127.0.0.1:8772/\">ui :8772 counter</a></li>"
+  | "<li><a href=\"http://127.0.0.1:8765/\">excel :8765 grid 10000</a></li>"
+  | "<li><a href=\"http://127.0.0.1:8766/\">tweeter :8766 login + tweets + upload</a></li>"
+  | "<li><a href=\"http://127.0.0.1:8773/\">files :8773 read/write</a></li>"
+  | "<li><a href=\"http://127.0.0.1:8774/\">codec :8774 JSON POST</a></li>"
+  | "</ul>"
+  | "<p class=\"text-center opacity-70\">Start each app with <code>sure run</code> in its folder.</p>"
+  | "</body></html>"
+
+handle(req: Http.Server.Req): IO<Unit>
+  open req
+  if String.is_empty(req.url) then Http.Server.reply_ex(req.id, 200, "text/html; charset=utf-8", page)
+  else if String.eql(req.url, "/") then Http.Server.reply_ex(req.id, 200, "text/html; charset=utf-8", page)
+  else Http.Server.reply_ex(req.id, Nat.read("404"), "text/plain; charset=utf-8", "not found")
+
+serve.go(port: Nat): IO<Unit>
+  IO {
+    get raw = Http.Server.recv(port)
+    case Http.Server.parse(raw) as req {
+      none: serve.go(port)
+      some: IO {
+        handle(req.value)
+        serve.go(port)
+      }
+    }
+  }
+
+serve: IO<Outcome<Http.Err, Unit>>
+  IO {
+    get l = Http.Server.listen(port)
+    case l {
+      err: IO {
+        return l
+      }
+      ok: IO {
+        serve.go(port)
+        return Http.Server.ok
+      }
+    }
+  }
+
+page_doctype: String.starts_with(page, "<!DOCTYPE html>") == true
+  refl

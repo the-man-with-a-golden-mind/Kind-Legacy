@@ -1,0 +1,99 @@
+module Ssr exposing (..)
+// Server-rendered site. Empty URL is 404. < is escaped.
+
+port: Nat
+  Nat.read("8771")
+
+document(title: String, body: DOM): String
+  "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width\"><title>"
+  | Html.escape(title)
+  | "</title><script src=\"https://cdn.tailwindcss.com\"></script>"
+  | "<link href=\"https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css\" rel=\"stylesheet\" type=\"text/css\">"
+  | "</head><body class=\"bg-base-200\">"
+  | DOM.render(body)
+  | "</body></html>"
+
+box(cls: String, kids: List<DOM>): DOM
+  Html.el(Html.Tag.div, Html.attr("class", cls, Map.new<String>), Map.new<String>, kids)
+
+link(href: String, label: String): DOM
+  Html.el(
+    Html.Tag.a,
+    Html.attr("href", href, Html.attr("class", "link link-primary", Map.new<String>)),
+    Map.new<String>,
+    [Html.text(label)]
+  )
+
+shell(title: String, kids: List<DOM>): DOM
+  box(
+    "min-h-screen",
+    [
+      box("navbar bg-primary text-primary-content", [
+        box("navbar-start px-4 text-xl font-bold", [Html.text("Sure")]),
+        box("navbar-center gap-4", [
+          link("/", "Home"),
+          link("/about", "About")
+        ])
+      ]),
+      box("card bg-base-100 shadow-xl m-8 max-w-xl mx-auto", [
+        box("card-body", List.cons<DOM>(
+          box("card-title", [Html.text(title)]),
+          kids
+        ))
+      ])
+    ]
+  )
+
+page(title: String, kids: List<DOM>): Sure.Ssr.Reply
+  Sure.Ssr.Reply.html(200, document(title, shell(title, kids)))
+
+home_html: String
+  document("Home", shell("Home", [
+    Html.p([Html.text("This page is rendered on the server.")]),
+    Html.p([link("/user/ada", "Ada")])
+  ]))
+
+about_html: String
+  document("About", shell("About", [
+    Html.p([Html.text("Less-than is escaped: <")])
+  ]))
+
+home(_req: Http.Server.Req, _b: List<Pair<String, String>>): IO<Sure.Ssr.Reply>
+  IO {
+    return Sure.Ssr.Reply.html(200, home_html)
+  }
+
+about(_req: Http.Server.Req, _b: List<Pair<String, String>>): IO<Sure.Ssr.Reply>
+  IO {
+    return Sure.Ssr.Reply.html(200, about_html)
+  }
+
+user(_req: Http.Server.Req, b: List<Pair<String, String>>): IO<Sure.Ssr.Reply>
+  let id = Http.Path.lookup("id", b)
+  if String.is_empty(id) then IO {
+    return Sure.Ssr.from_page(Sure.Ssr.not_found)
+  } else IO {
+    return page("User", [Html.p([Html.text(id)])])
+  }
+
+routes: List<Sure.Ssr.Route>
+  [
+    Sure.Ssr.get("/", home),
+    Sure.Ssr.get("/about", about),
+    Sure.Ssr.get("/user/:id", user)
+  ]
+
+home_doctype: String.starts_with(home_html, "<!DOCTYPE html>") == true
+  refl
+
+escape_lt: String.includes(about_html, "&lt;") == true
+  refl
+
+user_ada: Http.App.hit(Http.Method.get, "/user/:id", "GET", "/user/ada", "id") == "ada"
+  refl
+
+empty_none: Http.App.hit(Http.Method.get, "/user/:id", "GET", "", "id") == ""
+  refl
+
+serve: IO<Outcome<Http.Err, Unit>>
+  Sure.Ssr.run(port, routes)

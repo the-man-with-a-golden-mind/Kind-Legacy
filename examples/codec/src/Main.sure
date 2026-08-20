@@ -1,0 +1,16 @@
+module Main exposing (Main)
+import Codec
+Main: IO<Unit>
+  IO {
+    IO.print("Codec http://127.0.0.1:8774  POST /  body JSON")
+    get r = Codec.serve
+    case r {
+      err: IO {
+        IO.print("listen failed: " | Http.Err.show(r.error))
+        return unit
+      }
+      ok: IO {
+        return unit
+      }
+    }
+  }

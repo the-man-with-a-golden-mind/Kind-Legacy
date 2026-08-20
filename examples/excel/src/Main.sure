@@ -1,0 +1,17 @@
+module Main exposing (Main)
+import Excel
+Main: IO<Unit>
+  IO {
+    IO.print("Excel http://127.0.0.1:8765")
+    IO.print("  sure build --html Excel.client   # then sure run, for scroll / resize")
+    get r = Excel.serve
+    case r {
+      err: IO {
+        IO.print("listen failed: " | Http.Err.show(r.error))
+        return unit
+      }
+      ok: IO {
+        return unit
+      }
+    }
+  }

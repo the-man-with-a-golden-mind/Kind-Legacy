@@ -1,0 +1,14 @@
+{
+  "type": "application",
+  "name": "sure/ssr",
+  "version": "1.0.0",
+  "language": "Sure",
+  "summary": "Server-rendered site on :8771.",
+  "source-directories": ["src"],
+  "exposed-modules": ["Ssr"],
+  "theorems": ["Ssr.home_doctype", "Ssr.escape_lt", "Ssr.user_ada", "Ssr.empty_none"],
+  "dependencies": {
+    "direct": {},
+    "indirect": {}
+  }
+}

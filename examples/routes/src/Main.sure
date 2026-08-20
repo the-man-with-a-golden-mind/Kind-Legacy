@@ -1,0 +1,16 @@
+module Main exposing (Main)
+import Routes
+Main: IO<Unit>
+  IO {
+    IO.print("Routes http://127.0.0.1:8770  GET /health  GET /user/:id  POST /echo")
+    get r = Routes.serve
+    case r {
+      err: IO {
+        IO.print("listen failed: " | Http.Err.show(r.error))
+        return unit
+      }
+      ok: IO {
+        return unit
+      }
+    }
+  }

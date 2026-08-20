@@ -1,0 +1,17 @@
+module Main exposing (Main)
+import Ui
+Main: IO<Unit>
+  IO {
+    IO.print("Ui http://127.0.0.1:8772")
+    IO.print("  sure build --html Ui.client   # then sure run, for + / − / reset")
+    get r = Ui.serve
+    case r {
+      err: IO {
+        IO.print("listen failed: " | Http.Err.show(r.error))
+        return unit
+      }
+      ok: IO {
+        return unit
+      }
+    }
+  }

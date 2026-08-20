@@ -1,0 +1,14 @@
+module Audit exposing (..)
+import Boxes exposing (Boxes, empty, push, len)
+// another module in the same library.
+
+report(box: Boxes): String
+  Nat.show(len(box))
+
+empty_ok: report(empty) == "0"
+  refl
+
+demo: IO<Unit>
+  IO {
+    IO.print(report(push(empty, 1)))
+  }

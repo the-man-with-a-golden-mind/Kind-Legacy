@@ -1,6 +1,8 @@
 All syntaxes
 ------------
 
+Day-to-day Sure: [docs/language.md](docs/language.md). This page is the exhaustive desugaring list (Kind lineage).
+
 This document lists all the high-level syntaxes available on the Kind
 language. Every syntax listed below is expanded (desugared) to either a
 primitive [FormCore](https://github.com/moonad/formcorejs) term, or to one of the functions available on the [base library](https://github.com/Kindelia/Kind/tree/master/base). Also, check [this](https://news.ycombinator.com/edit?id=28145337) answer on Hacker News for some thoughts and reasonings about our syntax choices.
@@ -36,9 +38,10 @@ Creates a top-level function called `get_first`, which receives two arguments,
 `fst` and `snd` of type `String`, and returns a `String`, which is the first
 argument.
 
-The name of the top level definition also specifies the file where the
-definition is. For example `Physics.Verlet.step` must be either in
-`base/Physics.kind` or `base/Physics/Verlet.kind` or `base/Physics/Verlet/step.kind`.
+A `.sure` file is a module and may contain many top-level definitions.
+`Physics.Verlet.step` is looked up in `Physics.sure` first, then
+`Physics/Verlet.sure`, then `Physics/Verlet/step.sure`. The first file
+that defines the name wins. Nested files are a split, not a requirement.
 
 Top-level definitions and datatype declarations (described below) are the only
 syntaxes that aren't expressions, which mean they can't appear anywhere in the
@@ -518,6 +521,24 @@ else if String.eql(str, "C") then
 else
   "?"
 ```
+
+When (predicate table)
+----------------------
+
+`case` is constructor matching. `switch f { key: v }` applies one `A -> Bool`.
+Independent tests (empty, includes, length, …) use `when`. First true wins:
+
+```
+ok_user(s: String): Bool
+  when {
+    String.is_empty(s): false
+    String.includes(s, " "): false
+    String.includes(s, "\n"): false
+  } default true
+```
+
+Is equivalent to a chain of `if`. `default` is required. For “nonempty and none
+of these substrings”, `String.ok(s, [" ", "\n"])` is enough.
 
 Annotation
 ----------
