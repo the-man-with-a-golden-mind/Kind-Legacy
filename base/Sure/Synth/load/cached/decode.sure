@@ -1,0 +1,44 @@
+// Junk, empty, and a bad tag are none.
+Sure.Synth.load.cached.decode(text: String): Maybe<Sure.Synth.load.cached.Record>
+  if String.is_empty(text) then none
+  else
+    let parts = String.split(text, "\n.\n")
+    let hdr = String.split(Sure.Synth.load.cached.field(parts, 0), "\n")
+    if Bool.not(String.eql(Sure.Synth.load.cached.field(hdr, 0), "S1")) then none
+    else Sure.Synth.load.cached.decode.go(
+      Sure.Synth.load.cached.field(hdr, 1),
+      Sure.Synth.load.cached.field(hdr, 2),
+      Sure.Synth.load.cached.field(hdr, 3),
+      Sure.Synth.load.cached.field(hdr, 4),
+      Sure.Synth.load.cached.field(hdr, 5),
+      Sure.Synth.load.cached.field(parts, 1),
+      Sure.Synth.load.cached.field(parts, 2)
+    )
+
+Sure.Synth.load.cached.decode.go(
+  file: String,
+  hash: String,
+  blob: String,
+  isct_s: String,
+  arit_s: String,
+  term_s: String,
+  type_s: String
+): Maybe<Sure.Synth.load.cached.Record>
+  case Bool.read(isct_s) as isct {
+    none: none
+    some: case Sure.Core.read(term_s) as term {
+      none: none
+      some: case Sure.Core.read(type_s) as typ {
+        none: none
+        some: some(Sure.Synth.load.cached.Record.new(
+          file,
+          hash,
+          blob,
+          isct.value,
+          Nat.read(arit_s),
+          term.value,
+          typ.value
+        ))
+      }
+    }
+  }

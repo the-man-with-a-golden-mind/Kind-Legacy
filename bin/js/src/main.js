@@ -53,6 +53,9 @@ var BOUNDED_THEOREMS = [
   "Host.decode.empty",
   "IO.tagged.payload.ok",
   "IO.tagged.payload.err",
+  "Sure.Synth.load.cached.roundtrip",
+  "Sure.Synth.load.cached.decode.empty",
+  "Sure.Synth.load.cached.decode.junk",
   "Html.ok_ident.junk",
   "DOM.render.junk_tag",
   "Sure.Mod.resolve.short",
@@ -223,6 +226,15 @@ function find_base_dir() {
 }
 find_base_dir();
 STDLIB_BASE = process.cwd();
+
+function cache_blob_key() {
+  var crypto = require("crypto");
+  var h = crypto.createHash("sha256");
+  h.update(String(SURE_VERSION || ""));
+  try { h.update(fs.readFileSync(path.join(__dirname, "sure.js"))); } catch (e) { h.update("missing-blob"); }
+  return h.digest("hex").slice(0, 16);
+}
+if (!process.env.SURE_CACHE_KEY) process.env.SURE_CACHE_KEY = cache_blob_key();
 
 async function find_kind_files(dir) {
   try {
@@ -5643,6 +5655,32 @@ function run_compiled_js(js_path, use_bun, extra) {
   }
 }
 
+async function run_term_inprocess(term) {
+  var prev_sure = process.env.SURE_PATH;
+  var prev_kind = process.env.KIND_PATH;
+  var prev_cwd = process.cwd();
+  var js_path = path.join(require("os").tmpdir(), "sure-run-" + process.pid + ".js");
+  try {
+    delete process.env.SURE_PATH;
+    delete process.env.KIND_PATH;
+    process.env.SURE_BASE = STDLIB_BASE;
+    process.env.KIND_BASE = STDLIB_BASE;
+    process.chdir(STDLIB_BASE);
+    var fmcc = await kind.run(checker("api.io.term_to_core")(term));
+    var asjs = fmc_to_js.compile(fmcc, term, {});
+    fs.writeFileSync(js_path, asjs);
+    var r = sure_run_js(js_path, false, []);
+    if (!r.ok) throw new Error(r.error || "run failed");
+  } finally {
+    try { fs.unlinkSync(js_path); } catch (e2) {}
+    try { process.chdir(prev_cwd); } catch (e3) {}
+    if (prev_sure == null) delete process.env.SURE_PATH;
+    else process.env.SURE_PATH = prev_sure;
+    if (prev_kind == null) delete process.env.KIND_PATH;
+    else process.env.KIND_PATH = prev_kind;
+  }
+}
+
 function spawn_term_run(term) {
   var main_js = path.join(__dirname, "main.js");
   var root = path.join(__dirname, "../../..");
@@ -5994,7 +6032,7 @@ function spawn_term_run(term) {
     }
     console.log("== runtime ==");
     try {
-      spawn_term_run("Main");
+      await run_term_inprocess("Main");
     } catch (e) {
       console.log(e);
       failed += 1;

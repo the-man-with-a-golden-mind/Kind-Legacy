@@ -1,0 +1,11 @@
+type Sure.Synth.load.cached.Record {
+  new(
+    file: String,
+    hash: String,
+    blob: String,
+    isct: Bool,
+    arit: Nat,
+    term: Sure.Term,
+    type: Sure.Term
+  )
+}

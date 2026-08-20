@@ -1,0 +1,23 @@
+Sure.Synth.load.cached.put(name: Sure.Name, defn: Sure.Def): IO<Unit>
+  open defn
+  IO {
+    if String.is_empty(defn.file) then IO { return unit }
+    else if String.eql(defn.file, "<cached>") then IO { return unit }
+    else IO {
+      get blob = Sure.Synth.load.cached.blob_key
+      get hash = IO.file_hash(defn.file)
+      if String.is_empty(hash) then IO { return unit }
+      else IO {
+        let rec = Sure.Synth.load.cached.encode(
+          defn.file,
+          hash,
+          blob,
+          defn.isct,
+          defn.arit,
+          defn.term,
+          defn.type
+        )
+        Sure.Synth.load.cached.set_file(name, rec)
+      }
+    }
+  }

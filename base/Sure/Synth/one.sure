@@ -59,13 +59,8 @@ Sure.Synth.one(name: Sure.Name, defs: Sure.Defs): IO<Maybe<Sure.Defs>>
                     return some(defs);
                   } else IO {
                   let defs = Sure.Map.def(file, code, orig, name, term, type, isct, arit, true, defs);
-                  //get time = IO.get_file_mtime(file)
-                  //IO.set_file(".cache/" | name | ".term", Sure.Core.show(term))
-                  //IO.set_file(".cache/" | name | ".type", Sure.Core.show(type))
-                  //IO.set_file(".cache/" | name | ".isct", Bool.show(isct))
-                  //IO.set_file(".cache/" | name | ".arit", Nat.show(arit))
-                  //IO.set_file(".cache/" | name | ".time", time)
-                  //IO.set_file(".cache/" | name | ".file", file)
+                  let defn = Sure.Def.new(file, code, orig, name, term, type, isct, arit, Sure.Status.done(false))
+                  get saved = Sure.Synth.load.cached.put(name, defn)
                   return some(defs);
                   };
                 } else IO {

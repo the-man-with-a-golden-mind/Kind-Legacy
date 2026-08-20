@@ -1,0 +1,9 @@
+// Host sets SURE_CACHE_KEY to a fingerprint of the checker blob. Missing is "".
+Sure.Synth.load.cached.blob_key: IO<String>
+  IO {
+    get k = IO.get_env("SURE_CACHE_KEY")
+    case k {
+      none: IO { return "" }
+      some: IO { return k.value }
+    }
+  }

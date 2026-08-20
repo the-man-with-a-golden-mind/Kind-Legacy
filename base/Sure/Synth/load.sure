@@ -9,40 +9,32 @@ Sure.Synth.load.cached.set_file(name: Sure.Name, value: String): IO<Unit>
 
 Sure.Synth.load.cached.def(name: Sure.Name): IO<Maybe<Sure.Def>>
   IO {
-    //IO.print("-- getting cache of " | name)
-    get cache_file = Sure.Synth.load.cached.get_file(name|".file")
-    if Bool.not(String.is_empty(cache_file)) then IO {
-      //IO.print("-- cache file isn't empty " | name)
-      get cache_hash = Sure.Synth.load.cached.get_file(name|".hash")
-      get file_hash = IO.file_hash(cache_file)
-      let hash_ok = Bool.and(
-        Bool.not(String.is_empty(cache_hash)),
-        String.eql(cache_hash, file_hash))
-      get cache_time = Sure.Synth.load.cached.get_file(name|".time")
-      get cache_file_time = IO.get_file_mtime(cache_file)
-      let time_ok = Bool.and(
-        String.is_empty(cache_hash),
-        String.eql(cache_time, cache_file_time))
-      if Bool.or(hash_ok, time_ok) then IO {
-        //IO.print("-- cache time is correct " | name)
-        get cache_term = Sure.Synth.load.cached.get_file(name|".term")
-        get cache_type = Sure.Synth.load.cached.get_file(name|".type")
-        get cache_isct = Sure.Synth.load.cached.get_file(name|".isct")
-        get cache_arit = Sure.Synth.load.cached.get_file(name|".arit")
-        return Maybe {
-          let file = cache_file
-          let code = "<cached>"
-          let orig = {0,0}
-          get term = Sure.Core.read(cache_term)
-          get type = Sure.Core.read(cache_type)
-          get isct = Bool.read(cache_isct)
-          get arit = some(Nat.read(cache_arit))
-          let stat = Sure.Status.done(true)
-          //let msge = log("-- cache "|name|": "|Sure.Core.show(type)|" = "|Sure.Core.show(term)) unit
-          return Sure.Def.new(file, code, orig, name, term, type, isct, arit, stat)
+    get raw = Sure.Synth.load.cached.get_file(name)
+    case Sure.Synth.load.cached.decode(raw) as rec {
+      none: IO { return none }
+      some: open rec.value; IO {
+        get blob = Sure.Synth.load.cached.blob_key
+        if Bool.not(String.eql(rec.value.blob, blob)) then IO { return none }
+        else if String.is_empty(rec.value.file) then IO { return none }
+        else IO {
+          get file_hash = IO.file_hash(rec.value.file)
+          if Bool.not(String.eql(rec.value.hash, file_hash)) then IO { return none }
+          else IO {
+            return some(Sure.Def.new(
+              rec.value.file,
+              "<cached>",
+              {0,0},
+              name,
+              rec.value.term,
+              rec.value.type,
+              rec.value.isct,
+              rec.value.arit,
+              Sure.Status.done(true)
+            ))
+          }
         }
-      } else IO { return none }
-    } else IO { return none }
+      }
+    }
   }
 
 Sure.Synth.load.cached.is_loop(name: String, defs: Sure.Defs): Bool

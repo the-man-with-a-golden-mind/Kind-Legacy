@@ -1,0 +1,5 @@
+Sure.Synth.load.cached.field(xs: List<String>, i: Nat): String
+  case List.at<String>(i, xs) as got {
+    none: ""
+    some: got.value
+  }

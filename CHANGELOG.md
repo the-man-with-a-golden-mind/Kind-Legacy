@@ -9,6 +9,7 @@ Truth pass (audit):
 - Residual `_` / `admit` / `?hole` fail `sure check`, `sure prove`, and `sure build`. `_` can no longer prove `Nat.add(2,2) == 5`.
 - `sure prove` only treats completed equality/`Equal` terms as proved. Aggregate JSON `proved` is true only when every result is proved. `Nat.add` checks; it is not a theorem.
 - Incremental build cache hashes `compiler.js`, `host-schema.js`, `gen-host.js`, the checker blob, FormCore, stdlib, lockfile, every `source-directories` entry, and transitive dependency sources.
+- Checker def cache is one record per name (source hash + blob key). `Synth.one` writes it. Empty/junk records are none. `sure test` runs `Main` in-process.
 - `sure install` materializes `sure.lock` git revisions (direct and lock-listed transitive names) instead of cloning latest HEAD.
 - HTTP request headers are sent. `Crypto.random` does not fall back to `Math.random`. WebSocket client frames are masked. Generated HTML inlines CSS (no CDN). `File.bracket` is acquire / use / release. `Stream.take` is a pull stream (`IO<List<A>>`), not `List.take`.
 - `Host.decode` accepts only tagged `0\\n` / `1\\n` replies. Empty and untagged payloads are `Host.Err.empty` / `Host.Err.bad_tag`. String `IO.*` ops take `IO.tagged.payload` (success body, else `""`).

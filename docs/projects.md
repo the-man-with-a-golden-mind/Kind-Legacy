@@ -17,7 +17,7 @@ A Sure project is a directory with `sure.json` and `src/*.sure`.
 }
 ```
 
-`type` is `application` or `package`. `sure.lock` pins git revisions; `sure install` checks out those pins. `kind.json` is still read. The incremental build cache hashes the compiler blob, `compiler.js`, host schema, FormCore, stdlib, lockfile, every `source-directories` entry, and transitive dependency sources. `module` / `import` are elaborated by `Sure.Parser.file`. The host only expands `when`, HTML, `admit`, and `import M exposing (..)` into an explicit list.
+`type` is `application` or `package`. `sure.lock` pins git revisions; `sure install` checks out those pins. `kind.json` is still read. The incremental emit cache hashes the compiler blob, `compiler.js`, host schema, FormCore, stdlib, lockfile, every `source-directories` entry, and transitive dependency sources. Checked definitions are stored as one `.cache/<name>` record keyed by source hash and `SURE_CACHE_KEY` (blob fingerprint). Empty and junk records are a miss. `module` / `import` are elaborated by `Sure.Parser.file`. The host only expands `when`, HTML, `admit`, and `import M exposing (..)` into an explicit list.
 
 ## Scaffold
 

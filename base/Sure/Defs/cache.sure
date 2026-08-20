@@ -12,13 +12,7 @@ Sure.Defs.cache.go(kvs: List(Pair(String,Sure.Def))): IO(Unit)
       open defn
       case defn.stat {
         done: IO {
-          get hash = IO.file_hash(defn.file)
-          Sure.Synth.load.cached.set_file(name|".term", Sure.Core.show(defn.term))
-          Sure.Synth.load.cached.set_file(name|".type", Sure.Core.show(defn.type))
-          Sure.Synth.load.cached.set_file(name|".isct", Bool.show(defn.isct))
-          Sure.Synth.load.cached.set_file(name|".arit", Nat.show(defn.arit))
-          Sure.Synth.load.cached.set_file(name|".file", defn.file)
-          Sure.Synth.load.cached.set_file(name|".hash", hash)
+          Sure.Synth.load.cached.put(name, defn)
           Sure.Defs.cache.go(kvs.tail)
         }
       } default IO {

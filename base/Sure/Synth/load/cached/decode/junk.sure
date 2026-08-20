@@ -1,0 +1,2 @@
+Sure.Synth.load.cached.decode.junk: Sure.Synth.load.cached.decode("nope") == none
+  refl

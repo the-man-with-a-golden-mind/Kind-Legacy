@@ -1,0 +1,15 @@
+// One record per definition. Empty file/hash/blob are data.
+Sure.Synth.load.cached.encode(
+  file: String,
+  hash: String,
+  blob: String,
+  isct: Bool,
+  arit: Nat,
+  term: Sure.Term,
+  type: Sure.Term
+): String
+  String.join("\n.\n", [
+    String.join("\n", ["S1", file, hash, blob, Bool.show(isct), Nat.show(arit)]),
+    Sure.Core.show(term),
+    Sure.Core.show(type)
+  ])

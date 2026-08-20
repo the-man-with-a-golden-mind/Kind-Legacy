@@ -1,0 +1,8 @@
+Sure.Synth.load.cached.roundtrip:
+  case Sure.Synth.load.cached.decode(Sure.Synth.load.cached.encode("Nat.sure", "abc", "k", false, 1, Sure.Term.typ, Sure.Term.ref("Nat"))) as r {
+    none: false
+    some:
+      open r.value
+      String.eql(r.value.file, "Nat.sure")
+  } == true
+  refl
