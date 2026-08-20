@@ -1,0 +1,44 @@
+Sure.Term.inline(term: Sure.Term, defs: Sure.Defs): Sure.Term
+  case Sure.Term.inline.reduce(term, defs) as term {
+    ref:
+      Sure.Term.ref(term.name),
+    var:
+      Sure.Term.var(term.name, term.indx),
+    typ:
+      Sure.Term.typ,
+    all: 
+      def xtyp = Sure.Term.inline(term.xtyp, defs);
+      def body = (s,x) Sure.Term.inline(term.body(s,x), defs);
+      Sure.Term.all(term.eras, term.self, term.name, xtyp, body),
+    lam:
+      def body = (x) Sure.Term.inline(term.body(x), defs);
+      Sure.Term.lam(term.name, body),
+    app:
+      def func = Sure.Term.inline(term.func, defs);
+      def argm = Sure.Term.inline(term.argm, defs);
+      Sure.Term.app(func, argm),
+    let:
+      def expr = Sure.Term.inline(term.expr, defs);
+      def body = (x) Sure.Term.inline(term.body(x), defs);
+      Sure.Term.let(term.name, expr, body),
+    def:
+      def expr = Sure.Term.inline(term.expr, defs);
+      def body = (x) Sure.Term.inline(term.body(x), defs);
+      Sure.Term.def(term.name, expr, body),
+    ann:
+      def term = Sure.Term.inline(term.term, defs);
+      def type = Sure.Term.inline(term.type, defs);
+      Sure.Term.ann(term.done, term, type),
+    gol:
+      Sure.Term.gol(term.name, term.dref, term.verb),
+    hol:
+      Sure.Term.hol(term.path),
+    nat:
+      Sure.Term.nat(term.natx),
+    chr:
+      Sure.Term.chr(term.chrx),
+    str:
+      Sure.Term.str(term.strx),
+    ori:
+      Sure.Term.inline(term.expr, defs),
+  } default term

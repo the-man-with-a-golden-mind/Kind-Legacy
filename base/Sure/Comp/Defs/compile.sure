@@ -1,0 +1,18 @@
+// Compile many defs to a target language
+Sure.Comp.Defs.compile(defs: Sure.Defs): Sure.Comp.Defs
+  let defs = BitsMap.map!!((x) Sure.Comp.Defs.compile.defn.adjust(x,defs), defs)
+  let defs = BitsMap.map!!((x) Sure.Comp.Defs.compile.defn(x,defs), defs)
+  defs
+
+// Inlines definitions
+Sure.Comp.Defs.compile.defn.adjust(defn: Sure.Def, defs: Sure.Defs): Sure.Def
+  open defn
+  let term = Sure.Term.inline(defn.term, defs);
+  let type = Sure.Term.inline(defn.type, defs);
+  Sure.Def.new(defn.file, defn.code, defn.orig, defn.name, term, type, defn.isct, defn.arit, defn.stat)
+
+// Compiles to Comp
+Sure.Comp.Defs.compile.defn(defn: Sure.Def, defs: Sure.Defs): Sure.Comp
+  open defn
+  let {comp,type} = Sure.Comp.compile(defn.term, some(defn.type), defs, 0)
+  comp

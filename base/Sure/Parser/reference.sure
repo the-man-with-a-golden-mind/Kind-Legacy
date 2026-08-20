@@ -1,0 +1,24 @@
+Sure.Parser.reference: Parser(Sure.Term)
+  Sure.Parser.block("reference", Parser {
+    get name = Sure.Parser.name1
+    if String.eql(name, "Type") then Parser {
+      return Sure.Term.typ
+    } else if String.eql(name, "true") then Parser {
+      return Sure.Term.ref("Bool.true")
+    } else if String.eql(name, "false") then Parser {
+      return Sure.Term.ref("Bool.false")
+    } else if String.eql(name, "unit") then Parser {
+      return Sure.Term.ref("Unit.new")
+    } else if String.eql(name, "none") then Parser {
+      let term = Sure.Term.ref("Maybe.none")
+      let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+      return term
+    } else if String.eql(name, "refl") then Parser {
+      let term = Sure.Term.ref("Equal.refl")
+      let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+      let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+      return term
+    } else Parser {
+      return Sure.Term.ref(name)
+    }
+  })

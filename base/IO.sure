@@ -1,0 +1,14 @@
+type IO <A: Type> {
+  end(value: A),
+  ask(query: String, param: String, then: (response: String) -> IO<A>),
+  par<X: Type, Y: Type>(
+    left: IO<X>,
+    right: IO<Y>,
+    join: (xy: Pair<X, Y>) -> IO<A>
+  ),
+  race<X: Type, Y: Type>(
+    left: IO<X>,
+    right: IO<Y>,
+    join: (e: Either<X, Y>) -> IO<A>
+  ),
+}

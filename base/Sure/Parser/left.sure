@@ -1,0 +1,11 @@
+Sure.Parser.left: Parser(Sure.Term)
+  Sure.Parser.block("left", Parser {
+    Sure.Parser.text("left(")
+    get expr = Sure.Parser.term
+    Sure.Parser.text(")")
+    let term = Sure.Term.ref("Either.left")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, expr)
+    return term
+  })

@@ -1,0 +1,2 @@
+Sure.Name.show(name: Sure.Name): String
+  name

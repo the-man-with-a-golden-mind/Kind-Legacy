@@ -1,0 +1,38 @@
+Sure.Parser.let(body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Sure.Parser.block("let", Parser {
+    Sure.Parser.text("let ")
+    get name = Sure.Parser.name1
+    Sure.Parser.text("=")
+    get expr = Sure.Parser.term
+    Parser.maybe!(Sure.Parser.text(";"))
+    get body = body(unit)
+    return Sure.Term.let(name, expr, (x) body)
+  })
+
+Sure.Parser.let.omit(body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Sure.Parser.block("let", Parser {
+    get name = Sure.Parser.name1
+    Sure.Parser.text("= ")
+    get expr = Sure.Parser.term
+    Parser.maybe!(Sure.Parser.text(";"))
+    get body = body(unit)
+    return Sure.Term.let(name, expr, (x) body)
+  })
+
+Sure.Parser.let.abort(body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Sure.Parser.block("let", Parser {
+    Sure.Parser.text("let ")
+    get name = Sure.Parser.name1
+    Sure.Parser.text("=")
+    get expr = Sure.Parser.term
+    Parser.maybe!(Sure.Parser.text(";"))
+    Sure.Parser.text("abort")
+    get abor = Sure.Parser.term
+    Parser.maybe!(Sure.Parser.text(";"))
+    get body = body(unit)
+    let term = expr
+    let term = Sure.Term.app(term, Sure.Term.lam("", () Sure.Term.hol(Bits.e)))
+    let term = Sure.Term.app(term, abor)
+    let term = Sure.Term.app(term, Sure.Term.lam(name, () body))
+    return term
+  })

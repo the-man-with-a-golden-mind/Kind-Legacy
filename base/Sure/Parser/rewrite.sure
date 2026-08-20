@@ -1,0 +1,18 @@
+Sure.Parser.rewrite(subt: Sure.Term): Parser(Sure.Term)
+  Parser {
+    Sure.Parser.text("::")
+    Sure.Parser.text("rewrite")
+    get name = Sure.Parser.name1
+    Sure.Parser.text("in")
+    get type = Sure.Parser.term
+    Sure.Parser.text("with")
+    get iseq = Sure.Parser.term
+    let term = Sure.Term.ref("Equal.rewrite")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, iseq)
+    let term = Sure.Term.app(term, Sure.Term.lam(name, (x) type))
+    let term = Sure.Term.app(term, subt)
+    return term
+  }

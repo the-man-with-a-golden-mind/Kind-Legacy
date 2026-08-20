@@ -1,6 +1,0 @@
-Kind.Parser.arrow(xtyp: Kind.Term): Parser(Kind.Term)
-  Parser {
-    Kind.Parser.text("->")
-    get body = Kind.Parser.term
-    return Kind.Term.all(false, "", "", xtyp, (s,x) body)
-  }

@@ -1,0 +1,5 @@
+Sure.Parser.new: Parser(Sure.Term)
+  Sure.Parser.block("new-struct", Parser {
+    get args = Sure.Parser.items1!("{", Sure.Parser.term, "}")
+    return Sure.Term.new(args)
+  })

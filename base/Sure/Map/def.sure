@@ -1,0 +1,17 @@
+Sure.Map.def(
+  file: String,
+  code: String,
+  orig: Pair<Nat,Nat>,
+  name: Sure.Name,
+  term: Sure.Term,
+  type: Sure.Term,
+  isct: Bool,
+  arit: Nat,
+  done: Bool,
+  defs: Sure.Defs,
+): Sure.Defs
+  let defn = Sure.Def.new(file, code, orig, name, term, type, isct, arit)
+  if done then
+    Sure.Map.set!(name, defn(Sure.Status.done(false)), defs)
+  else
+    Sure.Map.set_if_empty!(name, defn(Sure.Status.init), defs)

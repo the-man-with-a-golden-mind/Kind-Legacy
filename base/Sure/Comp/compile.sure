@@ -1,0 +1,149 @@
+// Compiles a Term to a Comp, converting optimized datatypes to insts and elims 
+// Requires the term to be pre-type-checked, with all holes filled.
+Sure.Comp.compile(
+  term: Sure.Term
+  type: Maybe(Sure.Term)
+  defs: Sure.Defs
+  size: Nat
+): Pair(Sure.Comp, Sure.Term)
+  case type {
+    some:
+      let typv = Sure.Term.reduce(type.value, defs)
+      case term {
+        lam: 
+          case typv {
+          all:
+            let self_var = Sure.Term.ann(true, term, type.value)
+            let name_uid = term.name | "$" | Nat.show(size)
+            let name_var = Sure.Term.ann(true, Sure.Term.var(name_uid, size + 1), typv.xtyp)
+            let body_typ = typv.body(self_var, name_var)
+            let {body_cmp,body_typ} = Sure.Comp.compile(term.body(name_var), some(body_typ), defs, size + 1)
+            let term_cmp = if typv.eras
+              then body_cmp
+              else Sure.Comp.lam(name_uid, body_cmp)
+            let term_cmp = 
+              case Sure.Comp.compile.prim_of(type.value, defs) as got {
+                some: Sure.Comp.ins(got.value, term_cmp)
+                none: case Sure.Comp.compile.adt(type.value, defs) as got {
+                  some: Sure.Comp.ins(got.value, term_cmp)
+                  none: term_cmp
+                }
+              }
+            {term_cmp, type.value}
+        } default {Sure.Comp.nil, Sure.Term.typ}
+        let:
+          let {expr_cmp,expr_typ} = Sure.Comp.compile(term.expr, none, defs, size)
+          let name_uid = term.name | "$" | Nat.show(size)
+          let expr_var = Sure.Term.ann(true, Sure.Term.var(name_uid, size + 1), expr_typ)
+          let {body_cmp,body_typ} = Sure.Comp.compile(term.body(expr_var), type, defs, size + 1)
+          let term_cmp = Sure.Comp.let(name_uid, expr_cmp, body_cmp)
+          let term_typ = body_typ
+          {term_cmp, term_typ}
+        imp:
+          Sure.Comp.compile(term.expr, type, defs, size)
+        ori:
+          Sure.Comp.compile(term.expr, type, defs, size)
+      } default 
+        case typv {
+        typ: {Sure.Comp.nil, Sure.Term.typ}
+      } default 
+        {Pair.fst!!(Sure.Comp.compile(term,none,defs,size)), type.value}
+    none: case term {
+      var: {
+        Sure.Comp.var(term.name)
+        Sure.Term.var(term.name, term.indx)
+      }
+      ref:
+        case Sure.Map.get!(term.name, defs) as got {
+          none: {Sure.Comp.nil, Sure.Term.typ}
+          some: {Sure.Comp.ref(term.name), open got.value; got.value.type}
+        }
+      app:
+        let {func_cmp, func_typ} = Sure.Comp.compile(term.func, none, defs, size)
+        case Sure.Term.reduce(func_typ, defs) as func_typ {
+          all:
+            let {argm_cmp, argm_typ} = Sure.Comp.compile(term.argm, some(func_typ.xtyp), defs, size)
+            let term_typ = func_typ.body(term.func, term.argm)
+            let term_cmp = case Sure.Comp.compile.prim_of(func_typ, defs) as got {
+              some: Sure.Comp.eli(got.value, func_cmp)
+              none: case Sure.Comp.compile.adt(func_typ, defs) as got {
+                some: Sure.Comp.eli(got.value, func_cmp)
+                none: func_cmp
+              }
+            }
+            let term_cmp = if func_typ.eras
+              then term_cmp
+              else Sure.Comp.app(term_cmp, argm_cmp)
+            {term_cmp, term_typ}
+        } default {Sure.Comp.nil, Sure.Term.typ}
+      let:
+        let {expr_cmp, expr_typ} = Sure.Comp.compile(term.expr, none, defs, size)
+        let name_uid = term.name | "$" | Nat.show(size)
+        let expr_var = Sure.Term.ann(true, Sure.Term.var(name_uid, size + 1), expr_typ)
+        let {body_cmp, body_typ} = Sure.Comp.compile(term.body(expr_var), none, defs, size + 1)
+        {Sure.Comp.let(name_uid, expr_cmp, body_cmp), body_typ}
+      def:
+        Sure.Comp.compile(term.body(term.expr), none, defs, size)
+      ann:
+        Sure.Comp.compile(term.term, some(term.type), defs, size)
+      loc:
+        Sure.Comp.compile(term.term, none, defs, size)
+      nat:
+        {Sure.Comp.nat(term.natx), Sure.Term.ref("Nat")}
+      chr:
+        {Sure.Comp.chr(term.chrx), Sure.Term.ref("Char")}
+      str:
+        {Sure.Comp.str(term.strx), Sure.Term.ref("String")}
+      imp:
+        Sure.Comp.compile(term.expr, none, defs, size)
+      ori:
+        Sure.Comp.compile(term.expr, none, defs, size)
+    } default {Sure.Comp.nil, Sure.Term.typ}
+  }
+
+Sure.Comp.compile.adt.get_fields(term: Sure.Term): List(String)
+  case term {
+    all:
+      let head = term.name
+      let tail = Sure.Comp.compile.adt.get_fields(term.body(Sure.Term.var("",0),Sure.Term.var("",0)))
+      if term.eras then
+        tail
+      else
+        head & tail
+  } default []
+
+Sure.Comp.compile.adt.get_constructors(term: Sure.Term): Sure.Comp.Prim.ADT
+  case term {
+    all:
+      let tail = Sure.Comp.compile.adt.get_constructors(term.body(Sure.Term.var("",0), Sure.Term.var("",0)))
+      let name = term.name
+      let flds = Sure.Comp.compile.adt.get_fields(term.xtyp)
+      {name,flds} & tail
+  } default []
+
+Sure.Comp.compile.adt(term: Sure.Term, defs: Sure.Defs): Maybe(Sure.Comp.Prim)
+  let term = Sure.Term.reduce(term, defs)
+  case term {
+    all:
+      if String.ends_with(term.self, ".Self") then
+        let body = term.body(Sure.Term.var("",0),Sure.Term.var("",0))
+        let data = Sure.Comp.compile.adt.get_constructors(body)
+        let name = String.take(String.length(term.self) - 5, term.self)
+        some(Sure.Comp.Prim.data(name, data))
+      else
+        none
+  } default none
+
+Sure.Comp.compile.prim_of(type: Sure.Term, defs: Sure.Defs): Maybe(Sure.Comp.Prim)
+  let result = none
+  for prim in Sure.Comp.Prim.natives with result:
+    open prim
+    case result {
+      none:
+        if Sure.Term.equal(type, Sure.Term.ref(prim.fst), defs) then
+          some(prim.snd)
+        else
+          none
+      some: result
+    }
+  result

@@ -1,0 +1,18 @@
+Sure.Context.find(name: Sure.Name, ctx: Sure.Context): Maybe<Sure.Term>
+  let {name, skip} = Sure.Context.get_name_skips(name)
+  Sure.Context.find.go(name, skip, ctx)
+
+Sure.Context.find.go(name: Sure.Name, skip: Nat, ctx: Sure.Context): Maybe<Sure.Term>
+  case ctx {
+    nil:
+      none
+    cons:
+      open ctx.head
+      if Sure.Name.eql(name, ctx.head.fst) then
+        case skip {
+          zero: some(ctx.head.snd)
+          succ: Sure.Context.find.go(name, skip.pred, ctx.tail)
+        }
+      else
+        Sure.Context.find.go(name, skip, ctx.tail)
+  }

@@ -1,0 +1,5 @@
+Sure.Term.SmartMotive.nams(name: Sure.Name, type: Sure.Term, defs: Sure.Defs): List<Sure.Name>
+  case Sure.Term.reduce(type, defs) as type {
+    all: Sure.Term.SmartMotive.nams.cont(name, type.xtyp, [], defs),
+    _: [],
+  }

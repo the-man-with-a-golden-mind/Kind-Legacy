@@ -1,0 +1,6 @@
+Sure.Parser.implicit: Parser<Sure.Term>
+  Sure.Parser.block("implicit", Parser {
+    Sure.Parser.text("$")
+    get expr = Sure.Parser.term
+    return Sure.Term.imp(expr)
+  })

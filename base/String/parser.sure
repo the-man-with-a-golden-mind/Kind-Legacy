@@ -1,0 +1,6 @@
+String.parser: Parser(String)
+  Parser {
+    Sure.Parser.text("\"")
+    get chrs = Parser.until!(Parser.text("\""), Char.parser.single)
+    return String.from_list(chrs)
+  }

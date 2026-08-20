@@ -1,0 +1,35 @@
+Sure.Term.SmartMotive.make(
+  name: Sure.Name,
+  expr: Sure.Term, 
+  type: Sure.Term,
+  moti: Sure.Term,
+  size: Nat,
+  defs: Sure.Defs,
+): Sure.Term
+  let vals = Sure.Term.SmartMotive.vals(expr,type,defs);
+  let nams = Sure.Term.SmartMotive.nams(name,type,defs);
+  let subs = List.zip!!(nams,vals);
+  //let skip = Debug.log!(String.flatten(["-expr: ", Sure.Term.show(expr)]), (x) Unit.new);
+  //let skip = Debug.log!(String.flatten(["-type: ", Sure.Term.show(type)]), (x) Unit.new);
+  //let skip = Debug.log!(String.flatten(["-type: ", Sure.Term.show(Sure.Term.reduce(type,defs))]), (x) Unit.new);
+  //let skip = Debug.log!(String.flatten(["-vals: ", String.join(", ", List.mapped!(vals)!(Sure.Term.show))]), (x) Unit.new);
+  //let skip = Debug.log!(String.flatten(["-nams: ", String.join(", ", nams)]), (x) Unit.new);
+  //let skip = Debug.log!(String.flatten(["-moti: ", Sure.Term.show(moti)]), (x) Unit.new);
+  List.fold!(subs)!(moti, (sub,moti) case sub {
+    new: Sure.Term.SmartMotive.replace(moti, sub.snd, Sure.Term.ref(sub.fst), size)
+  })
+
+//Sure.Term.SmartMotive.replace_many(
+  //subs: List<Pair<Sure.Name,Sure.Term>>,
+  //term: Sure.Term,
+  //lv: Nat,
+//): Sure.Term
+  //case subs {
+    //nil:
+      //term
+    //cons:
+      //open subs.head
+      //let term = Sure.Term.SmartMotive.replace_many(subs.tail, term)
+      //let term = Sure.Term.SmartMotive.replace(term, subs.head.snd, Sure.Term.ref(subs.head.fst), lv)
+      //term
+  //}

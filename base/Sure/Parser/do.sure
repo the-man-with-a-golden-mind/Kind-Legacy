@@ -1,0 +1,161 @@
+Sure.Parser.do: Parser(Sure.Term)
+  Sure.Parser.block("do", Parser {
+    Parser.maybe!(Sure.Parser.text("do "))
+    get name   = Sure.Parser.name1
+    get params = Parser.until!(Sure.Parser.text_now(" {"),
+      Parser.choice!([
+        Sure.Parser.items_now!("(", Sure.Parser.term, ")")
+        Sure.Parser.items_now!("<", Sure.Parser.term, ">")
+        Parser {
+          Sure.Parser.text_now("!")
+          return [Sure.Term.hol(Bits.e)]
+        }
+      ])
+    )
+    let params = List.flatten!(params)
+    let type   = Sure.Term.ref(name)
+    let monad  = Sure.Term.ref(String.concat(name, ".monad"))
+    let result = {type, monad}
+    for param in params with result:
+      open result
+      let n_type  = Sure.Term.app(result.fst, param)
+      let n_monad = Sure.Term.app(result.snd, param)
+      {n_type, n_monad}
+    let {type, monad} = result
+    if String.is_upper(String.slice(0,1,name)) then Parser {
+      get term = Sure.Parser.do.statements(name, type, monad)
+      Sure.Parser.text("}")
+      return term
+    } else Parser.fail!("Not a do-block.")
+  })
+
+Sure.Parser.do.statements(monad_name: Sure.Name, type: Sure.Term, monad: Sure.Term): Parser(Sure.Term)
+  Parser.choice!([
+    // Binding call: @ask x = expr rest@
+    Sure.Parser.block("do-get", Parser {
+      Parser.choice!([
+        Sure.Parser.text("var ")
+        Sure.Parser.text("get ")
+      ])
+      get name = Sure.Parser.name1
+      Sure.Parser.text("=")
+      get expr = Sure.Parser.term
+      Parser.maybe!(Sure.Parser.text(";"))
+      get body = Sure.Parser.do.statements(monad_name, type, monad)
+      let term = Sure.Term.app(Sure.Term.ref("Monad.bind"), type)
+      let term = Sure.Term.app(term, monad)
+      let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+      let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+      let term = Sure.Term.app(term, expr)
+      let term = Sure.Term.app(term, Sure.Term.lam(name, (x) body))
+      return term
+    })
+    // Return pure: @return expr@
+    Sure.Parser.block("do-return", Parser {
+      Sure.Parser.text("return ")
+      get expr = Sure.Parser.term
+      Parser.maybe!(Sure.Parser.text(";"))
+      let term = Sure.Term.app(Sure.Term.ref("Monad.pure"), type)
+      let term = Sure.Term.app(term, monad)
+      let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+      let term = Sure.Term.app(term, expr)
+      return term
+    })
+    Sure.Parser.block("do-for-range", Parser {
+      Sure.Parser.text("for ")
+      get name = Sure.Parser.name1
+      Sure.Parser.text("from")
+      get from = Sure.Parser.term
+      Sure.Parser.text("to")
+      get upto = Sure.Parser.term
+      Sure.Parser.text(":")
+      get loop = Sure.Parser.term
+      get body = Parser.maybe!(Sure.Parser.do.statements(monad_name, type, monad))
+      let expr = Sure.Term.ref("Nat.for.io")
+      let expr = Sure.Term.app(expr, from)
+      let expr = Sure.Term.app(expr, upto)
+      let expr = Sure.Term.app(expr, Sure.Term.lam(name, (x) loop))
+      case body {
+        some: Parser {
+          let term = Sure.Term.app(Sure.Term.ref("Monad.bind"), type)
+          let term = Sure.Term.app(term, monad)
+          let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+          let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+          let term = Sure.Term.app(term, expr)
+          let term = Sure.Term.app(term, Sure.Term.lam("", (x) body.value))
+          return term
+        }
+        none: Parser {
+          return expr
+        }
+      }
+    })
+    Sure.Parser.block("do-for-in", Parser {
+      Sure.Parser.text("for ")
+      get name = Sure.Parser.name1
+      Sure.Parser.text("in")
+      get list = Sure.Parser.term
+      Sure.Parser.text(":")
+      get loop = Sure.Parser.term
+      get body = Parser.maybe!(Sure.Parser.do.statements(monad_name, type, monad))
+      let expr = Sure.Term.ref("List.for.io")
+      let expr = Sure.Term.app(expr, Sure.Term.hol(Bits.e))
+      let expr = Sure.Term.app(expr, list)
+      let expr = Sure.Term.app(expr, Sure.Term.lam(name, (x) loop))
+      case body {
+        some: Parser {
+          let term = Sure.Term.app(Sure.Term.ref("Monad.bind"), type)
+          let term = Sure.Term.app(term, monad)
+          let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+          let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+          let term = Sure.Term.app(term, expr)
+          let term = Sure.Term.app(term, Sure.Term.lam("", (x) body.value))
+          return term
+        }
+        none: Parser {
+          return expr
+        }
+      }
+    })
+    // Binders
+    Sure.Parser.letforrange.u32((x) Sure.Parser.do.statements(monad_name, type, monad))
+    Sure.Parser.letforrange.u32.with((x) Sure.Parser.do.statements(monad_name, type, monad))
+    Sure.Parser.letforrange.nat((x) Sure.Parser.do.statements(monad_name, type, monad))
+    Sure.Parser.letforrange.nat.with((x) Sure.Parser.do.statements(monad_name, type, monad))
+    Sure.Parser.letforin((x) Sure.Parser.do.statements(monad_name, type, monad))
+    Sure.Parser.letforin.with((x) Sure.Parser.do.statements(monad_name, type, monad))
+    Sure.Parser.letwhile((x) Sure.Parser.do.statements(monad_name, type, monad))
+    Sure.Parser.letwhile.with((x) Sure.Parser.do.statements(monad_name, type, monad))
+    Sure.Parser.getforin((x) Sure.Parser.do.statements(monad_name, type, monad))
+    Sure.Parser.getforin.with((x) Sure.Parser.do.statements(monad_name, type, monad))
+    Sure.Parser.let.abort((x) Sure.Parser.do.statements(monad_name, type, monad))
+    Sure.Parser.let((x) Sure.Parser.do.statements(monad_name, type, monad))
+    Sure.Parser.getwhile((x) Sure.Parser.do.statements(monad_name, type, monad))
+    Sure.Parser.getwhile.with((x) Sure.Parser.do.statements(monad_name, type, monad))
+    Sure.Parser.get((x) Sure.Parser.do.statements(monad_name, type, monad))
+    Sure.Parser.def((x) Sure.Parser.do.statements(monad_name, type, monad))
+    Sure.Parser.lens.let((x) Sure.Parser.do.statements(monad_name, type, monad))
+    Sure.Parser.use.abort((x) Sure.Parser.do.statements(monad_name, type, monad))
+    Sure.Parser.use((x) Sure.Parser.do.statements(monad_name, type, monad))
+    Sure.Parser.log((x) Sure.Parser.do.statements(monad_name, type, monad))
+    Sure.Parser.open((x) Sure.Parser.do.statements(monad_name, type, monad))
+    // Non-binding call: @expr rest@
+    Sure.Parser.block("do-statement", Parser {
+      get expr = Sure.Parser.term
+      Parser.maybe!(Sure.Parser.text(";"))
+      get body = Sure.Parser.do.statements(monad_name, type, monad)
+      let term = Sure.Term.app(Sure.Term.ref("Monad.bind"), type)
+      let term = Sure.Term.app(term, monad)
+      let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+      let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+      let term = Sure.Term.app(term, expr)
+      let term = Sure.Term.app(term, Sure.Term.lam("", (x) body))
+      return term
+    }),
+    // Return direct: @expr@
+    Sure.Parser.block("do-end", Parser {
+      get expr = Sure.Parser.term
+      Parser.maybe!(Sure.Parser.text(";"))
+      return expr
+    }),
+  ])

@@ -1,0 +1,78 @@
+Sure.Parser.lambda: Parser(Sure.Term)
+  Sure.Parser.block("term", Parser {
+    Parser.choice!([
+      Sure.Parser.lambda.1,
+      Sure.Parser.lambda.2
+    ])
+  })
+
+Sure.Parser.lambda.1: Parser(Sure.Term)
+  Sure.Parser.block("lambda", Parser {
+    get nams = Sure.Parser.items!("(", Sure.Parser.name1, ")")
+    get body = Parser.avoiding!(Sure.Parser.text_now("("), Sure.Parser.term)
+    return Sure.Parser.lambda.make.start(nams, body)
+  })
+
+Sure.Parser.lambda.erased: Parser(Sure.Term)
+  Sure.Parser.block("lambda", Parser {
+    get nams = Sure.Parser.items!("<", Sure.Parser.name1, ">")
+    get body = Sure.Parser.term
+    return Sure.Parser.lambda.make.start(nams, body)
+  })
+
+//Sure.Parser.lambda.nameless: Parser(Sure.Term)
+  //Sure.Parser.block("lambda", Parser {
+    //Parser.log("A")
+    //Parser.log_code
+    //Sure.Parser.text("()")
+    //Parser.log("B")
+    //get body = Sure.Parser.term
+    //Parser.log("C")
+    //return Sure.Term.lam("", (x) body)
+  //})
+
+Sure.Parser.lambda.make.start(names: List<Sure.Name>, body: Sure.Term): Sure.Term
+  case names {
+    nil: Sure.Term.lam("", (x) body)
+    cons: Sure.Parser.lambda.make(names, body)
+  }
+
+Sure.Parser.lambda.make(names: List<Sure.Name>, body: Sure.Term): Sure.Term
+  case names {
+    nil: body
+    cons: Sure.Term.lam(names.head, (x) Sure.Parser.lambda.make(names.tail, body))
+  }
+
+Sure.Parser.lambda.name_term: Parser(Pair<Sure.Name, Maybe<Sure.Term>>)
+  Parser {
+    get name = Sure.Parser.name1
+    get term = Parser.maybe!(Parser {
+      Sure.Parser.text(":")
+      get type = Sure.Parser.term
+      return type
+    })
+    return {name, term}
+  }
+
+
+Sure.Parser.lambda.2: Parser<Sure.Term>
+  Sure.Parser.block("lambda", Parser {
+    get nams = Sure.Parser.items!("(", Sure.Parser.lambda.name_term, ")")
+    get body = Parser.avoiding!(Sure.Parser.text_now("("), Sure.Parser.term)
+    let {nams, types} = List.unzip!!(nams)
+    let lamb = Sure.Parser.lambda.make.start(nams, body)
+    let type = Sure.Parser.lambda.get_type(types)
+    let term = Sure.Term.ann(false, lamb, type)
+    return term
+  })
+
+Sure.Parser.lambda.get_type(types: List<Maybe<Sure.Term>>): Sure.Term
+  case types {
+    nil: Sure.Term.hol(Bits.e)
+    cons:
+      let type = case types.head {
+        none: Sure.Term.hol(Bits.e)
+        some: types.head.value
+      }
+      Sure.Term.all(false, "", "", type, (s,x) Sure.Parser.lambda.get_type(types.tail))
+  }

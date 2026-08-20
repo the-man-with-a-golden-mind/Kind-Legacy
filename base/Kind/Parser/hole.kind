@@ -1,5 +1,0 @@
-Kind.Parser.hole: Parser(Kind.Term)
-  Kind.Parser.block("hole", Parser {
-    Kind.Parser.text("_")
-    return Kind.Term.hol(Bits.e)
-  })

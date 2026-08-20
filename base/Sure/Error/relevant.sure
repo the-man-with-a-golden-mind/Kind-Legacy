@@ -1,0 +1,20 @@
+Sure.Error.is_undef(error: Sure.Error): Bool
+  case error { undefined_reference: true } default false
+
+Sure.Error.is_mistake(error: Sure.Error): Bool
+  case error { type_mismatch: true, cant_infer: true } default false
+
+Sure.Error.is_goal(error: Sure.Error): Bool
+  case error { show_goal: true } default false
+
+Sure.Error.relevant(errors: List<Sure.Error>): List<Sure.Error>
+  let undefs   = List.filter!(Sure.Error.is_undef, errors)
+  let mistakes = List.filter!(Sure.Error.is_mistake, errors)
+  let goals    = List.filter!(Sure.Error.is_goal, errors)
+  case undefs {
+    nil: case mistakes {
+      nil: goals
+      cons: [mistakes.head] ++ goals
+    }
+    cons: undefs ++ goals
+  }

@@ -1,0 +1,2 @@
+Sure.Map.get<A: Type>(name: Sure.Name, map: BitsMap<A>): Maybe<A>
+  BitsMap.get<A>(Sure.Name.to_bits(name), map)

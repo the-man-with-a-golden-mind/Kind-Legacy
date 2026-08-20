@@ -1,0 +1,36 @@
+Sure.Term.reduce(term: Sure.Term, defs: Sure.Defs): Sure.Term
+  case term {
+    ref: case Sure.Map.get!(term.name, defs) as got {
+      none: Sure.Term.ref(term.name),
+      some: case got.value { new: Sure.Term.reduce(got.value.term, defs) },
+    },
+    app:
+      let sp = Sure.Term.reduce.spine(term)
+      open sp
+      case Sure.Term.reduce.prim(sp.fst, sp.snd, defs) as p {
+        some: p.value
+        none:
+          let func = Sure.Term.reduce(term.func, defs);
+          case func {
+            lam: Sure.Term.reduce(func.body(term.argm), defs),
+            _: term,
+          }
+      },
+    let:
+      Sure.Term.reduce(term.body(term.expr), defs),
+    def:
+      Sure.Term.reduce(term.body(term.expr), defs),
+    ann:
+      Sure.Term.reduce(term.term, defs),
+    nat:
+      Sure.Term.reduce(Sure.Term.unroll_nat(term.natx), defs),
+    chr:
+      Sure.Term.reduce(Sure.Term.unroll_chr(term.chrx), defs),
+    str:
+      Sure.Term.reduce(Sure.Term.unroll_str(term.strx), defs),
+    imp:
+      Sure.Term.reduce(term.expr, defs),
+    ori:
+      Sure.Term.reduce(term.expr, defs),
+    _: term,
+  }

@@ -1,0 +1,22 @@
+Sure.api.io.check_file(file: String): IO<Unit>
+  IO {
+    get loaded = Sure.Synth.file(file, Sure.Map.new!)
+    case loaded {
+      left: IO {
+        IO.print(loaded.value)
+      }
+      right: case loaded.value {
+        new: IO {
+          let nams = loaded.value.fst
+          let defs = loaded.value.snd
+          case nams {
+            nil: IO.print("File not found or empty: '" | file | "'.")
+            cons: IO {
+              IO.print(Sure.Defs.report(defs, nams))
+              Sure.Defs.cache(defs)
+            }
+          }
+        }
+      }
+    }
+  }

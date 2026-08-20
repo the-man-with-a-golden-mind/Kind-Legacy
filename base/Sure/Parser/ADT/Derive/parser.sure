@@ -1,0 +1,89 @@
+Sure.Parser.ADT.Derive.parser.type(adt: Sure.Parser.ADT.Datatype): Maybe<Sure.Term>
+  open adt
+  if List.is_empty!(adt.pars) && List.is_empty!(adt.inds) then
+    some(Sure.Term.app(Sure.Term.ref("Parser"), Sure.Term.ref(adt.name)))
+  else
+    none
+
+Sure.Parser.ADT.Derive.parser.term(adt: Sure.Parser.ADT.Datatype): Maybe<Sure.Term>
+  open adt
+  if List.is_empty!(adt.pars) && List.is_empty!(adt.inds) then
+    let term = Sure.Term.ref("Parser.choice")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Parser.ADT.Derive.parser.term.cses(adt, adt.ctrs))
+    some(term)
+  else
+    none
+
+Sure.Parser.ADT.Derive.parser.term.cses(adt: Sure.Parser.ADT.Datatype, cses: List<Sure.Parser.ADT.Constructor>): Sure.Term
+  open adt
+  case cses {
+    cons:
+      open cses.head
+      let cnam = adt.name|"."|cses.head.name
+      let term = Sure.Term.ref("Parser.bind")
+      let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+      let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+      let term = Sure.Term.app(term, Sure.Term.app(Sure.Term.ref("Parser.text"), Sure.Term.str(cnam)))
+      let term = Sure.Term.app(term, Sure.Term.lam("", (x) Sure.Parser.ADT.Derive.parser.term.args(adt, cnam, cses.head.args, [], true)))
+      let list = Sure.Term.ref("List.cons")
+      let list = Sure.Term.app(list, Sure.Term.hol(Bits.e))
+      let list = Sure.Term.app(list, term)
+      let list = Sure.Term.app(list, Sure.Parser.ADT.Derive.parser.term.cses(adt, cses.tail))
+      list
+    nil: 
+      let fail = Sure.Term.ref("Parser.fail")
+      let fail = Sure.Term.app(fail, Sure.Term.hol(Bits.e))
+      let fail = Sure.Term.app(fail, Sure.Term.str(""))
+      let term = Sure.Term.ref("List.cons")
+      let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+      let term = Sure.Term.app(term, fail)
+      let term = Sure.Term.app(term, Sure.Term.app(Sure.Term.ref("List.nil"), Sure.Term.hol(Bits.e)))
+      term
+  }
+
+Sure.Parser.ADT.Derive.parser.term.cont(call: Sure.Term): Sure.Term
+  let {call_func, call_args} = Sure.Term.get_args(call)
+  let term = Sure.Term.ref(Sure.Term.extract_name(call_func) | ".parser")
+  let term = for par in call_args: Sure.Term.app(term, Sure.Term.hol(Bits.e))
+  let term = for par in call_args: Sure.Term.app(term, Sure.Parser.ADT.Derive.parser.term.cont(par))
+  term
+  
+Sure.Parser.ADT.Derive.parser.term.args(
+  adt: Sure.Parser.ADT.Datatype
+  cnam: String
+  args: List<Sure.Binder>
+  vars: List<Sure.Term>
+  fst: Bool
+): Sure.Term
+  case args {
+    cons:
+      open args.head
+      let term = Sure.Term.ref("Parser.bind")
+      let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+      let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+      let cont = Sure.Term.ref("Parser.prefix")
+      let cont = Sure.Term.app(cont, Sure.Term.hol(Bits.e))
+      let cont = Sure.Term.app(cont, Sure.Term.str(if fst then "(" else ","))
+      let cont = Sure.Term.app(cont, Sure.Parser.ADT.Derive.parser.term.cont(args.head.term))
+      let term = Sure.Term.app(term, cont)
+      let term = Sure.Term.app(term, Sure.Term.lam(args.head.name, (x)
+        Sure.Parser.ADT.Derive.parser.term.args(adt, cnam, args.tail, x & vars, false)))
+      term
+    nil:
+      let body = Sure.Term.ref("Parser.pure")
+      let body = Sure.Term.app(body, Sure.Term.hol(Bits.e))
+      let func = Sure.Term.ref(cnam)
+      let func = List.fold!(vars)!(func, ((var,func) Sure.Term.app(func, var)))
+      let body = Sure.Term.app(body, func)
+      if fst then
+        body
+      else
+        let term = Sure.Term.ref("Parser.bind")
+        let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+        let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+        let term = Sure.Term.app(term, Sure.Term.app(Sure.Term.ref("Parser.text"),Sure.Term.str(")")))
+        let term = Sure.Term.app(term, Sure.Term.lam("", (x) body))
+        term
+  }
+

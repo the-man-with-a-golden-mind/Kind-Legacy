@@ -1,0 +1,32 @@
+Char.to_utf8(c: U16): Buffer8
+  let buf = Buffer8.alloc(4)
+  if U16.ltn(c, 0x80) then
+    let b0 = U16.or(0x00, U16.and(0x7F, c))
+    let buf = Buffer8.set(0#32, U16.to_u8(b0), buf)
+    let buf = Buffer8.set(1#32, U8.zero, buf)
+    let buf = Buffer8.set(2#32, U8.zero, buf)
+    let buf = Buffer8.set(3#32, U8.zero, buf)
+    buf
+  else if U16.ltn(c, 0x0800) then
+    let b0 = U16.or(0xC0, U16.and(0x1F, U16.shr(c, 6)))
+    let b1 = U16.or(0x80, U16.and(0x3F, c))
+    let buf = Buffer8.set(0#32, U16.to_u8(b0), buf)
+    let buf = Buffer8.set(1#32, U16.to_u8(b1), buf)
+    let buf = Buffer8.set(2#32, U8.zero, buf)
+    let buf = Buffer8.set(3#32, U8.zero, buf)
+    buf
+  else if Bool.or(U16.ltn(c, 0xd800), U16.gte(c, 0xe000)) then
+    let b0 = U16.or(0xE0, U16.and(0x0F, U16.shr(c, 12)))
+    let b1 = U16.or(0x80, U16.and(0x3F, U16.shr(c, 6)))
+    let b2 = U16.or(0x80, U16.and(0x3F, c))
+    let buf = Buffer8.set(0#32, U16.to_u8(b0), buf)
+    let buf = Buffer8.set(1#32, U16.to_u8(b1), buf)
+    let buf = Buffer8.set(2#32, U16.to_u8(b2), buf)
+    let buf = Buffer8.set(3#32, U8.zero, buf)
+    buf
+  else
+    let buf = Buffer8.set(0#32, U16.to_u8(0xEF), buf)
+    let buf = Buffer8.set(1#32, U16.to_u8(0xBF), buf)
+    let buf = Buffer8.set(2#32, U16.to_u8(0xBD), buf)
+    let buf = Buffer8.set(3#32, U8.zero, buf)
+    buf

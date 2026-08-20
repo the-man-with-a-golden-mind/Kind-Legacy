@@ -1,0 +1,5 @@
+Sure.Parser.hole: Parser(Sure.Term)
+  Sure.Parser.block("hole", Parser {
+    Sure.Parser.text("_")
+    return Sure.Term.hol(Bits.e)
+  })

@@ -1,0 +1,16 @@
+// Performs a variable substitution. Doesn't check for name capture.
+Sure.Comp.subst(name: String, value: Sure.Comp, term: Sure.Comp): Sure.Comp
+  case term {
+    nil: Sure.Comp.nil
+    var: if String.eql(name,term.name) then value else Sure.Comp.var(term.name)
+    ref: Sure.Comp.ref(term.name)
+    lam: Sure.Comp.lam(term.name, if String.eql(name,term.name) then term.body else Sure.Comp.subst(name,value,term.body))
+    app: Sure.Comp.app(Sure.Comp.subst(name,value,term.func), Sure.Comp.subst(name,value,term.argm))
+    let: Sure.Comp.let(term.name, Sure.Comp.subst(name,value,term.expr), if String.eql(name,term.name) then term.body else Sure.Comp.subst(name,value,term.body))
+    eli: Sure.Comp.eli(term.prim, Sure.Comp.subst(name,value,term.expr))
+    ins: Sure.Comp.ins(term.prim, Sure.Comp.subst(name,value,term.expr))
+    nat: Sure.Comp.nat(term.natx)
+    chr: Sure.Comp.chr(term.chrx)
+    str: Sure.Comp.str(term.strx)
+    txt: Sure.Comp.txt(term.text)
+  }

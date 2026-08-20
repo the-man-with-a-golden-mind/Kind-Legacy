@@ -1,0 +1,17 @@
+Sure.api.export: IO<Unit>
+  IO {
+    let e = Sure.api.io.term_to_core
+    let e = Sure.api.io.term_to_scheme
+    let e = Sure.api.io.terms_to_scheme_lib
+    let e = Sure.api.io.check_file
+    let e = Sure.api.io.check_files
+    let e = Sure.api.io.check_term
+    let e = Sure.api.io.check_term_json
+    let e = Sure.api.io.check_code
+    let e = Sure.api.io.check_code_json
+    let e = Sure.api.io.show_term
+    let e = Sure.api.io.show_term_normal
+    let e = Sure.api.check_code
+    let e = Sure.Term.read
+    return unit
+  }

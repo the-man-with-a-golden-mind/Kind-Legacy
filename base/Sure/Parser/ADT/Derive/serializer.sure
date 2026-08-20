@@ -1,0 +1,73 @@
+Sure.Parser.ADT.Derive.serializer.type(adt: Sure.Parser.ADT.Datatype): Maybe<Sure.Term>
+  open adt
+  if List.is_empty!(adt.pars) && List.is_empty!(adt.inds) then
+    some(Sure.Term.app(Sure.Term.ref("Serializer"), Sure.Term.ref(adt.name)))
+  else
+    none
+
+Sure.Parser.ADT.Derive.serializer.term(adt: Sure.Parser.ADT.Datatype): Maybe<Sure.Term>
+  open adt
+  if List.is_empty!(adt.pars) && List.is_empty!(adt.inds) then
+    let term =
+      Sure.Term.lam("x", (x) 
+      Sure.Term.lam("bs", (bs)
+        let ctrs = Sure.Parser.ADT.Derive.serializer.term.ctrs(adt.name, adt.ctrs, Bits.zeros(Nat.bitlen(Nat.pred(List.length!(adt.ctrs)))))
+        let cses = Sure.Map.new!
+        for ctr in ctrs with cses:
+          open ctr
+          Sure.Map.set!(ctr.fst, ctr.snd, cses)
+        Sure.Term.cse(Bits.e, x, "x", [], cses, none)))
+    some(term)
+  else
+    none
+
+Sure.Parser.ADT.Derive.serializer.term.ctrs(adt_name: String, ctrs: List<Sure.Parser.ADT.Constructor>, header: Bits): List<Pair<String,Sure.Term>>
+  case ctrs {
+    nil:
+      []
+    cons:
+      List.cons!(
+        Sure.Parser.ADT.Derive.serializer.ctr(adt_name, ctrs.head, header),
+        Sure.Parser.ADT.Derive.serializer.term.ctrs(adt_name, ctrs.tail, Bits.inc(header)))
+  }
+
+Sure.Parser.ADT.Derive.serializer.ctr(adt_name: String, ctr: Sure.Parser.ADT.Constructor, header: Bits): Pair<String,Sure.Term>
+  open ctr
+  let term = Sure.Parser.ADT.Derive.serializer.term.args(ctr.args)
+  let term = Sure.Parser.ADT.Derive.serializer.ctr.bits(header, term)
+  {ctr.name, term}
+
+Sure.Parser.ADT.Derive.serializer.ctr.bits(bs: Bits, rest: Sure.Term): Sure.Term
+  case bs {
+    e: rest
+    o: Sure.Term.app(Sure.Term.ref("Bits.o"), Sure.Parser.ADT.Derive.serializer.ctr.bits(bs.pred, rest))
+    i: Sure.Term.app(Sure.Term.ref("Bits.i"), Sure.Parser.ADT.Derive.serializer.ctr.bits(bs.pred, rest))
+  }
+  
+Sure.Parser.ADT.Derive.serializer.term.args(args: List<Sure.Binder>): Sure.Term
+  case args {
+    nil:
+      Sure.Term.ref("bs")
+    cons:
+      open args.head
+      let {call_func, call_args} = Sure.Term.get_args(args.head.term)
+      let rest = Sure.Parser.ADT.Derive.serializer.term.args(args.tail)
+      let term = Sure.Parser.ADT.Derive.serializer.term.cont(args.head.term, some({"x." | args.head.name, rest}))
+      term
+  }
+
+Sure.Parser.ADT.Derive.serializer.term.cont(call: Sure.Term, rest: Maybe<Pair<String,Sure.Term>>): Sure.Term
+  let {call_func, call_args} = Sure.Term.get_args(call)
+  let term = Sure.Term.ref(Sure.Term.extract_name(call_func) | ".serializer")
+  let term = for par in call_args: Sure.Term.app(term, Sure.Term.hol(Bits.e))
+  let term = for par in call_args: Sure.Term.app(term, Sure.Parser.ADT.Derive.serializer.term.cont(par, none))
+  case rest {
+    none: term
+    some:
+      let {name, rest} = rest.value
+      let term = Sure.Term.app(term, Sure.Term.ref(name))
+      let term = Sure.Term.app(term, rest)
+      term
+      //log("ue" | Sure.Term.show(Sure.Term.app(term, rest.value)))
+      //Sure.Term.app(term, rest.value)
+  }

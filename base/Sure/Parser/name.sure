@@ -1,0 +1,6 @@
+Sure.Parser.name: Parser(Sure.Name)
+  Parser {
+    Sure.Parser.spaces
+    get chrs = Parser.many<Sure.Letter>(Sure.Parser.letter)
+    return List.fold!(chrs)!(String.nil, String.cons)
+  }

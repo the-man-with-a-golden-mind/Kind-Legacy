@@ -1,0 +1,5 @@
+Sure.Parser.text(text: String): Parser(Unit)
+  Parser {
+    Sure.Parser.spaces
+    Parser.text(text)
+  }

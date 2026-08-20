@@ -1,0 +1,7 @@
+Sure.Term.extract_name(term: Sure.Term): String
+  let term = Sure.Term.reduce(term, Sure.Map.new!)
+  case term {
+    ref: term.name
+    var: term.name
+  } default "self"
+

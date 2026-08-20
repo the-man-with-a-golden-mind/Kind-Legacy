@@ -1,0 +1,2 @@
+Sure.Check.pure<V: Type>(value: V): Sure.Check<V>
+  Sure.Check.result<V>(Maybe.some<V>(value), [])

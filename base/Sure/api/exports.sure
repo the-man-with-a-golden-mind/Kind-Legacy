@@ -1,0 +1,14 @@
+Sure.api.exports: List<String>
+  ["Sure.api.io.term_to_core"
+  "Sure.api.io.term_to_scheme"
+  "Sure.api.io.terms_to_scheme_lib"
+  "Sure.api.io.check_file"
+  "Sure.api.io.check_files"
+  "Sure.api.io.check_term"
+  "Sure.api.io.check_term_json"
+  "Sure.api.io.check_code"
+  "Sure.api.io.check_code_json"
+  "Sure.api.io.show_term"
+  "Sure.api.io.show_term_normal"
+  "Sure.api.check_code"
+  "Sure.Term.read"]

@@ -1,0 +1,5 @@
+Sure.Term.read(code: String): Maybe<Sure.Term>
+  case Sure.Parser.term(Parser.State.new(none, "", 0, 0, code)) as parsed {
+    error: none
+    value: some(parsed.val)
+  }

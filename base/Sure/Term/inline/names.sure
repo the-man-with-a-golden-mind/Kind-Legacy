@@ -1,0 +1,16 @@
+Sure.Term.inline.names: BitsSet
+  let inl = [
+    "Monad.pure",
+    "Monad.bind",
+    "Monad.new",
+    "Parser.monad",
+    "Parser.bind",
+    "Parser.pure",
+    "Sure.Check.pure",
+    "Sure.Check.bind",
+    "Sure.Check.monad",
+    "Sure.Check.value",
+    "Sure.Check.none",
+  ]
+  let kvs = List.mapped!(inl)!((x) {Sure.Name.to_bits(x), Unit.new});
+  BitsMap.from_list!(kvs)

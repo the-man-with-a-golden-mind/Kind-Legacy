@@ -1,0 +1,16 @@
+// Converts a Comp term to a readable string
+Sure.Comp.show(comp: Sure.Comp): String
+  case comp {
+    nil: "?"
+    var: comp.name // name: Sure.Name),
+    ref: comp.name // name: Sure.Name),
+    lam: "λ" | comp.name | "." | Sure.Comp.show(comp.body) // name: Sure.Name, body: Sure.Comp),
+    app: "(" | Sure.Comp.show(comp.func) | " " | Sure.Comp.show(comp.argm) | ")" // func: Sure.Comp, argm: Sure.Comp),
+    let: "$" | comp.name | "=" | Sure.Comp.show(comp.expr) | ";" | Sure.Comp.show(comp.body)
+    eli: "eli{" | Sure.Comp.Prim.show(comp.prim) | " " | Sure.Comp.show(comp.expr) | "}" // prim: Sure.Comp.Prim, expr: Sure.Comp),
+    ins: "ins{" | Sure.Comp.Prim.show(comp.prim) | " " | Sure.Comp.show(comp.expr) | "}" // prim: Sure.Comp.Prim, expr: Sure.Comp),
+    nat: Nat.show(comp.natx) // natx: Nat),
+    chr: "'" | String.cons(comp.chrx, String.nil) | "'" // chrx: Char),
+    str: "\"" | comp.strx | "\"" // strx: String),
+    txt: comp.text
+  }

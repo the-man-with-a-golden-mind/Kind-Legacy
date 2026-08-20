@@ -1,0 +1,21 @@
+Sure.Code.escape.go(str: String, result: String): String
+  case str {
+    nil: String.reverse(result)
+    cons: Sure.Code.escape.go(str.tail, String.reverse(Sure.Code.escape.char(str.head)) | result)
+  }
+
+Sure.Code.escape(str: String): String
+  Sure.Code.escape.go(str, "")
+
+// TODO: avoid passing \\, \" and \' to core?
+Sure.Code.escape.char(chr: Char): String
+  if U16.eql(chr, Sure.Code.backslash) then
+    String.cons(Sure.Code.backslash, String.cons(chr, String.nil))
+  else if U16.eql(chr, '"') then
+    String.cons(Sure.Code.backslash, String.cons(chr, String.nil))
+  else if U16.eql(chr, '\'') then
+    String.cons(Sure.Code.backslash, String.cons(chr, String.nil))
+  else if U16.btw(' ', chr, '~') then
+    String.cons(chr, String.nil)
+  else
+    String.cons(Sure.Code.backslash, String.nil) | "u{" | U16.show_hex(chr) | "}"

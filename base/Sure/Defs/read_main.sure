@@ -1,0 +1,5 @@
+Sure.Defs.read_main(code: String): Sure.Defs
+  case Sure.Defs.read("Main.sure", code, Sure.Map.new!) as got {
+    left: Sure.Map.new!
+    right: got.value
+  }

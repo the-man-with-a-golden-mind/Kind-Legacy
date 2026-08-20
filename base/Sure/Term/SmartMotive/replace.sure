@@ -1,0 +1,61 @@
+Sure.Term.SmartMotive.replace(term: Sure.Term, from: Sure.Term, to: Sure.Term, lv: Nat): Sure.Term
+  //let skip = Debug.log!(String.flatten(["replace term=", Sure.Term.show(term), " from=", Sure.Term.show(from), " to=", Sure.Term.show(to), " lv=", Nat.show(lv)]), (x) Unit.new);
+  if Sure.Term.identical(term, from, lv) then
+    to
+  else case term {
+    ref:
+      Sure.Term.ref(term.name),
+    var:
+      Sure.Term.var(term.name, term.indx),
+    typ:
+      Sure.Term.typ,
+    all: 
+      let xtyp = Sure.Term.SmartMotive.replace(term.xtyp, from, to, lv);
+      let body = term.body(Sure.Term.ref(term.self),Sure.Term.ref(term.name));
+      let body = Sure.Term.SmartMotive.replace(body, from, to, Nat.succ(Nat.succ(lv)));
+      Sure.Term.all(term.eras, term.self, term.name, xtyp, (s,x) body),
+    lam:
+      let body = term.body(Sure.Term.ref(term.name));
+      let body = Sure.Term.SmartMotive.replace(body, from, to, Nat.succ(lv));
+      Sure.Term.lam(term.name, (x) body),
+    app:
+      let func = Sure.Term.SmartMotive.replace(term.func, from, to, lv);
+      let argm = Sure.Term.SmartMotive.replace(term.argm, from, to, lv);
+      Sure.Term.app(func, argm),
+    let:
+      let expr = Sure.Term.SmartMotive.replace(term.expr, from, to, lv);
+      let body = term.body(Sure.Term.ref(term.name))
+      let body = Sure.Term.SmartMotive.replace(body, from, to, Nat.succ(lv));
+      Sure.Term.let(term.name, expr, (x) body),
+    def:
+      let expr = Sure.Term.SmartMotive.replace(term.expr, from, to, lv);
+      let body = term.body(Sure.Term.ref(term.name))
+      let body = Sure.Term.SmartMotive.replace(body, from, to, Nat.succ(lv));
+      Sure.Term.def(term.name, expr, (x) body),
+    ann:
+      let term = Sure.Term.SmartMotive.replace(term.term, from, to, lv);
+      let type = Sure.Term.SmartMotive.replace(term.type, from, to, lv);
+      Sure.Term.ann(term.done, term, type),
+    get:
+      let expr = Sure.Term.SmartMotive.replace(term.expr, from, to, lv);
+      let fkey = term.fkey;
+      Sure.Term.get(expr, fkey),
+    set:
+      let expr = Sure.Term.SmartMotive.replace(term.expr, from, to, lv);
+      let fkey = term.fkey;
+      let fval = Sure.Term.SmartMotive.replace(term.fval, from, to, lv);
+      Sure.Term.set(expr, fkey, fval),
+    mut:
+      let expr = Sure.Term.SmartMotive.replace(term.expr, from, to, lv);
+      let fkey = term.fkey;
+      let ffun = Sure.Term.SmartMotive.replace(term.ffun, from, to, lv);
+      Sure.Term.set(expr, fkey, ffun),
+    ope:
+      let arg0 = Sure.Term.SmartMotive.replace(term.arg0, from, to, lv);
+      let arg1 = Sure.Term.SmartMotive.replace(term.arg1, from, to, lv);
+      Sure.Term.ope(term.name, arg0, arg1)
+    imp:
+      Sure.Term.SmartMotive.replace(term.expr, from, to, lv),
+    ori:
+      Sure.Term.SmartMotive.replace(term.expr, from, to, lv),
+  } default term

@@ -1,0 +1,12 @@
+// Gets all the vars of a sequence of lambdas, returns the body.
+// - get_vars(`λx. λy. λz. f`) == {["x","y","z"], `f`}
+Sure.Term.get_vars(term: Sure.Term, depth: Nat): Pair(List(String), Sure.Term)
+  case term {
+    lam:
+      let {vars, body} = Sure.Term.get_vars(term.body(Sure.Term.var(term.name,depth)), Nat.succ(depth))
+      {term.name & vars, body}
+    imp:
+      Sure.Term.get_vars(term.expr, depth)
+    ori:
+      Sure.Term.get_vars(term.expr, depth)
+  } default {[], term}

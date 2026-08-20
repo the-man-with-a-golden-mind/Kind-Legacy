@@ -1,0 +1,59 @@
+Sure.Parser.float.str_digit: Parser(Char)
+  (pst)
+  open pst
+  case pst.str {
+    nil:
+      Parser.Reply.fail!(pst.nam, pst.ini, pst.idx, "Not a digit.")
+    cons:
+      let digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+      let pst = Parser.State.new(pst.err, pst.nam, pst.ini, Nat.succ(pst.idx), pst.str.tail)
+      if List.any!(U16.eql(pst.str.head), digits) then
+        Parser.Reply.value!(pst, pst.str.head)
+      else
+        Parser.Reply.fail!(pst.nam, pst.ini, pst.idx, "Not a digit.")
+  }
+
+Sure.Parser.float.sign: Parser(Char)
+  (pst)
+  open pst
+  case pst.str {
+    nil:
+      Parser.Reply.fail!(pst.nam, pst.ini, pst.idx, "Expected '+' or '-'.")
+    cons:
+      if U16.eql(pst.str.head, '+') || U16.eql(pst.str.head, '-') then
+        Parser.Reply.value!(pst@str <- pst.str.tail, pst.str.head)
+      else
+        Parser.Reply.fail!(pst.nam, pst.ini, pst.idx, "Expected '+' ou '-'.")
+  }
+
+Sure.Parser.float.32: Parser(Sure.Term)
+  Sure.Parser.block("float", Parser {
+    get sign = Parser.maybe<Char>(Sure.Parser.float.sign)
+    let sign = sign <> '+'
+    get digits = Parser.many1<Char>(Sure.Parser.float.str_digit)
+    Parser.text(".")
+    get frac = Parser.many1<Char>(Sure.Parser.float.str_digit)
+    Parser.text("#32")
+    let float_str = Sure.Term.str(String.cons(sign, String.from_list(digits))
+                                  | "."
+                                  | String.from_list(frac))
+    let conv = Sure.Term.ref("F32.parse")
+    let term = Sure.Term.app(conv, float_str)
+    return term
+  })
+
+Sure.Parser.float.64: Parser(Sure.Term)
+  Sure.Parser.block("float", Parser {
+    get sign = Parser.maybe<Char>(Sure.Parser.float.sign)
+    let sign = sign <> '+'
+    get digits = Parser.many1<Char>(Sure.Parser.float.str_digit)
+    Parser.text(".")
+    get frac = Parser.many1<Char>(Sure.Parser.float.str_digit)
+    Parser.text("#64")
+    let float_str = Sure.Term.str(String.cons(sign, String.from_list(digits))
+                                  | "."
+                                  | String.from_list(frac))
+    let conv = Sure.Term.ref("F64.parse")
+    let term = Sure.Term.app(conv, float_str)
+    return term
+  })

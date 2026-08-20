@@ -1,0 +1,643 @@
+Sure.Term.check(
+  term: Sure.Term
+  type: Maybe<Sure.Term>
+  defs: Sure.Defs
+  ctx: Sure.Context
+  path: Sure.Path.Maybe.Builder
+  orig: Maybe<Pair<Nat,Nat>>
+): Sure.Check<Sure.Term>
+  //log("check " | Sure.Term.show(term) | " :: " | Sure.Term.show(type <> Sure.Term.ref("_")))
+  Sure.Check {
+    get infr = case term {
+      ref: case Sure.Map.get!(term.name, defs) as got {
+        none: Sure.Check.result!(type, [Sure.Error.undefined_reference(orig, term.name)])
+        some: case got.value {
+          new:
+            let ref_name = got.value.name
+            let ref_type = got.value.type
+            let ref_term = got.value.term
+            let ref_stat = got.value.stat
+            case ref_stat {
+              init: Sure.Check.result!(some(ref_type), [Sure.Error.waiting(ref_name)])
+              wait: Sure.Check.result!(some(ref_type), [])
+              done: Sure.Check.result!(some(ref_type), [])
+              fail: Sure.Check.result!(some(ref_type), [Sure.Error.indirect(ref_name)])
+            }
+        }
+      }
+      var: case List.at_last!(term.indx, ctx) as got {
+        none: Sure.Check.result!(type, [Sure.Error.undefined_reference(orig, term.name)])
+        some: Sure.Check { return case got.value { new: got.value.snd }; }
+      }
+      typ: Sure.Check {
+        return Sure.Term.typ
+      }
+      all: Sure.Check {
+        let ctx_size = List.length!(ctx)
+        let self_var = Sure.Term.var(term.self, ctx_size)
+        let body_var = Sure.Term.var(term.name, Nat.succ(ctx_size))
+        let body_ctx = List.cons!({term.name,term.xtyp}, List.cons!({term.self,term}, ctx))
+        Sure.Term.check(term.xtyp, some(Sure.Term.typ), defs, ctx, Sure.Path.Maybe.Builder.o(path), orig)
+        Sure.Term.check(term.body(self_var,body_var), some(Sure.Term.typ), defs, body_ctx, Sure.Path.Maybe.Builder.i(path), orig)
+        return Sure.Term.typ
+      }
+      lam: case type {
+        none: Sure.Check {
+          //let lam_arit = Sure.Term.arity(term)
+          //let lam_type = Nat.for!(Sure.Term.hol(Bits.e),0,lam_arit,(i,t) 
+            //Sure.Term.all(Bool.false, "", "", Sure.Term.hol(Bits.e), (s,x) t))
+          let lam_type = Sure.Term.hol(Bits.e)
+          let lam_term = Sure.Term.ann(Bool.false, term, lam_type)
+          Sure.Term.check.patch(lam_term, type, path)
+          //Sure.Check.result!(type, [Sure.Error.patch(Sure.Path.Maybe.Builder.to_bits(path),lam_term)])
+          //Sure.Check.result!(type, [Sure.Error.cant_infer(orig, term, ctx)])
+        }
+        some: Sure.Check {
+          let typv = Sure.Term.reduce(type.value, defs)
+          case typv {
+            all: Sure.Check {
+              let ctx_size = List.length!(ctx)
+              let self_var = term
+              let body_var = Sure.Term.var(term.name, ctx_size)
+              let body_typ = typv.body(self_var, body_var)
+              let body_ctx = List.cons!({term.name,typv.xtyp}, ctx)
+              Sure.Term.check(term.body(body_var), some(body_typ), defs, body_ctx, Sure.Path.Maybe.Builder.o(path), orig)
+              return type.value
+            }
+            //hol: Sure.Check {
+              //let lam_type = Sure.Term.all(Bool.false, "", "", Sure.Term.hol(Bits.e), (s,x) Sure.Term.hol(Bits.e))
+              //let lam_term = Sure.Term.ann(Bool.false, term, lam_type)
+              //Sure.Check.result!(type, [Sure.Error.patch(Sure.Path.Maybe.Builder.to_bits(path),lam_term)])
+            //}
+            _: Sure.Check {
+              let expected = Either.left!!("function")
+              let detected = Either.right!!(type.value)
+              Sure.Check.result!(type, [Sure.Error.type_mismatch(orig, expected, detected, ctx)])
+            }
+          }
+        }
+      }
+      app: Sure.Check {
+        get func_typ = Sure.Term.check(term.func, none, defs, ctx, Sure.Path.Maybe.Builder.o(path), orig)
+        //log("- func_typ_term " | Sure.Term.show(func_typ))
+        let func_typ = Sure.Term.reduce(func_typ, defs)
+        //log("- func_typ_whnf " | Sure.Term.show(func_typ))
+        case func_typ {
+          all: Sure.Check {
+            let xtyp = Sure.Term.unori(func_typ.xtyp)
+            let argm = Sure.Term.unori(term.argm)
+            // Implicit application
+            case xtyp {
+              imp: case argm {
+                imp: Sure.Check {
+                  //log("- implicit: check")
+                  Sure.Term.check(argm.expr, some(xtyp.expr), defs, ctx, Sure.Path.Maybe.Builder.i(path), orig)
+                  return func_typ.body(term.func, argm.expr)
+                }
+              } default Sure.Check {
+                //log("- implicit: patch")
+                Sure.Term.check.patch(Sure.Term.app(Sure.Term.app(term.func, Sure.Term.imp(Sure.Term.hol(Bits.e))), term.argm), type, path)
+              }
+            // Explicit application
+            } default Sure.Check {
+              Sure.Term.check(term.argm, some(func_typ.xtyp), defs, ctx, Sure.Path.Maybe.Builder.i(path), orig)
+              return func_typ.body(term.func, term.argm)
+            }
+          }
+        } default Sure.Check {
+          let expected = Either.left!!("function")
+          let detected = Either.right!!(func_typ)
+          let orig = case term.func { ori: some(term.func.orig) } default orig
+          Sure.Check.result!(type, [Sure.Error.type_mismatch(orig, expected, detected, ctx)])
+        }
+      }
+      ann:
+        if term.done then Sure.Check {
+          return term.type
+        } else Sure.Check {
+          Sure.Term.check(term.term, some(term.type), defs, ctx, Sure.Path.Maybe.Builder.o(path), orig)
+          Sure.Term.check(term.type, some(Sure.Term.typ), defs, ctx, Sure.Path.Maybe.Builder.i(path), orig)
+          return term.type
+        }
+      let: Sure.Check {
+        let ctx_size = List.length!(ctx)
+        get expr_typ = Sure.Term.check(term.expr, none, defs, ctx, Sure.Path.Maybe.Builder.o(path), orig)
+        let body_val = term.body(Sure.Term.var(term.name, ctx_size))
+        let body_ctx = List.cons!({term.name, expr_typ}, ctx)
+        get body_typ = Sure.Term.check(body_val, type, defs, body_ctx, Sure.Path.Maybe.Builder.i(path), orig)
+        return body_typ
+      }
+      def: Sure.Check {
+        let ctx_size = List.length!(ctx)
+        get expr_typ = Sure.Term.check(term.expr, none, defs, ctx, Sure.Path.Maybe.Builder.o(path), orig)
+        let body_val = term.body(term.expr)
+        let body_ctx = List.cons!({term.name, expr_typ}, ctx)
+        get body_typ = Sure.Term.check(body_val, type, defs, body_ctx, Sure.Path.Maybe.Builder.i(path), orig)
+        return body_typ
+      }
+      nat: case type {
+        none: Sure.Term.check.direct(Sure.Term.ref("Nat"), defs)
+        some: Sure.Check {
+          let tnam = Sure.Term.check.get_name_of_self_type(type.value, defs)
+          case tnam {
+            none: Sure.Term.check.direct(Sure.Term.ref("Nat"), defs)
+            some: if String.eql(tnam.value, "Nat")
+              then Sure.Term.check.direct(Sure.Term.ref("Nat"), defs)
+              else
+                let cast = Sure.Term.ref(tnam.value | ".from_nat")
+                let cast = Sure.Term.app(cast, term) 
+                Sure.Term.check.patch(cast, type, path)
+          }
+        }
+      }
+      chr: Sure.Check {
+        Sure.Term.check.direct(Sure.Term.ref("Word.from_bits"), defs)
+        Sure.Term.check.direct(Sure.Term.ref("U16.new"), defs)
+        Sure.Term.check.direct(Sure.Term.ref("Char"), defs)
+      }
+      str: Sure.Check {
+        Sure.Term.check.direct(Sure.Term.ref("Word.from_bits"), defs)
+        Sure.Term.check.direct(Sure.Term.ref("U16.new"), defs)
+        Sure.Term.check.direct(Sure.Term.ref("String"), defs)
+      }
+      num: Sure.Check {
+        let dsug = Sure.Term.check.expand.num(term.sign, term.numb, term.frac, type, defs)
+        Sure.Term.check.patch(dsug, type, path)
+      }
+      cse: Sure.Check {
+        let expr = term.expr
+        get etyp = Sure.Term.check(expr, none, defs, ctx, Sure.Path.Maybe.Builder.o(path), orig)
+        get wyth = Sure.Term.check.infer_types_of_with(term.with, defs, ctx, path, orig)
+        let dsug = Sure.Term.check.expand.cse(term.expr, term.name, wyth, term.cses, term.moti, etyp, type, defs, ctx)
+        case dsug {
+          none: Sure.Term.check.cant_infer(term, type, ctx, orig)
+          some: Sure.Term.check.patch(dsug.value, type, path)
+        }
+      }
+      new: Sure.Check {
+        let dsug = Sure.Term.check.expand.new(term.args, type, defs)
+        case dsug {
+          none: Sure.Term.check.cant_infer(term, type, ctx, orig)
+          some: Sure.Term.check.patch(dsug.value, type, path)
+        }
+      }
+      get: Sure.Check {
+        let expr = term.expr
+        get etyp = Sure.Term.check(expr, none, defs, ctx, Sure.Path.Maybe.Builder.o(path), orig)
+        let dsug = Sure.Term.check.expand.get(term.expr, term.fkey, etyp, defs)
+        case dsug {
+          none: Sure.Term.check.cant_infer(term, type, ctx, orig)
+          some: Sure.Term.check.patch(dsug.value, type, path)
+        }
+      }
+      set: Sure.Check {
+        let expr = term.expr
+        get etyp = Sure.Term.check(expr, none, defs, ctx, Sure.Path.Maybe.Builder.o(path), orig)
+        let dsug = Sure.Term.check.expand.mut(term.expr, term.fkey, (x) term.fval, etyp, defs)
+        case dsug {
+          none: Sure.Term.check.cant_infer(term, type, ctx, orig)
+          some: Sure.Term.check.patch(dsug.value, type, path)
+        }
+      }
+      mut: Sure.Check {
+        let expr = term.expr
+        get etyp = Sure.Term.check(expr, none, defs, ctx, Sure.Path.Maybe.Builder.o(path), orig)
+        let dsug = Sure.Term.check.expand.mut(term.expr, term.fkey, Sure.Term.app(term.ffun), etyp, defs)
+        case dsug {
+          none: Sure.Term.check.cant_infer(term, type, ctx, orig)
+          some: Sure.Term.check.patch(dsug.value, type, path)
+        }
+      }
+      ope: Sure.Check {
+        let otyp = type <> Sure.Term.hol(Bits.e)
+        let dsug = Sure.Term.check.expand.ope(true, term.name, term.arg0, term.arg1, otyp, defs)
+        case dsug {
+          none: Sure.Check {
+            get otyp = Sure.Term.check(term.arg0, none, defs, ctx, Sure.Path.Maybe.Builder.o(path), orig)
+            let dsug = Sure.Term.check.expand.ope(false, term.name, term.arg0, term.arg1, otyp, defs)
+            case dsug {
+              none: Sure.Term.check.cant_infer(term, type, ctx, orig)
+              some: Sure.Term.check.patch(dsug.value, type, path)
+            }
+          }
+          some: Sure.Term.check.patch(dsug.value, type, path)
+        }
+      }
+      gol: Sure.Check {
+        Sure.Check.result!(type, [
+          Sure.Error.show_goal(term.name, term.dref, term.verb, type, ctx)
+        ])
+      }
+      hol: Sure.Check {
+        // Unification metavariable. Residual `_` after checking is a failed
+        // proof: the CLI rejects shown `_` / `?admit` in check, prove, and build.
+        Sure.Check.result!(type, [])
+      }
+      imp: Sure.Check {
+        Sure.Term.check(term.expr, type, defs, ctx, path, orig)
+      }
+      ori: Sure.Check {
+        Sure.Term.check(term.expr, type, defs, ctx, path, some(term.orig))
+      }
+    }
+    case type {
+      none:
+        Sure.Check.result!(some(infr), [])
+      some: Sure.Check {
+        get eqls = Sure.Term.equal.go(type.value, infr, defs, List.length!(ctx), BitsSet.mut.new(unit))
+        if eqls then Sure.Check {
+          return type.value
+        } else Sure.Check {
+          Sure.Check.result!(type, [
+            Sure.Error.type_mismatch(
+              orig,
+              Either.right!!(type.value),
+              Either.right!!(infr),
+              ctx)
+          ])
+        }
+      }
+    }
+  }
+
+Sure.Term.check.direct(term: Sure.Term, defs: Sure.Defs): Sure.Check(Sure.Term)
+  Sure.Check {
+    Sure.Term.check(term, none, defs, [], Sure.Path.Maybe.Builder.nil, none)
+    return term
+  }
+
+Sure.Term.check.patch(term: Sure.Term, type: Maybe(Sure.Term), path: Sure.Path.Maybe.Builder): Sure.Check(Sure.Term)
+  Sure.Check {
+    Sure.Check.result!(type, [Sure.Error.patch(Sure.Path.Maybe.Builder.to_bits(path), term)])
+  }
+
+Sure.Term.check.cant_infer(term: Sure.Term, type: Maybe(Sure.Term), ctx: Sure.Context, orig: Maybe<Pair<Nat,Nat>>): Sure.Check(Sure.Term)
+  Sure.Check {
+    Sure.Check.result!(type, [Sure.Error.cant_infer(orig, term, ctx)])
+  }
+
+// Converts "Foo.Self" to "Foo"
+Sure.Term.check.get_name_of_self_type.slice(self: String): Maybe(String)
+  let len = String.length(self)
+  let ini = String.slice(0, Nat.sub(len,5), self)
+  let end = String.slice(Nat.sub(len,5), len, self)
+  if String.eql(end, ".Self") then
+    some(ini)
+  else
+    none
+
+// Extracts the name of a self type
+Sure.Term.check.get_name_of_self_type(type: Sure.Term, defs: Sure.Defs): Maybe(String)
+  case Sure.Term.reduce(type, Sure.Map.new!) as type {
+    ref: some(type.name)
+  } default case Sure.Term.reduce(type, defs) as type {
+    all: Sure.Term.check.get_name_of_self_type.slice(type.self)
+    ref: some(type.name)
+  } default none
+
+// Expands numeric literals into their proper types
+Sure.Term.check.expand.num(sign: Maybe<Bool>, numb: Nat, frac: Maybe<Nat>, type: Maybe<Sure.Term>, defs: Sure.Defs): Sure.Term
+  let got = case type {
+    none: none
+    some: case Sure.Term.check.get_name_of_self_type(type.value, defs) as self {
+      none: none
+      some: switch String.eql(self.value) {
+        "Nat": some(Sure.Term.check.expand.num.nat(numb))
+        "Int": some(Sure.Term.check.expand.num.int(sign, numb))
+      } default some(Sure.Term.check.expand.num.other(self.value, sign, numb, frac))
+    }
+  }
+  case got {
+    none: case frac {
+      none: case sign {
+        none: Sure.Term.check.expand.num.nat(numb)
+        some: Sure.Term.check.expand.num.int(sign, numb)
+      }
+      some: Sure.Term.check.expand.num.other("F64", sign, numb, frac)
+    }
+    some: got.value
+  }
+
+Sure.Term.check.expand.num.nat(numb: Nat): Sure.Term
+  Sure.Term.nat(numb)
+
+Sure.Term.check.expand.num.int(sign: Maybe<Bool>, numb: Nat): Sure.Term
+  let term = Sure.Term.nat(numb)
+  let term = Sure.Term.app(Sure.Term.ref("Int.from_nat"), term)
+  let term = case sign {
+    none: term
+    some: if sign.value
+      then term
+      else Sure.Term.app(Sure.Term.ref("Int.neg"), term)
+  }
+  term
+
+Sure.Term.check.expand.num.other(name: String, sign: Maybe<Bool>, numb: Nat, frac: Maybe<Nat>): Sure.Term
+  let text = case sign { none: "", some: if sign.value then "+" else "-" }
+  let text = text | Nat.show(numb)
+  let text = text | case frac { none: "", some: "." | Nat.show(frac.value) }
+  Sure.Term.app(Sure.Term.ref(name|".read"), Sure.Term.str(text))
+
+// Expands an operator like `a + b` into `Nat.add(a, b)`
+// Expands numeric literals into their proper types
+Sure.Term.check.expand.ope(skip_cmp: Bool, oper: String, arg0: Sure.Term, arg1: Sure.Term, otyp: Sure.Term, defs: Sure.Defs): Maybe<Sure.Term>
+  if U16.eql(String.last(oper) <> 'x', '?') && skip_cmp then
+    none
+  else
+    let type_name = Sure.Term.check.get_name_of_self_type(otyp, defs)
+    case type_name {
+      none: none
+      some:
+        let oper_name = switch String.eql(oper) {
+          "+"   : some("add")
+          "-"   : some("sub")
+          "*"   : some("mul")
+          "/"   : some("div")
+          "**"  : some("pow")
+          "%"   : some("mod")
+          "<?"  : some("ltn")
+          "<=?" : some("lte")
+          "=?"  : some("eql")
+          ">=?" : some("gte")
+          ">?"  : some("gtn")
+          "&&"  : some("and")
+          "||"  : some( "or")
+        } default none
+        case oper_name {
+          none: none
+          some:
+            let term = Sure.Term.ref(type_name.value | "." | oper_name.value)
+            let term = Sure.Term.app(term, arg0)
+            let term = Sure.Term.app(term, arg1)
+            some(term)
+        }
+    }
+
+// Expands `{a,b,c}` into `Foo.new(a,b,c)`
+Sure.Term.check.expand.new(
+  args: List(Sure.Term)
+  type: Maybe(Sure.Term)
+  defs: Sure.Defs
+): Maybe<Sure.Term>
+  let got = case type {
+    some: case Sure.Term.reduce(type.value, defs) as type {
+      all: case Sure.Term.reduce(type.body(Sure.Term.typ,Sure.Term.typ), defs) as ctor {
+        all: 
+          let tnam = Sure.Term.check.get_name_of_self_type.slice(type.self) <> ""
+          let term = Sure.Term.ref(tnam | "." | ctor.name)
+          let pars = Sure.Term.check.expand.mut.count_params(type.xtyp)
+          let term = for i from 0 to pars: Sure.Term.app(term, Sure.Term.hol(Bits.e))
+          let term = for arg in args: Sure.Term.app(term, arg)
+          some(term)
+      } default none
+    } default none
+  } default none
+  case got {
+    none: Sure.Term.check.expand.new.pair(args, type, defs)
+    some: some(got.value)
+  }
+
+Sure.Term.check.expand.new.pair(
+  args: List(Sure.Term)
+  type: Maybe(Sure.Term)
+  defs: Sure.Defs
+): Maybe<Sure.Term>
+  // TODO: make Triple, Quadruple, etc.
+  if Nat.eql(List.length!(args), 2) then
+    let term = Sure.Term.ref("Pair.new")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, args[0] <> Sure.Term.ref("pair_fst"))
+    let term = Sure.Term.app(term, args[1] <> Sure.Term.ref("pair_snd"))
+    some(term)
+  else
+    none
+
+// Expands `term@a` into `term(() _)((a) (b) (c) a)
+Sure.Term.check.expand.get(
+  expr: Sure.Term
+  fkey: String
+  etyp: Sure.Term
+  defs: Sure.Defs
+): Maybe<Sure.Term>
+  case Sure.Term.reduce(etyp, defs) as etyp {
+    all: case Sure.Term.reduce(etyp.body(Sure.Term.typ,Sure.Term.typ), defs) as ctor {
+      all: 
+        let term = Sure.Term.app(expr, Sure.Term.lam("", () Sure.Term.hol(Bits.e)))
+        let rett = Sure.Term.ref(fkey|"_field")
+        let sele = Sure.Term.check.expand.get.selector(fkey, ctor.xtyp, defs, rett)
+        some(Sure.Term.app(term, sele))
+    } default none
+  } default none
+
+Sure.Term.check.expand.get.selector(
+  fkey: String
+  ctor: Sure.Term
+  defs: Sure.Defs
+  rett: Sure.Term
+): Sure.Term
+  case Sure.Term.reduce(ctor, defs) as ctor {
+    all: Sure.Term.lam(ctor.name, (x)
+      let body = ctor.body(Sure.Term.typ, Sure.Term.typ)
+      let rett = if String.eql(ctor.name, fkey) then x else rett
+      Sure.Term.check.expand.get.selector(fkey, body, defs, rett))
+  } default rett
+
+// Expands `term@a <- val` into `term(() _)((a) (b) (c) Foo.new(val,b,c))`
+Sure.Term.check.expand.mut(
+  expr: Sure.Term
+  fkey: String
+  ffun: Sure.Term -> Sure.Term
+  etyp: Sure.Term
+  defs: Sure.Defs
+): Maybe<Sure.Term>
+  case Sure.Term.reduce(etyp, defs) as etyp {
+    all: case Sure.Term.reduce(etyp.body(Sure.Term.typ,Sure.Term.typ), defs) as ctor {
+      all: 
+        let term = Sure.Term.app(expr, Sure.Term.lam("", () Sure.Term.hol(Bits.e)))
+        let tnam = Sure.Term.check.get_name_of_self_type.slice(etyp.self) <> ""
+        let rett = Sure.Term.ref(tnam | "." | ctor.name)
+        let pars = Sure.Term.check.expand.mut.count_params(etyp.xtyp)
+        let rett = for i from 0 to pars: Sure.Term.app(rett, Sure.Term.hol(Bits.e))
+        let sele = Sure.Term.check.expand.mut.selector(fkey, ffun, ctor.xtyp, defs, rett)
+        some(Sure.Term.app(term, sele))
+    } default none
+  } default none
+
+Sure.Term.check.expand.mut.selector(
+  fkey: String
+  ffun: Sure.Term -> Sure.Term
+  ctor: Sure.Term
+  defs: Sure.Defs
+  rett: Sure.Term
+): Sure.Term
+  case Sure.Term.reduce(ctor, defs) as ctor {
+    all: Sure.Term.lam(ctor.name, (x)
+      let body = ctor.body(Sure.Term.typ, Sure.Term.typ)
+      let rett = Sure.Term.app(rett, if String.eql(ctor.name, fkey) then Sure.Term.check.expand.mut.selector.apply(ffun(x)) else x)
+      Sure.Term.check.expand.mut.selector(fkey, ffun, body, defs, rett))
+  } default rett
+
+Sure.Term.check.expand.mut.selector.apply(term: Sure.Term): Sure.Term
+  case term {
+    app: case term.func {
+      lam: term.func.body(term.argm)
+    } default term
+  } default term
+  
+// foo(() _)((a) (b) (c) Foo.new(a)(b)(c))
+
+Sure.Term.check.expand.mut.count_params(xtyp: Sure.Term): Nat
+  let {bnds,body} = Sure.Term.get_bnds(xtyp, 0) 
+  let {func,args} = Sure.Term.get_args(Pair.snd!!(List.last!(bnds) <> {"",Sure.Term.typ}))
+  let indexs = Nat.pred(List.length!(bnds))
+  let params = Nat.sub(List.length!(args), indexs)
+  params
+
+// Infers the type of the variables on the 'with' field of Sure.Term.cse
+Sure.Term.check.infer_types_of_with(
+  vars: List<Sure.Ann>
+  defs: Sure.Defs
+  ctx: Sure.Context
+  path: Sure.Path.Maybe.Builder
+  orig: Maybe<Pair<Nat,Nat>>
+): Sure.Check<List<Sure.Ann>>
+  case vars {
+    nil: Sure.Check {
+      return []
+    }
+    cons: 
+      open vars.head
+      Sure.Check {
+        get type = case vars.head.type {
+          none: Sure.Check { 
+            get infer = Sure.Term.check(vars.head.term, none, defs, ctx, path, orig)
+            return some(infer)
+          }
+          some: Sure.Check {
+            return some(vars.head.type.value)
+          }
+        }
+        get rest = Sure.Term.check.infer_types_of_with(vars.tail, defs, ctx, path, orig)
+        return Sure.Ann.new(vars.head.name, vars.head.term, type) & rest
+      }
+  }
+
+Sure.Term.check.expand.cse(
+  expr: Sure.Term
+  name: Sure.Name
+  wyth: List<Sure.Ann>
+  cses: BitsMap<Sure.Term>
+  moti: Maybe<Sure.Term>
+  etyp: Sure.Term // type of expr
+  rtyp: Maybe<Sure.Term> // inferred return type
+  defs: Sure.Defs
+  ctxt: Sure.Context
+): Maybe<Sure.Term>
+  case Sure.Term.reduce(etyp, defs) as etyp {
+    all:
+      let moti = Sure.Term.check.expand.cse.motive(wyth, moti, name, expr, etyp, rtyp, defs, List.length!(ctxt))
+      let argm = Sure.Term.check.expand.cse.argument(name, [], etyp.xtyp, moti, defs)
+      let expr = Sure.Term.app(expr, argm)
+      let type = etyp.body(Sure.Term.var(etyp.self,0), Sure.Term.var(etyp.name,0))
+      some(Sure.Term.check.expand.cse.cases(expr, name, wyth, cses, type, defs, ctxt))
+    _:
+      none
+  }: Maybe<Sure.Term>
+
+Sure.Term.check.expand.cse.argument(
+  name: Sure.Name
+  wyth: List<Sure.Ann>
+  type: Sure.Term
+  body: Sure.Term
+  defs: Sure.Defs
+): Sure.Term
+  case Sure.Term.reduce(type, defs) as type {
+    all:
+      def type = type.body(Sure.Term.var(type.self,0), Sure.Term.var(type.name,0))
+      def lam_name =
+        if String.is_empty(type.name) then
+          name
+        else
+          String.flatten([name, ".", type.name])
+      def lam_body = (x) Sure.Term.check.expand.cse.argument(name, wyth, type, body, defs)
+      Sure.Term.lam(lam_name, lam_body)
+    _: case wyth {
+      cons:
+        open wyth.head
+        def lam_name = wyth.head.name
+        def lam_body = (x) Sure.Term.check.expand.cse.argument(name, wyth.tail, type, body, defs)
+        Sure.Term.lam(lam_name, lam_body)
+      nil:
+        body
+    }
+  }
+
+Sure.Term.check.expand.cse.cases(
+  expr: Sure.Term
+  name: Sure.Name
+  wyth: List<Sure.Ann>
+  cses: BitsMap<Sure.Term>
+  type: Sure.Term
+  defs: Sure.Defs
+  ctxt: Sure.Context
+): Sure.Term
+  case Sure.Term.reduce(type, defs) as type {
+    all: 
+      let argm = Maybe.or!(Sure.Map.get!(type.name, cses), Sure.Map.get!("_", cses))
+      let argm = argm <> Sure.Term.ref(name | "_" | type.name | "_case")
+      let argm = Sure.Term.check.expand.cse.argument(name, wyth, type.xtyp, argm, defs)
+      let expr = Sure.Term.app(expr, argm)
+      let type = type.body(Sure.Term.var(type.self,0), Sure.Term.var(type.name,0))
+      Sure.Term.check.expand.cse.cases(expr, name, wyth, cses, type, defs, ctxt)
+    _:
+      let expr = for defn in wyth:
+        Sure.Term.app(expr, case defn { new: defn.term })
+      expr
+  }
+
+Sure.Term.check.expand.cse.motive.go(
+  wyth: List<Sure.Ann>
+  moti: Maybe<Sure.Term>
+  name: String
+  expr: Sure.Term
+  etyp: Sure.Term
+  rtyp: Maybe<Sure.Term>
+  defs: Sure.Defs
+  size: Nat
+): Sure.Term
+  case wyth {
+    cons:
+      open wyth.head
+      def all_name = wyth.head.name
+      def all_xtyp = wyth.head.type <> Sure.Term.hol(Bits.e)
+      def all_body = (s,x) Sure.Term.check.expand.cse.motive(wyth.tail, moti, name, expr, etyp, rtyp, defs, Nat.succ(Nat.succ(size)))
+      Sure.Term.all(Bool.false, "", all_name, all_xtyp, all_body)
+    nil: case moti {
+      none:
+        case rtyp {
+          none:
+            Sure.Term.hol(Bits.e)
+          some:
+            Sure.Term.normalize(rtyp.value, Sure.Map.new!)
+        }
+      some: 
+        moti.value
+    }
+  }
+
+Sure.Term.check.expand.cse.motive(
+  wyth: List<Sure.Ann>
+  moti: Maybe<Sure.Term>
+  name: String
+  expr: Sure.Term
+  etyp: Sure.Term
+  rtyp: Maybe<Sure.Term>
+  defs: Sure.Defs
+  size: Nat
+): Sure.Term
+  let done = Sure.Term.check.expand.cse.motive.go(wyth, moti, name, expr, etyp, rtyp, defs, size)
+  case moti {
+    none: Sure.Term.SmartMotive.make(name, expr, etyp, done, size, defs)
+    some: done
+  }

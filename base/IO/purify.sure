@@ -1,0 +1,7 @@
+IO.purify<A: Type>(io: IO<A>): A
+  case io {
+    end: io.value
+    ask: IO.purify<A>(io.then(""))
+    par: IO.purify<A>(io.join(Pair.new<io.X, io.Y>(IO.purify<io.X>(io.left), IO.purify<io.Y>(io.right))))
+    race: IO.purify<A>(io.join(Either.left<io.X, io.Y>(IO.purify<io.X>(io.left))))
+  }

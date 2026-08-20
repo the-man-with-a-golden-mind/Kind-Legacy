@@ -1,0 +1,12 @@
+Sure.Parser.list: Parser(Sure.Term)
+  Sure.Parser.block("list", Parser {
+    get vals = Sure.Parser.items!("[", Sure.Parser.term, "]")
+    return List.fold!(vals)!(
+      Sure.Term.app(Sure.Term.ref(Sure.Name.read("List.nil")), Sure.Term.hol(Bits.e)),
+      (x,xs)
+        let term = Sure.Term.ref(Sure.Name.read("List.cons"))
+        let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+        let term = Sure.Term.app(term, x)
+        let term = Sure.Term.app(term, xs)
+        term)
+  })

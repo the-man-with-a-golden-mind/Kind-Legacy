@@ -1,0 +1,26 @@
+Sure.Parser.machine_integer.unsigned(size: Nat): Parser(Sure.Term)
+  Sure.Parser.block("int", Parser {
+    let size_str = Nat.show(size)
+    Sure.Parser.spaces
+    get natx = Sure.Parser.nat
+    Parser.text("#" | Nat.show(size))
+    let term = Sure.Term.ref("Nat.to_u" | Nat.show(size))
+    let term = Sure.Term.app(term, natx)
+    return term
+  })
+
+Sure.Parser.machine_integer.signed(size: Nat): Parser(Sure.Term)
+  Sure.Parser.block("int", Parser {
+    let size_str = Nat.show(size)
+
+    Sure.Parser.spaces
+    get sgn_num = Parser.choice!([Sure.Parser.int_pos, Sure.Parser.int_neg])
+    Parser.text("#" | size_str);
+    return case sgn_num {
+      new:
+        let term = Sure.Term.ref("I"|size_str|".from_nat")
+        let term = Sure.Term.app(term, Sure.Term.nat(sgn_num.snd))
+        let term = if sgn_num.fst then term else Sure.Term.app(Sure.Term.ref("I"|size_str|".neg"), term)
+        term
+    }
+  })

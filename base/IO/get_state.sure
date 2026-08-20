@@ -1,0 +1,8 @@
+// Returns the process-local state stored at `key`.
+// Missing keys come back as none. The host encodes none as an empty string.
+IO.get_state(key: String): IO<Maybe<String>>
+  IO.ask<Maybe<String>>("get_state", key, (val)
+    if String.is_empty(val) then
+      IO.end<Maybe<String>>(none)
+    else
+      IO.end<Maybe<String>>(some(val)))

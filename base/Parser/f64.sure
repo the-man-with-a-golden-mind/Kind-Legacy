@@ -1,0 +1,34 @@
+Parser.f64: Parser<F64>
+  Parser {
+    get sign = Parser.maybe!(Parser.text("-"))
+    get intp = Parser.many1<Char>(Parser.digit_char)
+    get frac = Parser.maybe!(Parser {
+      Parser.text(".")
+      get ds = Parser.many1<Char>(Parser.digit_char)
+      return ds
+    })
+    get expn = Parser.maybe!(Parser {
+      Parser.choice!([
+        Parser.text("e")
+        Parser.text("E")
+      ])
+      get esign = Parser.choice!([
+        Parser { Parser.text("+"); return "+" }
+        Parser { Parser.text("-"); return "-" }
+        Parser { return "+" }
+      ])
+      get ds = Parser.many1<Char>(Parser.digit_char)
+      return (esign | String.from_list(ds))
+    })
+    let txt = (case sign {
+      none: ""
+      some: "-"
+    }) | String.from_list(intp) | (case frac {
+      none: ""
+      some: "." | String.from_list(frac.value)
+    }) | (case expn {
+      none: ""
+      some: "e" | expn.value
+    })
+    return F64.parse(txt)
+  }

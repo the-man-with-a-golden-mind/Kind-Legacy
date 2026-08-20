@@ -1,0 +1,15 @@
+type Sure.Comp {
+  nil
+  var(name: Sure.Name)
+  ref(name: Sure.Name)
+  lam(name: Sure.Name, body: Sure.Comp)
+  app(func: Sure.Comp, argm: Sure.Comp)
+  let(name: Sure.Name, expr: Sure.Comp, body: Sure.Comp)
+  eli(prim: Sure.Comp.Prim, expr: Sure.Comp)
+  ins(prim: Sure.Comp.Prim, expr: Sure.Comp)
+  nat(natx: Nat)
+  chr(chrx: Char)
+  str(strx: String)
+  txt(text: String)
+}
+

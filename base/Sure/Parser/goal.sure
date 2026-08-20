@@ -1,0 +1,16 @@
+Sure.Parser.goal: Parser(Sure.Term)
+  Sure.Parser.block("goal", Parser {
+    Sure.Parser.text("?")
+    get name = Sure.Parser.name
+    get dref = Parser.many!(Parser {
+      Sure.Parser.text("-")
+      get nat = Parser.nat
+      let bits = Bits.reverse(Bits.tail(Bits.reverse(Nat.to_bits(nat))))
+      Parser { return bits }
+    })
+    get verb = Parser {
+      get verb = Parser.maybe!(Parser.text("-"))
+      return Maybe.is_some!(verb)
+    }
+    return Sure.Term.gol(name, dref, verb)
+  })

@@ -1,0 +1,28 @@
+Sure.Parser.ADT.Derive.by_name(deri: String, adt: Sure.Parser.ADT.Datatype): Maybe<Sure.Parser.ADT.Derived>
+  open adt
+  switch String.eql(deri) {
+    "stringifier": Maybe {
+      let name = adt.name | "." | deri
+      get term = Sure.Parser.ADT.Derive.stringifier.term(adt)
+      get type = Sure.Parser.ADT.Derive.stringifier.type(adt)
+      return Sure.Parser.ADT.Derived.new(name, 0, term, type)
+    }
+    "parser": Maybe {
+      let name = adt.name | "." | deri
+      get term = Sure.Parser.ADT.Derive.parser.term(adt)
+      get type = Sure.Parser.ADT.Derive.parser.type(adt)
+      return Sure.Parser.ADT.Derived.new(name, 0, term, type)
+    }
+    "serializer": Maybe {
+      let name = adt.name | "." | deri
+      get term = Sure.Parser.ADT.Derive.serializer.term(adt)
+      get type = Sure.Parser.ADT.Derive.serializer.type(adt)
+      return Sure.Parser.ADT.Derived.new(name, 0, term, type)
+    }
+    "deserializer": Maybe {
+      let name = adt.name | "." | deri
+      get term = Sure.Parser.ADT.Derive.deserializer.term(adt)
+      get type = Sure.Parser.ADT.Derive.deserializer.type(adt)
+      return Sure.Parser.ADT.Derived.new(name, 0, term, type)
+    }
+  } default none

@@ -1,0 +1,16 @@
+Sure.api.io.term_to_core(name: String): IO<String>
+  IO {
+    get new_defs = Sure.Synth.one(name, Sure.Map.new!);
+    let defs = case new_defs {
+      none: Sure.Map.new!,
+      some: new_defs.value,
+    };
+    let defs = BitsMap.map!!(
+      (defn) 
+        open defn
+        let term = Sure.Term.inline(defn.term, defs);
+        let type = Sure.Term.inline(defn.type, defs);
+        Sure.Def.new(defn.file, defn.code, defn.orig, defn.name, term, type, defn.isct, defn.arit, defn.stat)
+      , defs);
+    return Sure.Defs.core(defs);
+  }

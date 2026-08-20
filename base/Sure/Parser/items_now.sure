@@ -1,0 +1,11 @@
+Sure.Parser.items_now<V: Type>(ini: String, parser: Parser(V), end: String): Parser(List(V))
+    Parser.wrap1!(
+      Sure.Parser.text_now(ini)
+      Parser {
+        Sure.Parser.spaces
+        get value = parser
+        Parser.maybe!(Sure.Parser.text(","))
+        return value
+      }
+      Sure.Parser.text(end)
+    )

@@ -1,0 +1,4 @@
+Sure.Term.unori(term: Sure.Term): Sure.Term
+  case term {
+    ori: Sure.Term.unori(term.expr)
+  } default term

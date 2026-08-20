@@ -1,0 +1,2 @@
+F32.parse_binary(str: String): F32
+  F32.new(Word.from_bits(32, Bits.read(str)))

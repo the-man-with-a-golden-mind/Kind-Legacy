@@ -1,8 +1,0 @@
-Kind.Parser.spaces: Parser(List<Unit>)
-  Parser.many!(Parser.choice!([
-    Parser.text(" ")
-    Parser.text("\t")
-    Parser.text("\r")
-    Parser.text("\n")
-    Kind.Parser.comment
-  ]))

@@ -1,0 +1,17 @@
+Sure.Defs.show(defs: Sure.Defs): String
+  let str = "";
+  let str = for name_defn in BitsMap.to_list<Sure.Def>(defs):
+    case name_defn {
+      new: case name_defn.snd as defn {
+        new: String.flatten([
+          str,
+          Sure.Name.show(defn.name),
+          ": ",
+          Sure.Term.show(defn.type),
+          "\n  ",
+          Sure.Term.show(defn.term),
+          "\n",
+        ])
+      }
+    }
+  str

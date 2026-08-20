@@ -1,0 +1,26 @@
+Sure.Parser.application(func: Sure.Term): Parser(Sure.Term)
+  Parser {
+    get args = Sure.Parser.items_now!("(", Sure.Parser.term, ")")
+    let expr = List.for!(args)!(func, (x,f) Sure.Term.app(f, x))
+    return expr
+  }
+
+Sure.Parser.application.erased(func: Sure.Term): Parser(Sure.Term)
+  Parser {
+    get args = Sure.Parser.items_now!("<", Sure.Parser.term, ">")
+    let expr = List.for!(args)!(func, (x,f) Sure.Term.app(f, x))
+    return expr
+  }
+
+Sure.Parser.application.hole(term: Sure.Term): Parser(Sure.Term)
+  Parser.choice!([
+    Parser {
+      Sure.Parser.text_now("()")
+      return Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    }
+    Parser {
+      Sure.Parser.text_now("!")
+      return Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    }
+  ])
+

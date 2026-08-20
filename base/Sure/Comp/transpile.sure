@@ -1,0 +1,111 @@
+// Transpiles from Term.Comp to the target language's source code
+Sure.Comp.transpile.term(
+  lang: Sure.Comp.Language
+  comp: Sure.Comp
+  depth: Nat
+  defs: Sure.Comp.Defs
+): String
+  let go = Sure.Comp.transpile.term(lang)
+  case Sure.Comp.Prim.inst(lang, comp,depth,defs) as got {
+    some: got.value
+    none: case Sure.Comp.Prim.elim(lang, comp, depth, defs) as got {
+      some: got.value
+      none: case comp {
+        nil:
+          lang@gram@null
+        var:
+          lang@gram@name(comp.name)
+        ref:
+          lang@gram@name(comp.name)
+        lam:
+          lang@gram@lambda(lang@gram@name(comp.name), go(comp.body,Nat.succ(depth),defs))
+        app:
+          lang@gram@application(go(comp.func,depth,defs), go(comp.argm,depth,defs))
+        let:
+          lang@gram@local_definition(lang@gram@name(comp.name), go(comp.expr,depth,defs), go(comp.body,Nat.succ(depth),defs))
+        eli: case comp.prim {
+          unit: lang@gram@application(lang@gram@elim_name("Unit"), go(comp.expr,depth,defs))
+          bits: lang@gram@application(lang@gram@elim_name("Bits"), go(comp.expr,depth,defs))
+          bool: lang@gram@application(lang@gram@elim_name("Bool"), go(comp.expr,depth,defs))
+          nat: lang@gram@application(lang@gram@elim_name("Nat"), go(comp.expr,depth,defs))
+          //u8: lang@gram@application(lang@gram@elim_name("U8"), go(comp.expr,depth,defs))
+          u16: lang@gram@application(lang@gram@elim_name("U16"), go(comp.expr,depth,defs))
+          u32: lang@gram@application(lang@gram@elim_name("U32"), go(comp.expr,depth,defs))
+          //u64: lang@gram@application(lang@gram@elim_name("U64"), go(comp.expr,depth,defs))
+          //u256: lang@gram@application(lang@gram@elim_name("U256"), go(comp.expr,depth,defs))
+          //f64: lang@gram@application(lang@gram@elim_name("F64"), go(comp.expr,depth,defs))
+          string: lang@gram@application(lang@gram@elim_name("String"), go(comp.expr,depth,defs))
+          //buffer32: lang@gram@application(lang@gram@elim_name("F64"), go(comp.expr,depth,defs))
+          data: go(comp.expr,depth,defs)
+        }
+        ins: case comp.prim {
+          unit: lang@gram@application(lang@gram@inst_name("Unit"), go(comp.expr,depth,defs))
+          bits: lang@gram@application(lang@gram@inst_name("Bits"), go(comp.expr,depth,defs))
+          bool: lang@gram@application(lang@gram@inst_name("Bool"), go(comp.expr,depth,defs))
+          nat: lang@gram@application(lang@gram@inst_name("Nat"), go(comp.expr,depth,defs))
+          //u8: lang@gram@application(lang@gram@inst_name("U8"), go(comp.expr,depth,defs))
+          u16: lang@gram@application(lang@gram@inst_name("U16"), go(comp.expr,depth,defs))
+          u32: lang@gram@application(lang@gram@inst_name("U32"), go(comp.expr,depth,defs))
+          //u64: lang@gram@application(lang@gram@inst_name("U64"), go(comp.expr,depth,defs))
+          //u256: lang@gram@application(lang@gram@inst_name("U256"), go(comp.expr,depth,defs))
+          //f64: lang@gram@application(lang@gram@inst_name("F64"), go(comp.expr,depth,defs))
+          string: lang@gram@application(lang@gram@inst_name("String"), go(comp.expr,depth,defs))
+          //buffer32: lang@gram@application(lang@gram@inst_name("F64"), go(comp.expr,depth,defs))
+          data: go(comp.expr,depth,defs)
+        }
+        nat:
+          lang@gram@nat(comp.natx) // TODO: lang@gram@nat?
+        chr:
+          Nat.show(U16.to_nat(comp.chrx)) // TODO: lang@gram@char?
+        str:
+          "\"" | lang@gram@string_literal(comp.strx) | "\""
+        txt:
+          comp.text
+      }
+    }
+  }
+
+Sure.Comp.transpile.global_definitions(
+  lang: Sure.Comp.Language
+  defs_list: List<Pair<String, Sure.Comp>>
+  defs: Sure.Comp.Defs
+): String
+  let code = ""
+  // Instantiatior and Eliminator functions
+  for nati in Sure.Comp.Prim.natives with code:
+    let {name,prim} = nati
+    let code = code|lang@gram@global_function(lang@gram@inst_name(name), [], Sure.Comp.Prim.instantiator(lang,prim,0,defs))
+    let code = code|lang@gram@global_function(lang@gram@elim_name(name), [], Sure.Comp.Prim.eliminator(lang,prim,0,defs))
+    code
+  // Top-level definitions
+  for defn in defs_list with code:
+    let {name,term} = defn
+    let {vars,body} = Sure.Comp.get_vars(term)
+    // multiarg function
+    let inlined_body = case lang@opts{name} as opt {
+      none: Sure.Comp.transpile.term(lang, body, 0, defs)
+      some: Sure.Comp.replace(Pair.snd!!(opt.value), vars)
+    }
+    let code = code|lang@gram@global_function(name, vars, inlined_body)
+    code
+  code
+
+Sure.Comp.transpile.module(
+  lang: Sure.Comp.Language
+  name: String
+  exports: List<String>
+  defs: Sure.Comp.Defs
+): String
+  let defs_list = Sure.Comp.dependency_sort.module(exports, defs)
+  let code = lang@gram@module(name, exports, lang@base|"\n\n"|Sure.Comp.transpile.global_definitions(lang, defs_list, defs))
+  code
+
+// Converts Comp definitions to a Scheme program.
+Sure.Comp.transpile(
+  lang: Sure.Comp.Language
+  main: String
+  defs: Sure.Comp.Defs
+): String
+  let defs_list = Sure.Comp.dependency_sort(main, defs)
+  let code = lang@gram@program(main, lang@base|"\n\n"|Sure.Comp.transpile.global_definitions(lang, defs_list, defs))
+  code

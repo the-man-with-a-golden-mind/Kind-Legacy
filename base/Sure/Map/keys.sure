@@ -1,0 +1,2 @@
+Sure.Map.keys<A: Type>(xs: Sure.Map(A)): List<Sure.Name>
+  List.mapped!(Sure.Map.to_list!(xs))!(Pair.fst!!)

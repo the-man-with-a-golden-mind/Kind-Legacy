@@ -1,0 +1,2 @@
+Sure.Check.none<A: Type>: Sure.Check<A>
+  Sure.Check.result<A>(Maybe.none<A>, [])

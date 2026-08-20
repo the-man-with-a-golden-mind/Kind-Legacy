@@ -1,0 +1,42 @@
+Sure.Error.show(error: Sure.Error, defs: Sure.Defs): String
+  case error {
+    type_mismatch: 
+      let expected = case error.expected {
+        left: error.expected.value
+        right: Sure.Term.show(Sure.Term.normalize(error.expected.value, BitsMap.new!))
+      }
+      let detected = case error.detected {
+        left: error.detected.value
+        right: Sure.Term.show(Sure.Term.normalize(error.detected.value, BitsMap.new!))
+      }
+      "Type mismatch.\n"
+      | "- Expected: " | expected | "\n"
+      | "- Detected: " | detected | "\n"
+      | case error.context { nil: "", cons: "With context:\n" | Sure.Context.show(error.context) }
+    waiting:
+      "Waiting for '" | error.name | "'."
+    indirect:
+      "Error on dependency '" | error.name | "'."
+    show_goal:
+      let goal_name = "Goal ?" | Sure.Name.show(error.name) | ":\n"
+      let with_type = 
+        without error.goal: ""
+        let goal = Sure.Term.expand(error.dref, error.goal, defs)
+        "With type: "
+        | (if error.verb then Sure.Term.show.go(goal, some((x) x)) else Sure.Term.show(goal))
+        | "\n"
+      let with_ctxt = case error.context {
+        nil: ""
+        cons: "With context:\n" | Sure.Context.show(error.context)
+      }
+      String.flatten([goal_name, with_type, with_ctxt])
+    patch:
+      "Patching: " | Sure.Term.show(error.term)
+    undefined_reference: 
+      "Undefined reference: " | Sure.Name.show(error.name) | "\n"
+    cant_infer:
+      let term = Sure.Term.show(error.term)
+      let context = Sure.Context.show(error.context)
+      "Can't infer type of: " | term | "\n"
+      | "With context:\n" | context
+  }

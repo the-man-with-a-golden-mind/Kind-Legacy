@@ -1,6 +1,0 @@
-Kind.Parser.annotation(term: Kind.Term): Parser(Kind.Term)
-  Parser {
-    Kind.Parser.text("::")
-    get type = Kind.Parser.term
-    return Kind.Term.ann(false, term, type)
-  }

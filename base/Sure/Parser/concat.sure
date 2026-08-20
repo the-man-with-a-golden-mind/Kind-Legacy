@@ -1,0 +1,11 @@
+Sure.Parser.concat(lst0: Sure.Term): Parser(Sure.Term)
+  Parser {
+    Sure.Parser.text("++")
+    Parser.text(" ")
+    get lst1 = Sure.Parser.term
+    let term = Sure.Term.ref("List.concat")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, lst0)
+    let term = Sure.Term.app(term, lst1)
+    return term
+  }

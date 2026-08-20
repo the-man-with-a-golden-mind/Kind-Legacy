@@ -1,0 +1,7 @@
+type Sure.Ann {
+  new(
+    name: Sure.Name,
+    term: Sure.Term,
+    type: Maybe<Sure.Term>,
+  )
+}

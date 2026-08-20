@@ -1,0 +1,9 @@
+Sure.Term.equal.hole(path: Bits, term: Sure.Term): Sure.Check<Bool>
+  case term {
+    hol: Sure.Check.result!(some(true), []),
+    _: if Sure.Term.has_holes(term)
+      then Sure.Check.result!(some(true), [])
+      else Sure.Check.result!(some(true), [
+        Sure.Error.patch(path, Sure.Term.normalize(term, Sure.Map.new!))
+      ])
+  }

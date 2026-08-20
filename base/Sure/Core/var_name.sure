@@ -1,0 +1,14 @@
+Sure.Core.var_name(indx: Nat, name: Sure.Name, brui: Nat, vars: List<Sure.Name>): Sure.Name
+  case indx {
+    zero: case brui {
+      zero: name
+      succ: name | "^" | Nat.show(brui)
+    }
+    succ: case vars {
+      nil:
+        "unbound"
+      cons:
+        let brui = if String.eql(name, vars.head) then Nat.succ(brui) else brui
+        Sure.Core.var_name(indx.pred, name, brui, vars.tail),
+    }
+  }

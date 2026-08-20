@@ -1,0 +1,4 @@
+Sure.Comp.get_arity(term: Sure.Comp): Nat
+  case term {
+    lam: 1 + Sure.Comp.get_arity(term.body)
+  } default 0

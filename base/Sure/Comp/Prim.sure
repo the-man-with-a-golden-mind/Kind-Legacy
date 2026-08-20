@@ -1,0 +1,163 @@
+// Types that are optimized to primitive values.
+// To learn more, see Kind/Comp/Native.sure.
+type Sure.Comp.Prim {
+  bool,
+  bits,
+  unit,
+  nat,
+  //u8,
+  u16,
+  u32,
+  //u64,
+  //u256,
+  //f64,
+  string,
+  //buffer32,
+  data(name: String, ctrs: Sure.Comp.Prim.ADT),
+}
+
+Sure.Comp.Prim.ADT: Type
+  List(Pair(String, List(String)))
+
+// Instantiators
+// =============
+
+// Compiles an instantiation. Converts a λ-encoded layer to a native value.
+// - inst(`ins{Nat, `λz. λs. (s 5)`}`) == "(+ 5 1)"
+Sure.Comp.Prim.inst(lang: Sure.Comp.Language, term: Sure.Comp, depth: Nat, defs: Sure.Comp.Defs): Maybe(String)
+  case term {
+    ins:
+      let shape = lang@nati(term.prim) open shape
+      let {vars,expr} = Sure.Comp.get_vars(term.expr)
+      if List.length!(shape.inst) =? List.length!(vars) then
+        let {expr,args} = Sure.Comp.get_args(expr)
+        case expr { 
+          var: Sure.Comp.Prim.inst.go(lang, expr.name, shape.inst, vars, args, depth, defs)
+          ref: Sure.Comp.Prim.inst.go(lang, expr.name, shape.inst, vars, args, depth, defs)
+        } default none
+      else
+        none
+  } default none
+
+Sure.Comp.Prim.inst.go(
+  lang: Sure.Comp.Language
+  name: String
+  inst: List(Pair(Nat,String))
+  vars: List(String)
+  args: List(Sure.Comp)
+  depth: Nat
+  defs: Sure.Comp.Defs
+): Maybe(String)
+  case inst vars {
+    nil  nil : none
+    nil  cons: none
+    cons nil : none
+    cons cons: 
+      if String.eql(name, vars.head) then
+        let {ctor_arity, ctor_maker} = inst.head
+        if ctor_arity =? List.length!(args) then
+          some(Sure.Comp.replace(ctor_maker, List.mapped!(args)!((x) Sure.Comp.transpile.term(lang,x,depth,defs))))
+        else
+          none
+      else
+        Sure.Comp.Prim.inst.go(lang, name, inst.tail, vars.tail, args, depth, defs)
+  }
+
+// Creates an instantiator function. This is like inst, but instead of being
+// applied to an inline argument, it generates a whole function.
+// - instantiator(`Nat`) == "(lambda (t) (t 0 (lambda (pred) (+ pred 1))))"
+Sure.Comp.Prim.instantiator(lang: Sure.Comp.Language, prim: Sure.Comp.Prim, depth: Nat, defs: Sure.Comp.Defs): String
+  let shape = lang@nati(prim) open shape
+  let text = "x"
+  for ctor in shape.inst with text:
+    lang@gram@application(text, Sure.Comp.Prim.instantiator.go(lang, prim, depth, defs, ctor, 0))
+  lang@gram@lambda("x", text)
+
+Sure.Comp.Prim.instantiator.go(
+  lang: Sure.Comp.Language
+  prim: Sure.Comp.Prim
+  depth: Nat
+  defs: Sure.Comp.Defs
+  ctor: Pair(Nat, String)
+  j: Nat
+): String
+  let {ctor_arity, ctor_maker} = ctor
+  if Nat.eql(j, ctor_arity) then
+    Sure.Comp.replace(ctor_maker, List.create!(ctor_arity, (j) "x" | Nat.show(j)))
+  else
+    lang@gram@lambda("x" | Nat.show(j), Sure.Comp.Prim.instantiator.go(lang, prim, depth, defs, ctor, Nat.succ(j)))
+
+// Eliminators
+// ===========
+// Compiles a complete elimination, extracting a λ-layer from a native value.
+// Compiles an instantiation. Converts a λ-encoded layer to a native value.
+// Inlines appications when possible.
+// - elim(`eli{Nat,5}`) == "(if (= 5 0) (lambda (z) (lambda (s) z)) (lambda (z) (lambda (s) (s 4))))`
+// - elim(`((eli{Nat,5} Z) S)` == "(if (= 5 0) Z (S 4))"
+Sure.Comp.Prim.elim(lang: Sure.Comp.Language, term: Sure.Comp, depth: Nat, defs: Sure.Comp.Defs): Maybe(String)
+  let {term,args} = Sure.Comp.get_args(term)
+  case term {
+    ref:
+      case Sure.Map.get!(term.name, defs) as got {
+        none:
+          none
+        some:
+          let arity = Sure.Comp.get_arity(got.value)
+          if (arity =? List.length!(args)) && (arity >? 0) then
+            def inline_term = (arg)
+              Sure.Comp.transpile.term(lang, arg, depth, defs)
+            let inlined_args = List.map!!(inline_term, args)
+            let code = lang@gram@global_application(term.name, inlined_args)
+            some(code)
+          else
+            none
+      }
+    eli:
+      let shape = lang@nati(term.prim) open shape
+      let {ctag,cses} = shape.elim
+      let args_len = List.length!(args)
+      let cses_len = List.length!(cses)
+      if args_len >? cses_len then
+        none
+      else
+        let lams_len = cses_len - args_len
+        let args = for i from 0 to lams_len: args ++ [Sure.Comp.var("c"|Nat.show(i))]
+        let self = "self" | Nat.show(depth)
+        def build_cse = (item)
+          let {cse, arg} = item
+          let {name, flds} = cse
+
+          let flds_len = List.length!(flds)
+          let let_args_n = List.reverse!(List.seq(flds_len))
+          let lam_args_n = List.reverse!(List.seq(lams_len))
+
+          let keys = List.create!(flds_len, (k) Sure.Comp.var("f"|Nat.show(Nat.add(depth,k))))
+          let argj = Sure.Comp.apply(arg, keys)
+
+          let body = Sure.Comp.transpile.term(lang, argj, Nat.add(Nat.add(depth,flds_len),lams_len), defs)
+          for i in lam_args_n with body:
+            lang@gram@lambda("c"|Nat.show(i), body)
+
+          let text = body
+          for k in let_args_n with text:
+            lang@gram@local_definition(
+              "f"|Nat.show(Nat.add(depth, k)),
+              Sure.Comp.replace(flds[k] <> "", [self]),
+              text
+            )
+          {name, text}
+        let cse_body_list = List.map!!(build_cse, List.zip!!(cses, args))
+        let ret = lang@gram@select(Sure.Comp.replace(ctag,[self]), cse_body_list)
+        let ret = lang@gram@local_definition(self, Sure.Comp.transpile.term(lang, term.expr,depth,defs), ret)
+        some(ret)
+
+  } default none
+
+// Creates an elimination function. This is like "elim", but instead of being
+// applied to an inline argument, it generates a whole function.
+// - eliminator(Nat) == "(lambda (n) (if (= n 0) (lambda (z) (lambda (s) z)) (lambda (z) (lambda (s) (s (- n 1))))))"
+Sure.Comp.Prim.eliminator(lang: Sure.Comp.Language, prim: Sure.Comp.Prim, depth: Nat, defs: Sure.Comp.Defs): String
+  let term = Sure.Comp.eli(prim,Sure.Comp.var("x"))
+  let text = Sure.Comp.Prim.elim(lang, term, 0, defs) <> ""
+  let term = Sure.Comp.lam("x", Sure.Comp.txt(text))
+  Sure.Comp.transpile.term(lang, term, depth, defs)

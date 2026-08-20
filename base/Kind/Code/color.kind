@@ -1,2 +1,0 @@
-Kind.Code.color(col: String, str: String): String
-  String.cons(Nat.to_u16(27), "["|col|"m"|str|String.cons(Nat.to_u16(27), "[0m"))

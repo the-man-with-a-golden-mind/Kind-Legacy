@@ -1,0 +1,9 @@
+Sure.Check.bind<A: Type, B: Type>(a: Sure.Check<A>, f: A -> Sure.Check<B>): Sure.Check<B>
+  case a {
+    result: case a.value as got {
+      none: Sure.Check.result<B>(Maybe.none<B>, a.errors)
+      some: case f(got.value) as b {
+        result: Sure.Check.result<B>(b.value, List.concat!(a.errors,b.errors))
+      }
+    }
+  }

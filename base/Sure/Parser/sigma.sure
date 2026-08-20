@@ -1,0 +1,25 @@
+Sure.Parser.sigma(val0: Sure.Term): Parser(Sure.Term)
+  Sure.Parser.block("sigma", Parser {
+    Sure.Parser.text("~")
+    get val1 = Sure.Parser.term
+    let term = Sure.Term.ref("Sigma.new")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, val0)
+    let term = Sure.Term.app(term, val1)
+    return term
+  })
+
+Sure.Parser.sigma.type: Parser(Sure.Term)
+  Sure.Parser.block("sigma", Parser {
+    Sure.Parser.text("[")
+    get name = Sure.Parser.name1
+    Sure.Parser.text(":")
+    get typ0 = Sure.Parser.term
+    Sure.Parser.text("]")
+    get typ1 = Sure.Parser.term
+    let term = Sure.Term.ref("Sigma")
+    let term = Sure.Term.app(term, typ0)
+    let term = Sure.Term.app(term, Sure.Term.lam(name, (x) typ1))
+    return term
+  })

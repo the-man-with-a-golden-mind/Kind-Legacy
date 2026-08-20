@@ -1,0 +1,103 @@
+Sure.Term.equal.go(a: Sure.Term, b: Sure.Term, defs: Sure.Defs, lv: Nat, seen: BitsSet): Sure.Check<Bool>
+  //let ah = Sure.Term.serialize(Sure.Term.reduce(a,Sure.Map.new!), lv, lv, Bits.o, Bits.e);
+  //let bh = Sure.Term.serialize(Sure.Term.reduce(b,Sure.Map.new!), lv, lv, Bits.i, Bits.e);
+  let ah = Sure.Term.serialize(Sure.Term.reduce(a,Sure.Map.new!), lv, false);
+  let bh = Sure.Term.serialize(Sure.Term.reduce(b,Sure.Map.new!), lv, true);
+  if Bits.eql(ah, bh) then do Sure.Check {
+    return Bool.true;
+  } else do Sure.Check {
+    let a1 = Sure.Term.reduce(a, defs);
+    let b1 = Sure.Term.reduce(b, defs);
+    //let ah = Sure.Term.serialize(a1, lv, lv, Bits.o, Bits.e);
+    //let bh = Sure.Term.serialize(b1, lv, lv, Bits.i, Bits.e);
+    let ah = Sure.Term.serialize(a1, lv, false);
+    let bh = Sure.Term.serialize(b1, lv, true);
+    if Bits.eql(ah, bh) then do Sure.Check {
+      return Bool.true;
+    } else do Sure.Check {
+      let id = Bits.concat(ah, bh);
+      if BitsSet.mut.has(id, seen) then do Sure.Check {
+        Sure.Term.equal.extra_holes(a, b);
+        return Bool.true;
+      } else case a1 {
+        all: case b1 {
+          all: do Sure.Check {
+            let seen = BitsSet.mut.set(id, seen);
+            let a1_body = a1.body(
+              Sure.Term.var(a1.self, lv),
+              Sure.Term.var(a1.name, Nat.succ(lv)));
+            let b1_body = b1.body(
+              Sure.Term.var(b1.self, lv),
+              Sure.Term.var(b1.name, Nat.succ(lv)));
+            let eq_self = String.eql(a1.self, b1.self);
+            let eq_eras = Bool.eql(a1.eras, b1.eras);
+            if Bool.and(eq_self, eq_eras) then do Sure.Check {
+              get eq_type = Sure.Term.equal.go(a1.xtyp, b1.xtyp, defs, lv, seen);
+              get eq_body = Sure.Term.equal.go(a1_body, b1_body, defs, Nat.succ(Nat.succ(lv)), seen);
+              return Bool.and(eq_type, eq_body);
+            } else do Sure.Check {
+              return Bool.false;
+            };
+          },
+          hol:
+            Sure.Term.equal.hole(b1.path, a),
+          _: do Sure.Check {
+            return Bool.false;
+          },
+        },
+        lam: case b1 {
+          lam: do Sure.Check {
+              let seen = BitsSet.mut.set(id, seen);
+              let a1_body = a1.body(Sure.Term.var(a1.name, lv));
+              let b1_body = b1.body(Sure.Term.var(b1.name, lv));
+              get eq_body = Sure.Term.equal.go(a1_body, b1_body, defs, Nat.succ(lv), seen);
+              return eq_body;
+            },
+            hol: Sure.Term.equal.hole(b1.path, a),
+            _: do Sure.Check {
+              return Bool.false;
+            },
+          },
+        app: case b1 {
+          app: do Sure.Check {
+            let seen = BitsSet.mut.set(id, seen);
+            get eq_func = Sure.Term.equal.go(a1.func, b1.func, defs, lv, seen);
+            get eq_argm = Sure.Term.equal.go(a1.argm, b1.argm, defs, lv, seen);
+            return Bool.and(eq_func, eq_argm);
+          },
+          hol: Sure.Term.equal.hole(b1.path, a),
+          _: do Sure.Check {
+            return Bool.false;
+          },
+        },
+        let: case b1 {
+          let: do Sure.Check {
+            let seen = BitsSet.mut.set(id, seen);
+            let a1_body = a1.body(Sure.Term.var(a1.name, lv));
+            let b1_body = b1.body(Sure.Term.var(b1.name, lv));
+            get eq_expr = Sure.Term.equal.go(a1.expr, b1.expr, defs, lv, seen);
+            get eq_body = Sure.Term.equal.go(a1_body, b1_body, defs, Nat.succ(lv), seen);
+            return Bool.and(eq_expr, eq_body);
+          },
+          hol:
+            Sure.Term.equal.hole(b1.path, a),
+          _: do Sure.Check {
+            return Bool.false;
+          },
+        },
+        hol:
+          Sure.Term.equal.hole(a1.path, b),
+        _: case b1 {
+          hol: Sure.Term.equal.hole(b1.path, a),
+          _: do Sure.Check {
+            return Bool.false;
+          },
+        },
+      };
+    };
+  }
+
+Sure.Term.equal(a: Sure.Term, b: Sure.Term, defs: Sure.Defs): Bool
+  case Sure.Term.equal.go(a, b, defs, 0, BitsSet.new) as check {
+    result: check.value <> false
+  }

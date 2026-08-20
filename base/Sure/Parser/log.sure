@@ -1,0 +1,12 @@
+Sure.Parser.log(body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Sure.Parser.block("log", Parser {
+    Sure.Parser.text("log(")
+    get text = Sure.Parser.term
+    Sure.Parser.text(")")
+    get body = body(unit)
+    let term = Sure.Term.ref("Debug.log")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, text)
+    let term = Sure.Term.app(term, Sure.Term.lam("", (x) body))
+    return term
+  })

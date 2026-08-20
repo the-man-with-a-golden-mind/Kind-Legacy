@@ -1,0 +1,2 @@
+Sure.Parser.div: Sure.Term -> Parser(Sure.Term)
+  Sure.Parser.op("/", "Nat.div")

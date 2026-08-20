@@ -1,0 +1,2 @@
+Sure.Check.monad: Monad<Sure.Check>
+  Monad.new<Sure.Check>(Sure.Check.bind, Sure.Check.pure)

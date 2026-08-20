@@ -1,0 +1,236 @@
+Sure.Parser.file(file: String, code: String, defs: Sure.Defs): Parser(Sure.Defs)
+  Parser {
+    get mod = Parser.maybe!(Sure.Parser.file.mod)
+    get imps = Parser.many!(Sure.Parser.file.imp)
+    let mod = case mod {
+      none: ""
+      some: mod.value
+    }
+    Sure.Parser.file.go(file, code, mod, imps, [], defs)
+  }
+
+Sure.Parser.file.exposing: Parser(List<String>)
+  Parser {
+    Sure.Parser.text("exposing")
+    Parser.choice!([
+      Parser {
+        Sure.Parser.text("(..)")
+        return [".."]
+      },
+      Sure.Parser.items!("(", Sure.Parser.name1, ")")
+    ])
+  }
+
+Sure.Parser.file.mod: Parser(String)
+  Parser {
+    Sure.Parser.text("module ")
+    get nam = Sure.Parser.name1
+    Parser.maybe!(Sure.Parser.file.exposing)
+    return nam
+  }
+
+Sure.Parser.file.imp: Parser(Pair<String, List<String>>)
+  Parser {
+    Sure.Parser.text("import ")
+    get nam = Sure.Parser.name1
+    get exp = Parser.maybe!(Sure.Parser.file.exposing)
+    let names = case exp {
+      none: []
+      some:
+        if Sure.Mod.has("..", exp.value) then []
+        else exp.value
+    }
+    return Pair.new<String, List<String>>(nam, names)
+  }
+
+Sure.Parser.file.go(
+  file: String,
+  code: String,
+  mod: String,
+  imps: List<Pair<String, List<String>>>,
+  locals: List<Sure.Name>,
+  defs: Sure.Defs
+): Parser(Sure.Defs)
+  Parser {
+    get stop = Parser.is_eof
+    if stop then Parser {
+      return Sure.Parser.file.rewrite(mod, imps, locals, locals, defs)
+    } else Parser {
+      get got = Parser.choice!([
+        Sure.Parser.file.def(file, code, mod, defs),
+        Sure.Parser.file.adt(file, code, mod, defs),
+        Sure.Parser.file.end(file, code, defs),
+        Parser.fail!("Expected a top-level definition or a type declaration.")
+      ])
+      open got
+      Sure.Parser.file.go(file, code, mod, imps, List.concat<Sure.Name>(got.fst, locals), got.snd)
+    }
+  }
+
+Sure.Parser.file.rewrite(
+  mod: String,
+  imps: List<Pair<String, List<String>>>,
+  locals: List<Sure.Name>,
+  names: List<Sure.Name>,
+  defs: Sure.Defs
+): Sure.Defs
+  if String.is_empty(mod) then
+    case imps {
+      nil: defs
+      cons: Sure.Parser.file.rewrite.go(mod, imps, locals, names, defs)
+    }
+  else Sure.Parser.file.rewrite.go(mod, imps, locals, names, defs)
+
+Sure.Parser.file.rewrite.go(
+  mod: String,
+  imps: List<Pair<String, List<String>>>,
+  locals: List<Sure.Name>,
+  names: List<Sure.Name>,
+  defs: Sure.Defs
+): Sure.Defs
+  case names {
+    nil: defs
+    cons:
+      let defs = Sure.Parser.file.rewrite.one(mod, imps, locals, names.head, defs)
+      Sure.Parser.file.rewrite.go(mod, imps, locals, names.tail, defs)
+  }
+
+Sure.Parser.file.rewrite.one(
+  mod: String,
+  imps: List<Pair<String, List<String>>>,
+  locals: List<Sure.Name>,
+  name: Sure.Name,
+  defs: Sure.Defs
+): Sure.Defs
+  case Sure.Map.get<Sure.Def>(name, defs) as got {
+    none: defs
+    some:
+      open got.value
+      let resolve = (n) Sure.Mod.resolve(mod, locals, imps, n)
+      let term = Sure.Term.qualify(resolve, got.value.term)
+      let type = Sure.Term.qualify(resolve, got.value.type)
+      Sure.Map.set<Sure.Def>(
+        name,
+        Sure.Def.new(
+          got.value.file,
+          got.value.code,
+          got.value.orig,
+          got.value.name,
+          term,
+          type,
+          got.value.isct,
+          got.value.arit,
+          got.value.stat
+        ),
+        defs
+      )
+  }
+
+Sure.Parser.file.adt(
+  file: String,
+  code: String,
+  mod: String,
+  defs: Sure.Defs
+): Parser(Pair<List<Sure.Name>, Sure.Defs>)
+  Parser {
+    Sure.Parser.spaces
+    get from = Parser.get_idx
+    get adt0 = Sure.Parser.ADT.adt
+    get upto = Parser.get_idx
+    let orig = {from, upto}
+    case adt0 {
+      new: Parser {
+        let qname = Sure.Mod.qual(mod, adt0.name)
+        let ctrs = adt0.ctrs
+        let deri = adt0.deri
+        def adt = Sure.Parser.ADT.Datatype.new(qname, adt0.pars, adt0.inds, ctrs, deri)
+        let term = Sure.Parser.ADT.Datatype.build_term(adt)
+        let term = Sure.Term.bind([], (x) Bits.i(x), term)
+        let type = Sure.Parser.ADT.Datatype.build_type(adt)
+        let type = Sure.Term.bind([], (x) Bits.o(x), type)
+        let arit = Nat.add(List.length!(adt0.pars), List.length!(adt0.inds))
+        let defs = Sure.Map.def(file, code, orig, qname, term, type, false, arit, false, defs)
+        let names0 = [qname]
+        let defs = List.fold!(ctrs)!(Either.right<String, Pair<List<Sure.Name>, Sure.Defs>>(Pair.new<List<Sure.Name>, Sure.Defs>(names0, defs)), (ctr, acc)
+          case acc {
+            left: Either.left!!(acc.value)
+            right:
+              open acc.value
+              let defs = acc.value.snd
+              let names = acc.value.fst
+              let typ_name = qname
+              let ctr_arit = Nat.add(arit, List.length!(case ctr { new: ctr.args }))
+              let ctr_name = String.flatten([typ_name, Sure.Name.read("."), case ctr { new: ctr.name }])
+              let ctr_term = Sure.Parser.ADT.Constructor.build_term(adt, ctr)
+              let ctr_term = Sure.Term.bind([], (x) Bits.i(x), ctr_term)
+              let ctr_type = Sure.Parser.ADT.Constructor.build_type(adt, ctr)
+              let ctr_type = Sure.Term.bind([], (x) Bits.o(x), ctr_type)
+              Either.right!!(Pair.new<List<Sure.Name>, Sure.Defs>(
+                List.cons<Sure.Name>(ctr_name, names),
+                Sure.Map.def(file, code, orig, ctr_name, ctr_term, ctr_type, true, ctr_arit, false, defs)
+              ))
+          })
+        let defs = case defs {
+          left: Either.left!!(defs.value)
+          right: List.fold!(deri)!(Either.right<String, Pair<List<Sure.Name>, Sure.Defs>>(defs.value), (deri, acc)
+            case acc {
+              left: Either.left!!(acc.value)
+              right: case Sure.Parser.ADT.Derive.by_name(deri, adt) as derived {
+                none: Either.left!!("Can't derive '" | deri | "' for '" | qname | "' type.")
+                some:
+                  open acc.value
+                  open derived.value
+                  let name = derived.value.name
+                  let term = derived.value.term
+                  let term = Sure.Term.bind([], (x) Bits.i(x), term)
+                  let type = derived.value.type
+                  let type = Sure.Term.bind([], (x) Bits.o(x), type)
+                  let arit = derived.value.arit
+                  Either.right!!(Pair.new<List<Sure.Name>, Sure.Defs>(
+                    List.cons<Sure.Name>(name, acc.value.fst),
+                    Sure.Map.def(file, code, orig, name, term, type, false, arit, false, acc.value.snd)
+                  ))
+              }
+            })
+        }
+        case defs {
+          left: Parser.fail!(defs.value)
+          right: Parser { return defs.value }
+        }
+      }
+    }
+  }
+
+Sure.Parser.file.def(
+  file: String,
+  code: String,
+  mod: String,
+  defs: Sure.Defs
+): Parser(Pair<List<Sure.Name>, Sure.Defs>)
+  Parser {
+    Sure.Parser.spaces
+    get from = Parser.get_idx
+    get name0 = Sure.Parser.name1
+    get args = Parser.many!(Sure.Parser.binder(":", false))
+    let args = List.flatten!(args)
+    Sure.Parser.text(":")
+    get type = Sure.Parser.term
+    get term = Sure.Parser.term
+    get upto = Parser.get_idx
+    let orig = {from, upto}
+    let name = Sure.Mod.qual(mod, name0)
+    let arit = List.length!(args)
+    let type = Sure.Parser.forall.make(args, type)
+    let term = Sure.Parser.lambda.make(List.mapped!(args)!((x) case x { new: x.name }),term)
+    let type = Sure.Term.bind([], (x) Bits.i(x), type)
+    let term = Sure.Term.bind([], (x) Bits.o(x), term)
+    let defs = Sure.Map.def(file, code, orig, name, term, type, false, arit, false, defs)
+    return Pair.new<List<Sure.Name>, Sure.Defs>([name], defs)
+  }
+
+Sure.Parser.file.end(file: String, code: String, defs: Sure.Defs): Parser(Pair<List<Sure.Name>, Sure.Defs>)
+  Parser {
+    Sure.Parser.spaces
+    Parser.eof
+    return Pair.new<List<Sure.Name>, Sure.Defs>([], defs)
+  }

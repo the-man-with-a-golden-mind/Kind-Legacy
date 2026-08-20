@@ -1,0 +1,2 @@
+Sure.Map.new<A: Type>: Sure.Map<A>
+  BitsMap.new<A>

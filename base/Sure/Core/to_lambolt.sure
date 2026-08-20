@@ -1,0 +1,200 @@
+// Converts a Sure.Core term to Lambolt
+Sure.Core.to_lambolt(defs: Sure.Core.Defs): String
+  let def_list = List.map!!((p) p@snd, Map.to_list!(defs))
+  let st = Sure.Core.to_lambolt.Builder.aux.new(2, "(Z) = 0\n(Typ) = 1")
+  let ret = {st, ""}
+  for def in def_list with ret:
+    let {st, head} = ret
+    let {st, tail} = Sure.Core.Def.to_lambolt(def, st, {})
+    {st, head|tail}
+  let {st, code} = ret
+  let {n, ids} = st
+  ids|code
+
+
+Sure.Core.to_lambolt.lam_ref: Bool
+  true
+
+Sure.Core.to_lambolt.let_ref: Bool
+  false
+
+Sure.Core.to_lambolt.get_idx: Sure.Core.to_lambolt.Builder(Nat)
+  (st, ids)
+    open st
+    {{st.n + 1, st.ids} :: Sure.Core.to_lambolt.Builder.aux, st.n}
+
+Sure.Core.to_lambolt.to_defname(name: String): String
+  "("|String.capitalize(name)|")"
+
+Sure.Core.to_lambolt.add_defname(name: String): Sure.Core.to_lambolt.Builder(Unit)
+  (st, ids)
+    open st
+    {
+      {st.n + 1, st.ids|"\n"|Sure.Core.to_lambolt.to_defname(name)|" = "|Nat.show(st.n)}
+        :: Sure.Core.to_lambolt.Builder.aux
+      unit
+    }
+
+Sure.Core.to_lambolt.add_var<A: Type>(
+  b: Sure.Core.to_lambolt.Builder(A)
+  id: String
+): Sure.Core.to_lambolt.Builder(A)
+  (st, ids)
+    b(st, ids{id} <- Sure.Core.to_lambolt.lam_ref)
+
+Sure.Core.to_lambolt.add_let<A: Type>(
+  b: Sure.Core.to_lambolt.Builder(A)
+  id: String
+): Sure.Core.to_lambolt.Builder(A)
+  (st, ids)
+    b(st, ids{id} <- Sure.Core.to_lambolt.let_ref)
+
+Sure.Core.to_lambolt.test_ref(id: String): Sure.Core.to_lambolt.Builder(Maybe<Bool>)
+  (st, ids)
+    {st, ids{id}}
+
+//Sure.Core.to_lambolt.Builder.show(
+//  st: Sure.Core.to_lambolt.Builder.aux
+//): String
+//  open st
+//  "{\n"
+//  |"  "|Nat.show(st.n)|",\n"
+//  |"  "|st.ids|",\n"
+//  |"  "|Map.show!((u) "*", st.local_binders)|"\n"
+//  |"}"
+
+Sure.Core.to_lambolt.handle_empty(
+  str: String
+): String
+  case str {
+    nil:
+      "(Z)"
+    cons:
+      str
+  }
+
+// TODO add indentation level
+Sure.Core.Term.to_lambolt(
+  term: Sure.Core.Term
+): Sure.Core.to_lambolt.Builder(String)
+  case term {
+    var:
+      Sure.Core.to_lambolt.Builder {
+        return 
+          Sure.Core.to_lambolt.handle_empty(term.name)
+      }
+    ref:
+      Sure.Core.to_lambolt.Builder {
+        get cond = Sure.Core.to_lambolt.test_ref(term.name)
+        let ret =
+          case cond {
+            some:
+              if cond.value then
+                Sure.Core.to_lambolt.handle_empty(term.name)
+              else
+                "(Ref ("
+                |Sure.Core.to_lambolt.handle_empty(String.to_lower(term.name))
+                |"))"
+            none:
+              "(Ref ("
+              |Sure.Core.to_lambolt.handle_empty(String.capitalize(term.name))
+              |"))"
+          }
+        return ret
+      }
+    typ:
+      Sure.Core.to_lambolt.Builder {
+        return "(Typ)"
+      }
+    all: 
+      Sure.Core.to_lambolt.Builder {
+        let eras = if term.eras then "(True)" else "(False)"
+        get xtyp_code = Sure.Core.Term.to_lambolt(term.xtyp)
+        get body_code = Sure.Core.to_lambolt.add_var!(
+          Sure.Core.to_lambolt.add_var!(
+            Sure.Core.Term.to_lambolt(
+              term.body(Sure.Core.Term.ref(term.self), Sure.Core.Term.ref(term.name))
+            )
+            term.self
+          )
+          term.name
+        )
+        get let_name =
+          case term.name {
+            nil:
+              Sure.Core.to_lambolt.Builder {
+                return ""
+              }
+            cons:
+              Sure.Core.to_lambolt.Builder {
+                get name_n = Sure.Core.to_lambolt.get_idx
+                return "\nlet "|term.name|" = "|Nat.show(name_n)
+              }
+          }
+        get let_self =
+          case term.self {
+              nil:
+                Sure.Core.to_lambolt.Builder {
+                  return ""
+                }
+              cons:
+                Sure.Core.to_lambolt.Builder {
+                  get self_n = Sure.Core.to_lambolt.get_idx
+                  return "\nlet "|term.self|" = "|Nat.show(self_n)
+                }
+          }
+        return 
+          let_self
+          |let_name|"\n"
+          |"(All "|eras|" "
+          |Sure.Core.to_lambolt.handle_empty(term.self)|" "
+          |Sure.Core.to_lambolt.handle_empty(term.name)|" "
+          |xtyp_code|" λ"|term.self|" λ"|term.name|" "|body_code|")"
+      }
+    lam:
+      Sure.Core.to_lambolt.Builder {
+        let new_body = term.body(Sure.Core.Term.ref(term.name))
+        get lam_body = Sure.Core.to_lambolt.add_var!(Sure.Core.Term.to_lambolt(new_body), term.name)
+        return "λ"|term.name|" "|lam_body
+      }
+    app:
+      Sure.Core.to_lambolt.Builder {
+        get fun = Sure.Core.Term.to_lambolt(term.func)
+        get arg = Sure.Core.Term.to_lambolt(term.argm)
+        return "(App "|fun|" "|arg|")"
+      }
+    let:
+      Sure.Core.to_lambolt.Builder {
+        get let_expr = Sure.Core.to_lambolt.add_let!(
+          Sure.Core.Term.to_lambolt(term.expr)
+          term.name
+        )
+        get let_body = Sure.Core.to_lambolt.add_var!(
+          Sure.Core.Term.to_lambolt(term.body(Sure.Core.Term.ref(term.name)))
+          term.name
+        )
+        get n = Sure.Core.to_lambolt.get_idx
+        return "let "|term.name|" = "|Nat.show(n)|"\n(Let "|term.name|" "|let_expr|" λ"|term.name|" "|let_body|")"
+      }
+    ann:
+      Sure.Core.to_lambolt.Builder {
+        get expr = Sure.Core.Term.to_lambolt(term.expr)
+        get type = Sure.Core.Term.to_lambolt(term.type)
+        return "(Ann "|expr|" "|type|")"
+      }
+  }
+
+Sure.Core.Def.to_lambolt(def: Sure.Core.Def): Sure.Core.to_lambolt.Builder(String)
+  open def
+  Sure.Core.to_lambolt.Builder {
+    get type_code = Sure.Core.Term.to_lambolt(def.type)
+    get term_code = Sure.Core.Term.to_lambolt(def.term)
+    Sure.Core.to_lambolt.add_defname(def.name)
+    return 
+      "\n"
+      |Sure.Core.to_lambolt.to_defname(def.name|"Def")
+      |" =\n(Def "
+      |Sure.Core.to_lambolt.to_defname(def.name)|" "
+      |type_code|" "
+      |term_code|")"
+  }

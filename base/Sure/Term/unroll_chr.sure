@@ -1,0 +1,7 @@
+Sure.Term.unroll_chr(chrx: Char): Sure.Term
+  let bits = U16.to_bits(chrx);
+  let term = Sure.Term.ref(Sure.Name.read("Word.from_bits"));
+  let term = Sure.Term.app(term, Sure.Term.nat(16));
+  let term = Sure.Term.app(term, Sure.Term.unroll_chr.bits(bits));
+  let term = Sure.Term.app(Sure.Term.ref(Sure.Name.read("U16.new")), term);
+  term

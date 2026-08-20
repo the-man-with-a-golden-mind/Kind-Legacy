@@ -1,0 +1,67 @@
+Sure.Term.patch_at(path: Bits, term: Sure.Term, fn: Sure.Term -> Sure.Term): Sure.Term
+  case term {
+    all: case path {
+      e: fn(term)
+      o: Sure.Term.all(term.eras, term.self, term.name, Sure.Term.patch_at(path.pred,term.xtyp,fn), term.body)
+      i: Sure.Term.all(term.eras, term.self, term.name, term.xtyp, (s,x) Sure.Term.patch_at(path.pred,term.body(s,x),fn))
+    }
+    lam: case path {
+      e: fn(term)
+      o: Sure.Term.lam(term.name, (x) Sure.Term.patch_at(Bits.tail(path), term.body(x), fn))
+      i: Sure.Term.lam(term.name, (x) Sure.Term.patch_at(Bits.tail(path), term.body(x), fn))
+    }
+    app: case path {
+      e: fn(term)
+      o: Sure.Term.app(Sure.Term.patch_at(path.pred,term.func,fn), term.argm)
+      i: Sure.Term.app(term.func, Sure.Term.patch_at(path.pred,term.argm,fn))
+    }
+    let: case path {
+      e: fn(term)
+      o: Sure.Term.let(term.name, Sure.Term.patch_at(path.pred,term.expr,fn), term.body)
+      i: Sure.Term.let(term.name, term.expr, (x) Sure.Term.patch_at(path.pred,term.body(x),fn))
+    }
+    def: case path {
+      e: fn(term)
+      o: Sure.Term.def(term.name, Sure.Term.patch_at(path.pred,term.expr,fn), term.body)
+      i: Sure.Term.def(term.name, term.expr, (x) Sure.Term.patch_at(path.pred,term.body(x),fn))
+    }
+    ann: case path {
+      e: fn(term)
+      o: Sure.Term.ann(term.done, Sure.Term.patch_at(path.pred,term.term,fn), term.type)
+      i: Sure.Term.ann(term.done, term.term, Sure.Term.patch_at(path.pred,term.type,fn))
+    }
+    cse: case path {
+      e: fn(term)
+      o: Sure.Term.cse(term.path, Sure.Term.patch_at(path.pred,term.expr,fn), term.name, term.with, term.cses, term.moti)
+      i: term
+    }
+    new: case path {
+      e: fn(term)
+    } default Sure.Term.new(Sure.Path.patch_at.list!(path, term.args, (arg_path, arg) Sure.Term.patch_at(arg_path, arg, fn)))
+    get: case path {
+      e: fn(term)
+    } default Sure.Term.get(Sure.Term.patch_at(path.pred,term.expr,fn), term.fkey)
+    set: case path {
+      e: fn(term)
+      o: Sure.Term.set(Sure.Term.patch_at(path.pred,term.expr,fn), term.fkey, term.fval)
+      i: Sure.Term.set(term.expr, term.fkey, Sure.Term.patch_at(path.pred,term.fval,fn))
+    }
+    mut: case path {
+      e: fn(term)
+      o: Sure.Term.mut(Sure.Term.patch_at(path.pred,term.expr,fn), term.fkey, term.ffun)
+      i: Sure.Term.mut(term.expr, term.fkey, Sure.Term.patch_at(path.pred,term.ffun,fn))
+    }
+    ope: case path {
+      e: fn(term)
+      o: Sure.Term.ope(term.name, Sure.Term.patch_at(path.pred,term.arg0,fn), term.arg1)
+      i: Sure.Term.ope(term.name, term.arg0, Sure.Term.patch_at(path.pred,term.arg1,fn))
+    }
+    imp: Sure.Term.imp(Sure.Term.patch_at(path, term.expr, fn))
+    ori: Sure.Term.ori(term.orig, Sure.Term.patch_at(path, term.expr, fn))
+    _: case path {
+      e: fn(term)
+      o: term
+      i: term
+    }
+  }
+

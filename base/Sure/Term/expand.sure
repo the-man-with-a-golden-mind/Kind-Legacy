@@ -1,0 +1,9 @@
+Sure.Term.expand(dref: List<Bits>, term: Sure.Term, defs: Sure.Defs): Sure.Term
+  let term = Sure.Term.normalize(term, Sure.Map.new!);
+  let term = for path in dref:
+    let term = Sure.Term.expand_at(path, term, defs);
+    let term = Sure.Term.normalize(term, Sure.Map.new!);
+    let term = Sure.Term.expand_ct(term, defs, 0);
+    let term = Sure.Term.normalize(term, Sure.Map.new!);
+    term
+  term

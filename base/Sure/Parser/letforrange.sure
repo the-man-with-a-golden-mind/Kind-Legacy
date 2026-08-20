@@ -1,0 +1,117 @@
+Sure.Parser.letforrange.nat(body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Sure.Parser.block("let-for", Parser {
+    Sure.Parser.text("let ")
+    get name = Sure.Parser.name1
+    Sure.Parser.text("=")
+    Sure.Parser.text("for ")
+    get elem = Sure.Parser.name1
+    Sure.Parser.text("from")
+    get idx0 = Sure.Parser.term
+    Sure.Parser.text("to")
+    get idx1 = Sure.Parser.term
+    Sure.Parser.text(":")
+    get loop = Sure.Parser.term
+    Parser.maybe!(Sure.Parser.text(";"))
+    get body = body(unit)
+    let term = Sure.Term.ref("Nat.for")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.ref(name))
+    let term = Sure.Term.app(term, idx0)
+    let term = Sure.Term.app(term, idx1)
+    let lamb = Sure.Term.lam(elem, (e) Sure.Term.lam(name, (s) loop))
+    let term = Sure.Term.app(term, lamb)
+    let term = Sure.Term.let(name, term, (x) body)
+    return term
+  })
+
+Sure.Parser.letforrange.nat.with(body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Sure.Parser.block("for", Parser {
+    Sure.Parser.text("for ")
+    get elem = Sure.Parser.name1
+    Sure.Parser.text("from")
+    get idx0 = Sure.Parser.term
+    Sure.Parser.text("to")
+    get idx1 = Sure.Parser.term
+    Sure.Parser.text("with ")
+    get name = Sure.Parser.name1
+    Sure.Parser.text(":")
+    get loop = Sure.Parser.term
+    Parser.maybe!(Sure.Parser.text(";"))
+    get body = body(unit)
+    let term = Sure.Term.ref("Nat.for")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.ref(name))
+    let term = Sure.Term.app(term, idx0)
+    let term = Sure.Term.app(term, idx1)
+    let lamb = Sure.Term.lam(elem, (e) Sure.Term.lam(name, (s) loop))
+    let term = Sure.Term.app(term, lamb)
+    let term = Sure.Term.let(name, term, (x) body)
+    return term
+  })
+
+Sure.Parser.letforrange(typename: String, body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Sure.Parser.block("let-for", Parser {
+    Sure.Parser.text("let ")
+    get name = Sure.Parser.name1
+    Sure.Parser.text("=")
+    Sure.Parser.text("for ")
+    get elem = Sure.Parser.name1
+    Sure.Parser.text(":")
+    Sure.Parser.text(typename)
+    Sure.Parser.text("from")
+    get idx0 = Sure.Parser.term
+    Sure.Parser.text("to")
+    get idx1 = Sure.Parser.term
+    Sure.Parser.text(":")
+    get loop = Sure.Parser.term
+    Parser.maybe!(Sure.Parser.text(";"))
+    get body = body(unit)
+    let term = Sure.Term.ref(typename|".for")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.ref(name))
+    let term = Sure.Term.app(term, idx0)
+    let term = Sure.Term.app(term, idx1)
+    let lamb = Sure.Term.lam(elem, (e) Sure.Term.lam(name, (s) loop))
+    let term = Sure.Term.app(term, lamb)
+    let term = Sure.Term.let(name, term, (x) body)
+    return term
+  })
+
+Sure.Parser.letforrange.with(typename: String, body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Sure.Parser.block("for", Parser {
+    Sure.Parser.text("for ")
+    get elem = Sure.Parser.name1
+    Sure.Parser.text(":")
+    Sure.Parser.text(typename)
+    Sure.Parser.text("from")
+    get idx0 = Sure.Parser.term
+    Sure.Parser.text("to")
+    get idx1 = Sure.Parser.term
+    Sure.Parser.text("with ")
+    get name = Sure.Parser.name1
+    Sure.Parser.text(":")
+    get loop = Sure.Parser.term
+    Parser.maybe!(Sure.Parser.text(";"))
+    get body = body(unit)
+    let term = Sure.Term.ref(typename|".for")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.ref(name))
+    let term = Sure.Term.app(term, idx0)
+    let term = Sure.Term.app(term, idx1)
+    let lamb = Sure.Term.lam(elem, (e) Sure.Term.lam(name, (s) loop))
+    let term = Sure.Term.app(term, lamb)
+    let term = Sure.Term.let(name, term, (x) body)
+    return term
+  })
+
+Sure.Parser.letforrange.u32.with(body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Sure.Parser.letforrange.with("U32", body)
+
+Sure.Parser.letforrange.u32(body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Sure.Parser.letforrange("U32", body)
+
+Sure.Parser.letforrange.i32.with(body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Sure.Parser.letforrange.with("I32", body)
+
+Sure.Parser.letforrange.i32(body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Sure.Parser.letforrange("I32", body)

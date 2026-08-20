@@ -1,0 +1,6 @@
+type Sure.Status {
+  init,
+  wait,
+  done(cached: Bool),
+  fail(errors: List<Sure.Error>),
+}

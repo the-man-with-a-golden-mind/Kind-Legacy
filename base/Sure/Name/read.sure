@@ -1,0 +1,2 @@
+Sure.Name.read(str: String): Sure.Name
+  str

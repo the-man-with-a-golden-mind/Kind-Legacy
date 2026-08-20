@@ -1,0 +1,43 @@
+// Trusted runtime tester. Failures must abort the process (exit 1).
+// Pure assertions are data; the runner is IO. Proofs of the assertion
+// functions live under Test/.
+
+type Test.Result {
+  pass
+  fail(message: String)
+}
+
+type Test.Stats {
+  new(passed: Nat, failed: Nat)
+}
+
+type Test {
+  unit(name: String, result: Test.Result)
+  io(name: String, act: IO<Test.Result>)
+  group(name: String, tests: List<Test>)
+}
+
+Test.assert(cond: Bool, message: String): Test.Result
+  case cond {
+    true: Test.Result.pass
+    false: Test.Result.fail(message)
+  }
+
+Test.nat(got: Nat, exp: Nat): Test.Result
+  Test.assert(Nat.eql(got, exp),
+    "Nat got " | Nat.show(got) | " expected " | Nat.show(exp))
+
+Test.string(got: String, exp: String): Test.Result
+  Test.assert(String.eql(got, exp),
+    "String got \"" | got | "\" expected \"" | exp | "\"")
+
+Test.bool(got: Bool, exp: Bool): Test.Result
+  Test.assert(Bool.eql(got, exp), "Bool mismatch")
+
+Test.Stats.zero: Test.Stats
+  Test.Stats.new(0, 0)
+
+Test.Stats.add(a: Test.Stats, b: Test.Stats): Test.Stats
+  open a
+  open b
+  Test.Stats.new(Nat.add(a.passed, b.passed), Nat.add(a.failed, b.failed))

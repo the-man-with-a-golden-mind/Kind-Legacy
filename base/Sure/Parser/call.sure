@@ -1,0 +1,6 @@
+Sure.Parser.call: Parser<Sure.Term>
+  Parser {
+    get func = Sure.Parser.name1
+    get args = Sure.Parser.items_now!("(", Sure.Parser.term, ")")
+    return Sure.Term.cal(func, args)
+  }

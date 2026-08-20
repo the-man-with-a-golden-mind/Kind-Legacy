@@ -1,0 +1,21 @@
+// Checker honesty: compact nats, 5-field records, empty maps.
+// Empty strings and junk nats are 0. Extra record fields are not functions.
+
+type Sure.Check.Box {
+  new(a: String, b: String, c: String, d: String, e: String)
+}
+
+Sure.Check.Box.e_of(x: Sure.Check.Box): String
+  open x
+  x.e
+
+Sure.Check.Box.a_of(x: Sure.Check.Box): String
+  open x
+  x.a
+
+type Sure.Check<V: Type> {
+  result(
+    value: Maybe<V>, // the returned value
+    errors: List<Sure.Error>, // a list of errors
+  ),
+}

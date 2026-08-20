@@ -1,0 +1,123 @@
+Sure.Parser.case: Parser(Sure.Term)
+  Sure.Parser.block("case", Parser {
+    Sure.Parser.text("case ")
+
+    // Matched values
+    get vals = Parser.many1!(Parser {
+      get expr = Parser.avoiding!(Sure.Parser.text("{"), Sure.Parser.term)
+      get name = Parser.maybe!(Parser {
+        Sure.Parser.text("as")
+        get name = Sure.Parser.name1
+        Parser.maybe!(Sure.Parser.text(";"))
+        return name
+      })
+      let name = name <> Sure.Term.extract_name(expr)
+      return {name, expr}
+    })
+
+    // With variables
+    get wyth = Sure.Parser.case.with
+
+
+    // Cases
+    get cses = Sure.Parser.items!("{", Sure.Parser.case.case, "}")
+    get smrt = Parser.maybe!(Sure.Parser.text("!"))
+
+    // Default value
+    get dflt = Parser.maybe!(Parser {
+      Sure.Parser.text("default")
+      get term = Sure.Parser.term
+      return term
+    })
+
+    // Motive
+    get moti = Parser.maybe!(Parser {
+      Sure.Parser.text(":")
+      Parser.append_error!(Sure.Parser.term, "\nInside motive.")
+    })
+    let moti = case moti {
+      none: case smrt {
+        some: none
+        none: some(Sure.Term.hol(Bits.e))
+      }
+      some: some(moti.value)
+    }
+
+    return Sure.Parser.case.build(vals, wyth, cses, dflt, moti)
+  })
+
+Sure.Parser.case.build(
+  vals: List<Pair<Sure.Name, Sure.Term>>
+  wyth: List<Sure.Ann>
+  cses: List<Pair<List<Sure.Name>, Sure.Term>>
+  dflt: Maybe<Sure.Term>
+  moti: Maybe<Sure.Term>
+): Sure.Term
+  case vals {
+    nil: case cses {
+      nil: Sure.Term.ref("missing_case")
+      cons: Pair.snd!!(cses.head)
+    }
+    cons:
+      let group = Sure.Parser.case.group(dflt,cses)
+      let name = Pair.fst!!(vals.head)
+      let expr = Pair.snd!!(vals.head)
+      let cses = Sure.Map.map!!((cses) Sure.Parser.case.build(vals.tail,wyth,cses,dflt,moti), group)
+      Sure.Term.cse(Bits.e, expr, name, wyth, cses, moti)
+  }
+
+Sure.Parser.case.group(
+  dflt: Maybe<Sure.Term>
+  cses: List<Pair<List<Sure.Name>, Sure.Term>>
+): Sure.Map(List<Pair<List<Sure.Name>, Sure.Term>>)
+  case cses {
+    nil:
+      case dflt {
+        none: Sure.Map.new!
+        some: Sure.Map.set!("_", [{[],dflt.value}], Sure.Map.new!)
+      }
+    cons:
+      let map = Sure.Parser.case.group(dflt,cses.tail)
+      let {cse_names, cse_value} = cses.head
+      case cse_names {
+        nil:
+          map
+        cons:
+          let rest = Sure.Map.get!(cse_names.head, map) <> []
+          Sure.Map.set!(cse_names.head, {cse_names.tail, cse_value} & rest, map)
+      }
+  }
+
+Sure.Parser.case.case: Parser(Pair<List<Sure.Name>, Sure.Term>)
+  Parser {
+    get no_names = Parser.try!(Sure.Parser.text(":"))
+    if no_names then Parser {
+      Sure.Parser.spaces
+      Parser.fail!("Expected constructor names.")
+    } else Parser {
+      get names = Parser.until!(Sure.Parser.text(":"), Sure.Parser.name1)
+      get term = Sure.Parser.term
+      Parser.maybe!(Sure.Parser.text(","))
+      return {names, term}
+    }
+  }
+
+Sure.Parser.case.with: Parser(List<Sure.Ann>)
+  Parser.choice!([
+    Parser {
+      Sure.Parser.text("with ")
+      Parser.many!(Parser {
+        get name = Sure.Parser.name1
+        get type = Parser.maybe!(Parser {
+          Sure.Parser.text(":")
+          get type = Sure.Parser.term
+          Parser.maybe!(Sure.Parser.text(";"))
+          return type
+        })
+        return Sure.Ann.new(name, Sure.Term.ref(name), type)
+      })
+    }
+    Parser {
+      return []
+    }
+  ])

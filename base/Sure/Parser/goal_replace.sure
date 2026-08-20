@@ -1,0 +1,19 @@
+Sure.Parser.goal_replace: Parser(Sure.Term)
+  Sure.Parser.block("goal-replace", Parser {
+    Sure.Parser.text("replace ")
+    get name = Sure.Parser.name1
+    Sure.Parser.text("with")
+    get iseq = Sure.Parser.term
+    Sure.Parser.text("in")
+    get type = Sure.Parser.term
+    get body = Sure.Parser.term
+    let moti = Sure.Term.lam(name, (s) Sure.Term.lam("", (x) type))
+    //let term = Sure.Term.ref("Equal.mirror")
+    //let term = Sure.Term.app(term, Sure.Term.hol(Bits.e)) 
+    //let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    //let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = iseq
+    let term = Sure.Term.app(term, moti)
+    let term = Sure.Term.app(term, body)
+    return term
+  })

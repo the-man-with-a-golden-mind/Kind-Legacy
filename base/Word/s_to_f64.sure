@@ -1,0 +1,2 @@
+Word.s_to_f64<size: Nat>(a: Word(size)): F64
+  Word.s_to_f64!(a)

@@ -1,0 +1,5 @@
+Sure.name.def: Sure.name == "Sure"
+  refl
+
+Sure.Name: Type
+  String

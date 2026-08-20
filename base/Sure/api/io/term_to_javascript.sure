@@ -1,0 +1,8 @@
+Sure.api.io.term_to_javascript(name: String): IO<String>
+  IO {
+    get defs = Sure.Synth.one(name, Sure.Map.new!)
+    let defs = (defs <> Sure.Map.new!)
+    let compiled = Sure.Comp.Defs.compile(defs)
+    let javascripted = Sure.Comp.transpile(Sure.Comp.Target.Javascript.Language, name, compiled)
+    return javascripted;
+  }

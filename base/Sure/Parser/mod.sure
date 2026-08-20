@@ -1,0 +1,2 @@
+Sure.Parser.mod: Sure.Term -> Parser(Sure.Term)
+  Sure.Parser.op("%", "Nat.mod")

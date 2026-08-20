@@ -1,0 +1,2 @@
+Sure.Name.eql(a: Sure.Name, b: Sure.Name): Bool
+  String.eql(a, b)

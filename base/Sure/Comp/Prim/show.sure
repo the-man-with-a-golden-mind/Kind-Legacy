@@ -1,0 +1,25 @@
+// Converts a primitive to a String
+Sure.Comp.Prim.show(prim: Sure.Comp.Prim): String
+  case prim {
+    unit: "Unit"
+    bits: "Bits"
+    bool: "Bool"
+    nat: "Nat"
+    //u8: "U8"
+    u16: "U16"
+    u32: "U32"
+    //u64: "U64"
+    //u256: "U256"
+    //f64: "F64"
+    string: "String"
+    //buffer32: "Buffer32"
+    data: Sure.Comp.Prim.show.ctrs(prim.ctrs)
+  }
+
+Sure.Comp.Prim.show.ctr(ctr: Pair(String, List(String))): String
+  let {name, fields} = ctr
+  name | "[" | String.join(",", fields) | "]"
+
+Sure.Comp.Prim.show.ctrs(ctrs: List(Pair(String, List(String)))): String
+  let ctrs = List.mapped!(ctrs)!(Sure.Comp.Prim.show.ctr)
+  "data{" | String.join("|", ctrs) | "}"

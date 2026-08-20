@@ -1,0 +1,50 @@
+Sure.Core.to_lambolt.lower_ids(term: Sure.Core.Term): Sure.Core.Term
+  case term {
+    var:
+      let term.name = String.to_lower(term.name)
+      Sure.Core.Term.var(term.name, term.indx)
+    ref:
+      let term.name = String.to_lower(term.name)
+      Sure.Core.Term.ref(term.name)
+    typ:
+      Sure.Core.Term.typ
+    all: 
+      let term.self = String.to_lower(term.self)
+      let term.name = String.to_lower(term.name)
+      Sure.Core.Term.all(
+        term.eras
+        term.self
+        term.name
+        Sure.Core.to_lambolt.lower_ids(term.xtyp)
+        (self, name)
+          Sure.Core.to_lambolt.lower_ids(term.body(self, name))
+      )
+    lam:
+      let term.name = String.to_lower(term.name)
+      let term.body = Sure.Core.to_lambolt.lower_ids . term.body
+      Sure.Core.Term.lam(
+        term.name
+        term.body
+      )
+    app:
+      let term.func = Sure.Core.to_lambolt.lower_ids(term.func)
+      let term.argm = Sure.Core.to_lambolt.lower_ids(term.argm)
+      Sure.Core.Term.app(term.func, term.argm)
+    let:
+      let term.name = String.to_lower(term.name)
+      let term.expr = Sure.Core.to_lambolt.lower_ids(term.expr)
+      let term.body = Sure.Core.to_lambolt.lower_ids . term.body
+      Sure.Core.Term.let(
+        term.name
+        term.expr
+        term.body
+      )
+    ann:
+      let term.expr = Sure.Core.to_lambolt.lower_ids(term.expr)
+      let term.type = Sure.Core.to_lambolt.lower_ids(term.type)
+      Sure.Core.Term.ann(
+        term.done
+        term.expr
+        term.type
+      )
+  }

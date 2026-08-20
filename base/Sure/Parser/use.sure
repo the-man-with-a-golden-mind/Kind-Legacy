@@ -1,0 +1,36 @@
+Sure.Parser.use(body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Sure.Parser.block("use", Parser {
+    Sure.Parser.text("use ")
+    get name = Sure.Parser.name1
+    Sure.Parser.text("=")
+    get expr = Sure.Parser.term
+    Parser.maybe!(Sure.Parser.text(";"))
+    get body = body(unit)
+    let wyth = []
+    let cses = Sure.Map.set!("_", body, Sure.Map.new!)
+    let moti = Maybe.some!(Sure.Term.hol(Bits.e))
+    let term = Sure.Term.let(name, expr, () Sure.Term.cse(Bits.e, Sure.Term.ref(name), name, wyth, cses, moti))
+    return term
+  })
+
+Sure.Parser.use.abort(body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Sure.Parser.block("use", Parser {
+    Sure.Parser.text("use ")
+    get name = Sure.Parser.name1
+    Sure.Parser.text("=")
+    get expr = Sure.Parser.term
+    Sure.Parser.text("abort ")
+    get abor = Sure.Parser.term
+    Parser.maybe!(Sure.Parser.text(";"))
+    get body = body(unit)
+    let term = expr
+    let term = Sure.Term.app(term, Sure.Term.lam("", () Sure.Term.hol(Bits.e)))
+    let term = Sure.Term.app(term, abor)
+    let term = Sure.Term.app(term, Sure.Term.lam(name, ()
+      let wyth = []
+      let cses = Sure.Map.set!("_", body, Sure.Map.new!)
+      let moti = Maybe.some!(Sure.Term.hol(Bits.e))
+      let term = Sure.Term.let(name, Sure.Term.ref(name), () Sure.Term.cse(Bits.e, Sure.Term.ref(name), name, wyth, cses, moti))
+      term))
+    return term
+  })

@@ -1,0 +1,2 @@
+Sure.Parser.and: Sure.Term -> Parser(Sure.Term)
+  Sure.Parser.op("&&", "Bool.and")

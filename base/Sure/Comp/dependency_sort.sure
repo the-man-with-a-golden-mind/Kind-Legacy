@@ -1,0 +1,69 @@
+Sure.Comp.dependency_sort.module(exports: List<String>, defs: Sure.Comp.Defs): List(Pair(String,Sure.Comp))
+  let ret = {Sure.Map.new!, []} :: Pair<Sure.Map<Unit>, List<Pair<String, Sure.Comp>>>
+  for export in exports with ret:
+    let term = Sure.Comp.ref(export)
+    let {seen, list} = ret
+    Sure.Comp.dependency_sort.go(term, defs, seen, list)
+  let {seen, list} = ret
+  List.reverse!(list)
+
+Sure.Comp.dependency_sort(main: String, defs: Sure.Comp.Defs): List(Pair(String,Sure.Comp))
+  let term = Sure.Comp.ref(main)
+  let seen = Sure.Map.new!
+  let list = []
+  let {seen,list} = Sure.Comp.dependency_sort.go(term, defs, seen, list)
+  List.reverse!(list)
+
+//type Sure.Comp {
+  //nil
+  //var(name: Sure.Name)
+  //ref(name: Sure.Name)
+  //lam(name: Sure.Name, body: Sure.Comp)
+  //app(func: Sure.Comp, argm: Sure.Comp)
+  //let(name: Sure.Name, expr: Sure.Comp, body: Sure.Comp)
+  //eli(prim: Sure.Comp.Prim, expr: Sure.Comp)
+  //ins(prim: Sure.Comp.Prim, expr: Sure.Comp)
+  //nat(natx: Nat)
+  //chr(chrx: Char)
+  //str(strx: String)
+  //txt(text: String)
+//}
+
+  
+Sure.Comp.dependency_sort.go(
+  term: Sure.Comp
+  defs: Sure.Comp.Defs
+  seen: Sure.Map(Unit)
+  list: List(Pair(String,Sure.Comp))
+): Pair(BitsSet, List(Pair(String, Sure.Comp)))
+  case term {
+    ref: case Sure.Map.get!(term.name, seen) as got_seen {
+      some: {seen,list}
+      none: case Sure.Map.get!(term.name, defs) as got_term {
+        none: {seen,list}
+        some: 
+          let term = got_term.value
+          let seen = Sure.Map.set!(term.name, unit, seen)
+          let {seen,list} = Sure.Comp.dependency_sort.go(term, defs, seen, list)
+          let list = List.cons!({term.name, got_term.value}, list)
+          {seen, list}
+      }
+    }
+    lam:
+      let {seen,list} = Sure.Comp.dependency_sort.go(term.body, defs, seen, list)
+      {seen,list}
+    app:
+      let {seen,list} = Sure.Comp.dependency_sort.go(term.func, defs, seen, list)
+      let {seen,list} = Sure.Comp.dependency_sort.go(term.argm, defs, seen, list)
+      {seen,list}
+    let:
+      let {seen,list} = Sure.Comp.dependency_sort.go(term.expr, defs, seen, list)
+      let {seen,list} = Sure.Comp.dependency_sort.go(term.body, defs, seen, list)
+      {seen,list}
+    eli:
+      let {seen,list} = Sure.Comp.dependency_sort.go(term.expr, defs, seen, list)
+      {seen,list}
+    ins:
+      let {seen,list} = Sure.Comp.dependency_sort.go(term.expr, defs, seen, list)
+      {seen,list}
+  } default {seen,list}

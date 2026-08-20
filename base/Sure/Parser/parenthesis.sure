@@ -1,0 +1,7 @@
+Sure.Parser.parenthesis: Parser(Sure.Term)
+  Sure.Parser.block("parenthesis", Parser {
+    Sure.Parser.text("(")
+    get term = Sure.Parser.term
+    Sure.Parser.text(")")
+    return term
+  })

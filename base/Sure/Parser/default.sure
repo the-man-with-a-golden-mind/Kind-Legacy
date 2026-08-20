@@ -1,0 +1,10 @@
+Sure.Parser.default(val0: Sure.Term): Parser(Sure.Term)
+  Parser {
+    Sure.Parser.text("<>")
+    get val1 = Sure.Parser.term
+    let term = Sure.Term.ref("Maybe.default")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, val0)
+    let term = Sure.Term.app(term, val1)
+    return term
+  }

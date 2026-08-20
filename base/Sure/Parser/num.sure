@@ -1,0 +1,18 @@
+Sure.Parser.num: Parser(Sure.Term)
+  Parser {
+    get numb = Parser.num
+    open numb
+    case numb.sign {
+      none: case numb.frac {
+        none: Parser {
+          return Sure.Term.nat(numb.numb)
+        }
+        some: Parser {
+          return Sure.Term.num(numb.sign, numb.numb, numb.frac)
+        }
+      }
+      some: Parser {
+        return Sure.Term.num(numb.sign, numb.numb, numb.frac)
+      }
+    }
+  }

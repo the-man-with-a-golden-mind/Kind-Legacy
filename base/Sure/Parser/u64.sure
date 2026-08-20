@@ -1,0 +1,9 @@
+Sure.Parser.u64: Parser(Sure.Term)
+  Sure.Parser.block("u64", Parser {
+    Sure.Parser.spaces
+    get natx = Parser.nat
+    Parser.text("l")
+    let term = Sure.Term.ref("U64.from_nat")
+    let term = Sure.Term.app(term, Sure.Term.nat(natx))
+    return term
+  })

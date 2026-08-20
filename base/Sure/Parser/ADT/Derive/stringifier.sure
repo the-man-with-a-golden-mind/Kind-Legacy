@@ -1,0 +1,71 @@
+Sure.Parser.ADT.Derive.stringifier.type(adt: Sure.Parser.ADT.Datatype): Maybe<Sure.Term>
+  open adt
+  if List.is_empty!(adt.pars) && List.is_empty!(adt.inds) then
+    some(Sure.Term.app(Sure.Term.ref("Stringifier"), Sure.Term.ref(adt.name)))
+  else
+    none
+
+Sure.Parser.ADT.Derive.stringifier.term(adt: Sure.Parser.ADT.Datatype): Maybe<Sure.Term>
+  open adt
+  if List.is_empty!(adt.pars) && List.is_empty!(adt.inds) then
+    let term =
+      Sure.Term.lam("x", (x) 
+      Sure.Term.lam("str", (str)
+        let ctrs = Sure.Parser.ADT.Derive.stringifier.term.ctrs(adt.name, adt.ctrs)
+        let cses = Sure.Map.new!
+        for ctr in ctrs with cses:
+          open ctr
+          Sure.Map.set!(ctr.fst, ctr.snd, cses)
+        Sure.Term.cse(Bits.e, x, "x", [], cses, none)))
+    some(term)
+  else
+    none
+
+Sure.Parser.ADT.Derive.stringifier.term.ctrs(adt_name: String, ctrs: List<Sure.Parser.ADT.Constructor>): List<Pair<String,Sure.Term>>
+  case ctrs {
+    nil:
+      []
+    cons:
+      List.cons!(
+        Sure.Parser.ADT.Derive.stringifier.ctr(adt_name, ctrs.head),
+        Sure.Parser.ADT.Derive.stringifier.term.ctrs(adt_name, ctrs.tail))
+  }
+
+Sure.Parser.ADT.Derive.stringifier.ctr(adt_name: String, ctr: Sure.Parser.ADT.Constructor): Pair<String,Sure.Term>
+  open ctr
+  let term = Sure.Term.ref("Stringifier.text")
+  let term = Sure.Term.app(term, Sure.Term.str(adt_name|"."|ctr.name))
+  let term = Sure.Term.app(term, Sure.Parser.ADT.Derive.stringifier.term.args(ctr.args, true))
+  {ctr.name, term}
+
+Sure.Parser.ADT.Derive.stringifier.term.args(args: List<Sure.Binder>, fst: Bool): Sure.Term
+  case args {
+    nil:
+      let term = Sure.Term.ref("str")
+      let term = if fst then term else Sure.Term.app(Sure.Term.app(Sure.Term.ref("Stringifier.text"), Sure.Term.str(")")), term)
+      term
+    cons:
+      open args.head
+      let {call_func, call_args} = Sure.Term.get_args(args.head.term)
+      let rest = Sure.Parser.ADT.Derive.stringifier.term.args(args.tail, false)
+      let term = Sure.Parser.ADT.Derive.stringifier.term.cont(args.head.term, some({"x." | args.head.name, rest}))
+      let term = Sure.Term.app(Sure.Term.app(Sure.Term.ref("Stringifier.text"), Sure.Term.str(if fst then "(" else ",")), term)
+      term
+  }
+
+Sure.Parser.ADT.Derive.stringifier.term.cont(call: Sure.Term, rest: Maybe<Pair<String,Sure.Term>>): Sure.Term
+  let {call_func, call_args} = Sure.Term.get_args(call)
+  let term = Sure.Term.ref(Sure.Term.extract_name(call_func) | ".stringifier")
+  let term = for par in call_args: Sure.Term.app(term, Sure.Term.hol(Bits.e))
+  let term = for par in call_args: Sure.Term.app(term, Sure.Parser.ADT.Derive.stringifier.term.cont(par, none))
+  case rest {
+    none: term
+    some:
+      let {name, rest} = rest.value
+      let term = Sure.Term.app(term, Sure.Term.ref(name))
+      let term = Sure.Term.app(term, rest)
+      term
+      //log("ue" | Sure.Term.show(Sure.Term.app(term, rest.value)))
+      //Sure.Term.app(term, rest.value)
+  }
+

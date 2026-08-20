@@ -1,0 +1,47 @@
+Sure.Parser.letforin(body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Sure.Parser.block("let-for", Parser {
+    Sure.Parser.text("let ")
+    get name = Sure.Parser.name1
+    Sure.Parser.text("=")
+    Sure.Parser.text("for ")
+    get elem = Sure.Parser.name1
+    Sure.Parser.text("in")
+    get list = Sure.Parser.term
+    Sure.Parser.text(":")
+    get loop = Sure.Parser.term
+    Parser.maybe!(Sure.Parser.text(";"))
+    get body = body(unit)
+    let term = Sure.Term.ref("List.for")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, list)
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.ref(name))
+    let lamb = Sure.Term.lam(elem, (i) Sure.Term.lam(name, (x) loop))
+    let term = Sure.Term.app(term, lamb)
+    let term = Sure.Term.let(name, term, (x) body)
+    return term
+  })
+
+Sure.Parser.letforin.with(body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Sure.Parser.block("for", Parser {
+    Sure.Parser.text("for ")
+    get elem = Sure.Parser.name1
+    Sure.Parser.text("in")
+    get list = Sure.Parser.term
+    Sure.Parser.text("with")
+    get name = Sure.Parser.name1
+    Sure.Parser.text(":")
+    get loop = Sure.Parser.term
+    Parser.maybe!(Sure.Parser.text(";"))
+    get body = body(unit)
+    let term = Sure.Term.ref("List.for")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, list)
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.ref(name))
+    let lamb = Sure.Term.lam(elem, (i) Sure.Term.lam(name, (x) loop))
+    let term = Sure.Term.app(term, lamb)
+    let term = Sure.Term.let(name, term, (x) body)
+    return term
+  })
+

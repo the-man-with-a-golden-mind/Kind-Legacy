@@ -1,0 +1,9 @@
+Sure.Parser.string_concat(str0: Sure.Term): Parser(Sure.Term)
+  Parser {
+    Sure.Parser.text("|")
+    get str1 = Sure.Parser.term
+    let term = Sure.Term.ref("String.concat")
+    let term = Sure.Term.app(term, str0)
+    let term = Sure.Term.app(term, str1)
+    return term
+  }

@@ -1,0 +1,8 @@
+Sure.Term.expand_at(path: Bits, term: Sure.Term, defs: Sure.Defs): Sure.Term
+  Sure.Term.patch_at(path, term, (term) case term {
+    ref: case Sure.Map.get!(term.name, defs) as got {
+      none: Sure.Term.ref(term.name),
+      some: case got.value { new: got.value.term },
+    },
+    _: term,
+  })

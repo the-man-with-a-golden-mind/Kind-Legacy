@@ -1,0 +1,11 @@
+Sure.Parser.right: Parser(Sure.Term)
+  Sure.Parser.block("right", Parser {
+    Sure.Parser.text("right(")
+    get expr = Sure.Parser.term
+    Sure.Parser.text(")")
+    let term = Sure.Term.ref("Either.right")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, expr)
+    return term
+  })

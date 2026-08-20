@@ -1,0 +1,27 @@
+Sure.Parser.forall: Parser(Sure.Term)
+  Sure.Parser.block("forall", Parser {
+    get self = Sure.Parser.name
+    get bind = Sure.Parser.binder(":", true)
+    Sure.Parser.text("->")
+    get body = Sure.Parser.term
+    let term = List.fold!(bind)!(body, (x,t) case x {
+      new: Sure.Term.all(x.eras, "", x.name, x.term, (s,x) t)
+    })
+    return case term {
+      all: Sure.Term.all(term.eras, self, term.name, term.xtyp, term.body)
+    } default term
+  })
+
+Sure.Parser.forall.make(binds: List<Sure.Binder>, body: Sure.Term): Sure.Term
+  case binds {
+    nil: body
+    cons: case binds.head {
+      new:
+        def all_eras = binds.head.eras
+        def all_self = ""
+        def all_name = binds.head.name
+        def all_xtyp = binds.head.term
+        def all_body = (s,x) Sure.Parser.forall.make(binds.tail, body)
+        Sure.Term.all(all_eras, all_self, all_name, all_xtyp, all_body),
+    }
+  }

@@ -1,0 +1,17 @@
+Sure.Synth.file(file: String, defs: Sure.Defs): IO<Either<String, Pair<List<Sure.Name>, Sure.Defs>>>
+  IO {
+    get code = IO.get_file(file);
+    let read = Sure.Defs.read(file, code, defs);
+    case read {
+      left: IO {
+        return Either.left!!(read.value);
+      },
+      right: IO {
+        let file_defs = read.value;
+        let file_keys = BitsMap.keys!(file_defs);
+        let file_nams = List.mapped!(file_keys)!(Sure.Name.from_bits);
+        get defs = Sure.Synth.many(file_nams, file_defs);
+        return Either.right!!({file_nams, defs});
+      },
+    };
+  }

@@ -1,0 +1,24 @@
+// A `.sure` file is a module. Lookup tries the module file first, then
+// split files. `Add.two` → `Add.sure` then `Add/two.sure`. The first file
+// that actually defines the name wins.
+Sure.Synth.files_of(name: Sure.Name): List<String>
+  Sure.Synth.files_of.make(String.split(name, "."), "")
+
+Sure.Synth.files_of.make(names: List<String>, last: String): List<String>
+  case names {
+    nil:
+      []
+    cons:
+      let head = last | names.head | ".sure"
+      let tail = Sure.Synth.files_of.make(names.tail, last | names.head | "/")
+      List.cons!(head, tail)
+  }
+
+Sure.Synth.files_of.root: Sure.Synth.files_of("Add") == ["Add.sure"]
+  refl
+
+Sure.Synth.files_of.mod: Sure.Synth.files_of.make(["Add", "two"], "") == ["Add.sure", "Add/two.sure"]
+  refl
+
+Sure.Synth.files_of.split: Sure.Synth.files_of.make(["Http", "Server", "get"], "") == ["Http.sure", "Http/Server.sure", "Http/Server/get.sure"]
+  refl

@@ -1,0 +1,7 @@
+Sure.api.io.terms_to_scheme_lib(name: String, exports: List<String>): IO<String>
+  IO {
+    get defs = Sure.Synth.many(exports, Sure.Map.new!)
+    let compiled = Sure.Comp.Defs.compile(defs)
+    let schemed = Sure.Comp.transpile.module(Sure.Comp.Target.Scheme.Language, name, exports, compiled)
+    return schemed;
+  }

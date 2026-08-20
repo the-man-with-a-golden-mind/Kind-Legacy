@@ -1,0 +1,16 @@
+Sure.Parser.apply: Parser(Sure.Term)
+  Sure.Parser.block("apply", Parser {
+    Sure.Parser.text("apply(")
+    get func = Sure.Parser.term
+    Sure.Parser.text(",")
+    get equa = Sure.Parser.term
+    Sure.Parser.text(")")
+    let term = Sure.Term.ref("Equal.apply")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, func)
+    let term = Sure.Term.app(term, equa)
+    return term
+  })

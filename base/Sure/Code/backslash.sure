@@ -1,0 +1,2 @@
+Sure.Code.backslash: Char
+  Nat.to_u16(92)

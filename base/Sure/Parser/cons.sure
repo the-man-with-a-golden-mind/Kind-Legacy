@@ -1,0 +1,10 @@
+Sure.Parser.cons(head: Sure.Term): Parser(Sure.Term)
+  Parser {
+    Sure.Parser.text("&")
+    get tail = Sure.Parser.term
+    let term = Sure.Term.ref("List.cons")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, head)
+    let term = Sure.Term.app(term, tail)
+    return term
+  }

@@ -1,0 +1,13 @@
+type Sure.Def {
+  new(
+    file: String,
+    code: String,
+    orig: Pair<Nat, Nat>,
+    name: Sure.Name,
+    term: Sure.Term,
+    type: Sure.Term,
+    isct: Bool,
+    arit: Nat,
+    stat: Sure.Status,
+  ),
+}

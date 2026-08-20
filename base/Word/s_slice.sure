@@ -1,0 +1,5 @@
+// Slice `str` using signed word indices. Negative bounds clamp to 0.
+Word.s_slice<size: Nat>(a: Word(size), b: Word(size), str: String): String
+  let ia = if Word.is_neg<size>(a) then 0 else Word.to_nat<size>(a)
+  let ib = if Word.is_neg<size>(b) then 0 else Word.to_nat<size>(b)
+  String.slice(ia, ib, str)

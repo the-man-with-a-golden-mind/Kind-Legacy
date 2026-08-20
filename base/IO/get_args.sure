@@ -1,0 +1,4 @@
+// Arguments after --run / --test (space-separated). Empty if none.
+IO.get_args: IO<String>
+  IO.ask<String>("get_args", "", (line)
+  IO.end<String>(line))

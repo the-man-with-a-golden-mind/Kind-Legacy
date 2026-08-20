@@ -1,0 +1,77 @@
+Sure.Parser.ADT.Derive.deserializer.type(adt: Sure.Parser.ADT.Datatype): Maybe<Sure.Term>
+  open adt
+  if List.is_empty!(adt.pars) && List.is_empty!(adt.inds) then
+    some(Sure.Term.app(Sure.Term.ref("Deserializer"), Sure.Term.ref(adt.name)))
+  else
+    none
+
+Sure.Parser.ADT.Derive.deserializer.term(adt: Sure.Parser.ADT.Datatype): Maybe<Sure.Term>
+  open adt
+  if List.is_empty!(adt.pars) && List.is_empty!(adt.inds) then
+    let term = Sure.Term.ref("Deserializer.choice")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Parser.ADT.Derive.deserializer.term.cses(adt, adt.ctrs, Bits.zeros(Nat.bitlen(Nat.pred(List.length!(adt.ctrs))))))
+    some(term)
+  else
+    none
+
+Sure.Parser.ADT.Derive.deserializer.term.cses(adt: Sure.Parser.ADT.Datatype, cses: List<Sure.Parser.ADT.Constructor>, header: Bits): Sure.Term
+  open adt
+  case cses {
+    cons:
+      open cses.head
+      let cnam = adt.name|"."|cses.head.name
+      let term = Sure.Term.ref("Deserializer.bind")
+      let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+      let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+      let term = Sure.Term.app(term, Sure.Term.app(Sure.Term.ref("Deserializer.bits"), Sure.Parser.ADT.Derive.serializer.term.bits(header)))
+      let term = Sure.Term.app(term, Sure.Term.lam("", (x) Sure.Parser.ADT.Derive.deserializer.term.args(adt, cnam, cses.head.args, [], true)))
+      let list = Sure.Term.ref("List.cons")
+      let list = Sure.Term.app(list, Sure.Term.hol(Bits.e))
+      let list = Sure.Term.app(list, term)
+      let list = Sure.Term.app(list, Sure.Parser.ADT.Derive.deserializer.term.cses(adt, cses.tail, Bits.inc(header)))
+      list
+    nil: 
+      Sure.Term.app(Sure.Term.ref("List.nil"), Sure.Term.hol(Bits.e))
+  }
+
+Sure.Parser.ADT.Derive.serializer.term.bits(bits: Bits): Sure.Term
+  case bits {
+    e: Sure.Term.ref("Bits.e")
+    o: Sure.Term.app(Sure.Term.ref("Bits.o"), Sure.Parser.ADT.Derive.serializer.term.bits(bits.pred))
+    i: Sure.Term.app(Sure.Term.ref("Bits.i"), Sure.Parser.ADT.Derive.serializer.term.bits(bits.pred))
+  }
+
+Sure.Parser.ADT.Derive.deserializer.term.cont(call: Sure.Term): Sure.Term
+  let {call_func, call_args} = Sure.Term.get_args(call)
+  let term = Sure.Term.ref(Sure.Term.extract_name(call_func) | ".deserializer")
+  let term = for par in call_args: Sure.Term.app(term, Sure.Term.hol(Bits.e))
+  let term = for par in call_args: Sure.Term.app(term, Sure.Parser.ADT.Derive.deserializer.term.cont(par))
+  term
+  
+Sure.Parser.ADT.Derive.deserializer.term.args(
+  adt: Sure.Parser.ADT.Datatype
+  cnam: String
+  args: List<Sure.Binder>
+  vars: List<Sure.Term>
+  fst: Bool
+): Sure.Term
+  case args {
+    cons:
+      open args.head
+      let term = Sure.Term.ref("Deserializer.bind")
+      let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+      let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+      let term = Sure.Term.app(term, Sure.Parser.ADT.Derive.deserializer.term.cont(args.head.term))
+      let term = Sure.Term.app(term, Sure.Term.lam(args.head.name, (x)
+        Sure.Parser.ADT.Derive.deserializer.term.args(adt, cnam, args.tail, x & vars, false)))
+      term
+    nil:
+      let body = Sure.Term.ref("Deserializer.pure")
+      let body = Sure.Term.app(body, Sure.Term.hol(Bits.e))
+      let func = Sure.Term.ref(cnam)
+      let func = List.fold!(vars)!(func, ((var,func) Sure.Term.app(func, var)))
+      let body = Sure.Term.app(body, func)
+      body
+  }
+

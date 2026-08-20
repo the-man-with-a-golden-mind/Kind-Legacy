@@ -1,0 +1,24 @@
+Sure.Term.inline.reduce(term: Sure.Term, defs: Sure.Defs): Sure.Term
+  case term {
+    ref: 
+      let inli = BitsSet.has(Sure.Name.to_bits(term.name), Sure.Term.inline.names);
+      if inli then
+        case Sure.Map.get!(term.name, defs) as got {
+          none: Sure.Term.ref(term.name),
+          some: case got.value { new: Sure.Term.inline.reduce(got.value.term, defs) },
+        }
+      else
+        term,
+    app:
+      let func = Sure.Term.inline.reduce(term.func, defs);
+      case func {
+        lam: Sure.Term.inline.reduce(func.body(term.argm), defs),
+        let: Sure.Term.let(func.name, func.expr, (x) Sure.Term.inline.reduce(Sure.Term.app(func.body(x), term.argm), defs)),
+        _: term,
+      },
+    imp:
+      Sure.Term.inline.reduce(term.expr, defs),
+    ori:
+      Sure.Term.inline.reduce(term.expr, defs),
+    _: term,
+  }

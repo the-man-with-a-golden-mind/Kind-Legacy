@@ -1,0 +1,11 @@
+Sure.Parser.op(sym: String, ref: String, val0: Sure.Term): Parser(Sure.Term)
+  Parser {
+    Sure.Parser.text(sym)
+    get val1 = Sure.Parser.term
+    return Sure.Term.ope(sym, val0, val1)
+    //Sure.Parser.text_now(" ")
+    //let term = Sure.Term.ref(ref)
+    //let term = Sure.Term.app(term, val0)
+    //let term = Sure.Term.app(term, val1)
+    //return term
+  }

@@ -1,0 +1,6 @@
+Sure.Parser.nat: Parser(Sure.Term)
+  Sure.Parser.block("nat", Parser {
+    Sure.Parser.spaces
+    get natx = Parser.choice!([Parser.hex_nat, Parser.nat])
+    return Sure.Term.nat(natx)
+  })

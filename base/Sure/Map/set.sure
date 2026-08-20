@@ -1,0 +1,2 @@
+Sure.Map.set<A: Type>(name: Sure.Name, val: A, map: BitsMap<A>): BitsMap<A>
+  BitsMap.set<A>(Sure.Name.to_bits(name), val, map)

@@ -1,0 +1,5 @@
+Sure.Term.SmartMotive.vals.cont(expr: Sure.Term, term: Sure.Term, args: List<Sure.Term>, defs: Sure.Defs): List<Sure.Term>
+  case Sure.Term.reduce(term, defs) as term {
+    app: Sure.Term.SmartMotive.vals.cont(expr, term.func, List.cons!(term.argm, args), defs),
+    _: List.cons!(expr, List.tail!(List.reverse!(args))),
+  }

@@ -1,0 +1,9 @@
+// JSON values. Encode with JSON.enc.*, decode with JSON.dec.* (none on junk).
+type JSON {
+  null
+  bool(value: Bool)
+  number(value: F64)
+  string(value: String)
+  array(value: List<JSON>)
+  object(value: Map<JSON>)
+}

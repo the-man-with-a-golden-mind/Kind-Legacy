@@ -1,0 +1,64 @@
+// When the equality algorithm returns true on the recursive case, it won't dig
+// further on the identified terms, so it won't fill some potential holes. So,
+// for example, if it identifies `Pair A B == Pair _ B`, it won't fill `_ <- A`,
+// because it will return true without recursing further. This will fill these
+// holes, as long as the arity and function of the outer application matches.
+
+// Finds the function name and arity
+Sure.Term.equal.extra_holes.funari(
+  term: Sure.Term,
+  arity: Nat,
+): Maybe<Pair<String, Nat>>
+  case term {
+    app: Sure.Term.equal.extra_holes.funari(term.func, Nat.succ(arity))
+    imp: Sure.Term.equal.extra_holes.funari(term.expr, arity)
+    ori: Sure.Term.equal.extra_holes.funari(term.expr, arity)
+    ref: some({term.name, arity})
+    var: some({term.name, arity}) // is this right?
+    _: none
+  }
+
+// Finds matched holes
+Sure.Term.equal.extra_holes.filler(
+  a: Sure.Term,
+  b: Sure.Term,
+): Sure.Check<Unit>
+  case a {
+    app: case b {
+      app: do Sure.Check {
+        Sure.Term.equal.extra_holes.filler(a.func, b.func);
+        Sure.Term.equal.extra_holes.filler(a.argm, b.argm);
+      },
+      imp: Sure.Term.equal.extra_holes.filler(a, b.expr),
+      ori: Sure.Term.equal.extra_holes.filler(a, b.expr),
+      hol: do Sure.Check { Sure.Term.equal.hole(b.path, a); return Unit.new; }, 
+      _: do Sure.Check { return Unit.new; },
+    },
+    imp: Sure.Term.equal.extra_holes.filler(a.expr, b),
+    ori: Sure.Term.equal.extra_holes.filler(a.expr, b),
+    hol: do Sure.Check { Sure.Term.equal.hole(a.path, b); return Unit.new; },
+    _: case b {
+      imp: Sure.Term.equal.extra_holes.filler(a, b.expr),
+      ori: Sure.Term.equal.extra_holes.filler(a, b.expr),
+      hol: do Sure.Check { Sure.Term.equal.hole(b.path, a); return Unit.new; }, 
+      _: do Sure.Check { return Unit.new; },
+    }
+  }
+
+// Checks eligibility and calls the filler
+Sure.Term.equal.extra_holes(a: Sure.Term, b: Sure.Term): Sure.Check<Unit>
+  case Sure.Term.equal.extra_holes.funari(a,0) as a_funari {
+    none: do Sure.Check { return Unit.new }
+    some: case Sure.Term.equal.extra_holes.funari(b,0) as b_funari {
+      none: do Sure.Check { return Unit.new }
+      some:
+        let {a_fun, a_ari} = a_funari.value
+        let {b_fun, b_ari} = b_funari.value
+        let same_fun = String.eql(a_fun, b_fun)
+        let same_ari = Nat.eql(a_ari, b_ari)
+        if Bool.and(same_fun, same_ari)
+        then Sure.Term.equal.extra_holes.filler(a, b)
+        else do Sure.Check { return Unit.new }
+    }
+  }
+  

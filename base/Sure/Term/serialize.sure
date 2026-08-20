@@ -1,0 +1,161 @@
+Sure.Term.serialize.go(term: Sure.Term, depth: Nat, init: Nat, diff: Bits -> Bits, x: Bits): Bits
+  case term {
+    ref:
+      if String.eql(term.name, "Nat.zero") then
+        Sure.Term.serialize.compact(0, x)
+      else
+        let name = Bits.concat(Sure.Name.to_bits(term.name));
+        Bits.o(Bits.o(Bits.o(name(x)))),
+    var:
+      if Nat.gte(term.indx, init) then
+        let name = Bits.concat(Nat.to_bits(Nat.pred(Nat.sub(depth,term.indx))));
+        Bits.o(Bits.o(Bits.i(name(x))))
+      else
+        let name = Bits.concat(Nat.to_bits(term.indx));
+        Bits.o(Bits.i(Bits.o(name(x)))),
+    typ:
+      Bits.o(Bits.i(Bits.i(x))),
+    all:
+      let eras = if term.eras then Bits.i else Bits.o
+      let self = Bits.concat(Sure.Name.to_bits(term.self));
+      let xtyp = Sure.Term.serialize.go(term.xtyp, depth, init, diff);
+      let body = Sure.Term.serialize.go(
+        term.body(
+          Sure.Term.var(term.self, depth),
+          Sure.Term.var(term.name, Nat.succ(depth))),
+        Nat.succ(Nat.succ(depth)),
+        init,
+        diff);
+      Bits.i(Bits.o(Bits.o(eras(self(xtyp(body(x))))))),
+    lam:
+      let body = Sure.Term.serialize.go(
+        term.body(Sure.Term.var(term.name, depth)),
+        Nat.succ(depth),
+        init,
+        diff);
+      Bits.i(Bits.o(Bits.i(body(x)))),
+    app:
+      case Sure.Term.reduce.nat_lit(term) as n {
+        some: Sure.Term.serialize.compact(n.value, x)
+        none:
+          let func = Sure.Term.serialize.go(term.func, depth, init, diff);
+          let argm = Sure.Term.serialize.go(term.argm, depth, init, diff);
+          Bits.i(Bits.i(Bits.o(func(argm(x)))))
+      },
+    let:
+      let expr = Sure.Term.serialize.go(term.expr, depth, init, diff);
+      let body = Sure.Term.serialize.go(
+        term.body(Sure.Term.var(term.name, depth)),
+        Nat.succ(depth),
+        init,
+        diff);
+      Bits.i(Bits.i(Bits.i(expr(body(x))))),
+    def:
+      Sure.Term.serialize.go(term.body(term.expr), depth, init, diff, x),
+    ann:
+      Sure.Term.serialize.go(term.term, depth, init, diff, x),
+    gol:
+      let name = Bits.concat(Sure.Name.to_bits(term.name));
+      Bits.o(Bits.o(Bits.o(name(x)))),
+    hol:
+      x,
+    nat:
+      Sure.Term.serialize.compact(term.natx, x),
+    chr:
+      Sure.Term.serialize.go(Sure.Term.unroll_chr(term.chrx), depth, init, diff, x),
+    str:
+      Sure.Term.serialize.go(Sure.Term.unroll_str(term.strx), depth, init, diff, x),
+    imp:
+      Sure.Term.serialize.go(term.expr, depth, init, diff, x),
+    ori:
+      Sure.Term.serialize.go(term.expr, depth, init, diff, x),
+  } default diff(x)
+
+Sure.Term.serialize(term: Sure.Term, depth: Nat, side: Bool): Bits
+  let diff = if side then Bits.o else Bits.i
+  Sure.Term.serialize.go(term, depth, depth, diff, Bits.e)
+
+Sure.Term.serialize.loop(
+  term: Sure.Term,
+  depth: Nat,
+  init: Nat,
+  diff: Bits -> Bits,
+  x: Bits,
+  cont: Bits -> Trampoline(Bits)
+): Trampoline(Bits)
+  case term {
+    ref:
+      if String.eql(term.name, "Nat.zero") then
+        Trampoline.wrap!(() cont(Sure.Term.serialize.compact(0, x)))
+      else
+        let name = Bits.concat(Sure.Name.to_bits(term.name))
+        Trampoline.wrap!(() cont(Bits.o(Bits.o(Bits.o(name(x))))))
+    var:
+      if Nat.gte(term.indx, init) then
+        let name = Bits.concat(Nat.to_bits(Nat.pred(Nat.sub(depth, term.indx))))
+        Trampoline.wrap!(() cont(Bits.o(Bits.o(Bits.i(name(x))))))
+      else
+        let name = Bits.concat(Nat.to_bits(term.indx))
+        Trampoline.wrap!(() cont(Bits.o(Bits.i(Bits.o(name(x))))))
+    typ:
+      Trampoline.wrap!(() cont(Bits.o(Bits.i(Bits.i(x)))))
+    all:
+      Sure.Term.serialize.loop(
+        term.body(Sure.Term.var(term.self, depth), Sure.Term.var(term.name, Nat.succ(depth))),
+        Nat.succ(Nat.succ(depth)),
+        init,
+        diff,
+        x,
+        (body) Sure.Term.serialize.loop(term.xtyp, depth, init, diff, body, (xtyp)
+          let eras = if term.eras then Bits.i else Bits.o
+          let self = Bits.concat(Sure.Name.to_bits(term.self))
+          Trampoline.wrap!(() cont(Bits.i(Bits.o(Bits.o(eras(self(xtyp)))))))))
+    lam:
+      Sure.Term.serialize.loop(
+        term.body(Sure.Term.var(term.name, depth)),
+        Nat.succ(depth),
+        init,
+        diff,
+        x,
+        (body) Trampoline.wrap!(() cont(Bits.i(Bits.o(Bits.i(body))))))
+    app:
+      case Sure.Term.reduce.nat_lit(term) as n {
+        some: Trampoline.wrap!(() cont(Sure.Term.serialize.compact(n.value, x)))
+        none:
+          Sure.Term.serialize.loop(term.argm, depth, init, diff, x, (argm)
+            Sure.Term.serialize.loop(term.func, depth, init, diff, argm, (func)
+              Trampoline.wrap!(() cont(Bits.i(Bits.i(Bits.o(func)))))))
+      }
+    let:
+      Sure.Term.serialize.loop(
+        term.body(Sure.Term.var(term.name, depth)),
+        Nat.succ(depth),
+        init,
+        diff,
+        x,
+        (body) Sure.Term.serialize.loop(term.expr, depth, init, diff, body, (expr)
+          Trampoline.wrap!(() cont(Bits.i(Bits.i(Bits.i(expr)))))))
+    def:
+      Sure.Term.serialize.loop(term.body(term.expr), depth, init, diff, x, cont)
+    ann:
+      Sure.Term.serialize.loop(term.term, depth, init, diff, x, cont)
+    gol:
+      let name = Bits.concat(Sure.Name.to_bits(term.name))
+      Trampoline.wrap!(() cont(Bits.o(Bits.o(Bits.o(name(x))))))
+    hol:
+      Trampoline.wrap!(() cont(x))
+    nat:
+      Trampoline.wrap!(() cont(Sure.Term.serialize.compact(term.natx, x)))
+    chr:
+      Sure.Term.serialize.loop(Sure.Term.unroll_chr(term.chrx), depth, init, diff, x, cont)
+    str:
+      Sure.Term.serialize.loop(Sure.Term.unroll_str(term.strx), depth, init, diff, x, cont)
+    imp:
+      Sure.Term.serialize.loop(term.expr, depth, init, diff, x, cont)
+    ori:
+      Sure.Term.serialize.loop(term.expr, depth, init, diff, x, cont)
+  } default Trampoline.wrap!(() cont(diff(x)))
+
+Sure.Term.serialize.safe(term: Sure.Term, depth: Nat, side: Bool): Bits
+  let diff = if side then Bits.o else Bits.i
+  Trampoline.call!(Sure.Term.serialize.loop(term, depth, depth, diff, Bits.e, Trampoline.done!))

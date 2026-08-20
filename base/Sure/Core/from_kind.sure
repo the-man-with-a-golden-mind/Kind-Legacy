@@ -1,0 +1,83 @@
+Sure.Core.from_kind.hoas(fun: Sure.Term -> Sure.Term): Sure.Core.Term -> Sure.Core.Term
+  Sure.Core.from_kind . fun . Sure.Core.to_kind
+
+Sure.Core.from_kind.hoas.2(fun: Sure.Term -> Sure.Term -> Sure.Term): Sure.Core.Term -> Sure.Core.Term -> Sure.Core.Term
+  (term0, term1)
+    Sure.Core.from_kind(fun(Sure.Core.to_kind(term0), Sure.Core.to_kind(term1)))
+
+Sure.Core.from_kind(term: Sure.Term): Sure.Core.Term
+  case term {
+    var:
+      Sure.Core.Term.var(term.name, term.indx)
+
+    ref:
+      Sure.Core.Term.ref(term.name)
+
+    typ:
+      Sure.Core.Term.typ
+
+    all: 
+      Sure.Core.Term.all(
+        term.eras
+        term.self
+        term.name
+        Sure.Core.from_kind(term.xtyp)
+        Sure.Core.from_kind.hoas.2(term.body)
+      )
+
+    lam:
+      Sure.Core.Term.lam(
+        term.name
+        Sure.Core.from_kind.hoas(term.body)
+      )
+
+    app:
+      Sure.Core.Term.app(
+        Sure.Core.from_kind(term.func)
+        Sure.Core.from_kind(term.argm)
+      )
+
+    let:
+      Sure.Core.Term.let(
+        term.name
+        Sure.Core.from_kind(term.expr)
+        Sure.Core.from_kind.hoas(term.body)
+      )
+
+    ann:
+      Sure.Core.Term.ann(
+        term.done
+        Sure.Core.from_kind(term.term)
+        Sure.Core.from_kind(term.type)
+      )
+    def:
+      Sure.Core.Term.typ
+    gol:
+      Sure.Core.Term.typ
+    hol:
+      Sure.Core.Term.typ
+    nat:
+      Sure.Core.Term.typ
+    chr:
+      Sure.Core.Term.typ
+    str:
+      Sure.Core.Term.typ
+    num:
+      Sure.Core.Term.typ
+    cse:
+      Sure.Core.Term.typ
+    new:
+      Sure.Core.Term.typ
+    get:
+      Sure.Core.Term.typ
+    set:
+      Sure.Core.Term.typ
+    mut:
+      Sure.Core.Term.typ
+    ope:
+      Sure.Core.Term.typ
+    imp:
+      Sure.Core.Term.typ
+    ori:
+      Sure.Core.Term.typ
+  }

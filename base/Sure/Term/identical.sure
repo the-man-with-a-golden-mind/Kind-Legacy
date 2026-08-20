@@ -1,0 +1,6 @@
+Sure.Term.identical(a: Sure.Term, b: Sure.Term, lv: Nat): Bool
+  //let ah = Sure.Term.serialize(a, lv, lv, Bits.o, Bits.e);
+  //let bh = Sure.Term.serialize(b, lv, lv, Bits.i, Bits.e);
+  let ah = Sure.Term.serialize(a, lv, false);
+  let bh = Sure.Term.serialize(b, lv, true);
+  Bits.eql(ah, bh)

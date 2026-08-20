@@ -1,0 +1,8 @@
+// Gets all the vars of a sequence of lambdas, returns the body.
+// - get_vars(`λx. λy. λz. f`) == {["x","y","z"], `f`}
+Sure.Comp.get_vars(term: Sure.Comp): Pair(List(String), Sure.Comp)
+  case term {
+    lam:
+      let {vars, body} = Sure.Comp.get_vars(term.body)
+      {term.name & vars, body}
+  } default {[], term}

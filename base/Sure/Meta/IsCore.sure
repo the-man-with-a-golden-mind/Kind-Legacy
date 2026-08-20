@@ -1,0 +1,52 @@
+Sure.Meta.IsCore(term: Sure.Term): Type
+  def rf = Sure.Term.ref
+  case term {
+    ref:
+      Unit
+    var:
+      Unit
+    typ:
+      Unit
+    all:
+      And<
+        Sure.Meta.IsCore(term.xtyp),
+        (t0: Sure.Term, Hyp0: Sure.Meta.IsCore(t0)) ->
+        (t1: Sure.Term, Hyp1: Sure.Meta.IsCore(t1)) ->
+        Sure.Meta.IsCore(term.body(t0, t1))
+      >
+    lam:
+      (t0: Sure.Term, Hyp0: Sure.Meta.IsCore(t0)) ->
+      Sure.Meta.IsCore(term.body(t0))
+    app:
+      And<
+        Sure.Meta.IsCore(term.func)
+        Sure.Meta.IsCore(term.argm)
+      >
+    let: 
+      And<
+        Sure.Meta.IsCore(term.expr),
+        (t0: Sure.Term, Hyp0: Sure.Meta.IsCore(t0)) ->
+        Sure.Meta.IsCore(term.body(t0))
+      >
+    def:
+      And<
+        Sure.Meta.IsCore(term.expr),
+        (t0: Sure.Term, Hyp0: Sure.Meta.IsCore(t0)) ->
+        Sure.Meta.IsCore(term.body(t0))
+      >
+    ann:
+      And<
+        Sure.Meta.IsCore(term.term)
+        Sure.Meta.IsCore(term.type)
+      >
+    nat:
+      Unit
+    chr:
+      Unit
+    str:
+      Unit
+    imp:
+      Sure.Meta.IsCore(term.expr)
+    ori:
+      Sure.Meta.IsCore(term.expr)
+  } default Empty

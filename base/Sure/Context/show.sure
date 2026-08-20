@@ -1,0 +1,11 @@
+Sure.Context.show(context: Sure.Context): String
+  case context {
+    nil: ""
+    cons: case context.head {
+      new:
+        let name = Sure.Name.show(context.head.fst);
+        let type = Sure.Term.show(Sure.Term.normalize(context.head.snd,Sure.Map.new!));
+        let rest = Sure.Context.show(context.tail);
+        rest | "- " | name | ": " | type | "\n"
+    }
+  }

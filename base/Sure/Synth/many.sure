@@ -1,0 +1,13 @@
+Sure.Synth.many(names: List<String>, defs: Sure.Defs): IO<Sure.Defs>
+  case names {
+    nil: IO {
+      return defs;
+    },
+    cons: IO {
+      get new_defs = Sure.Synth.one(names.head, defs);
+      case new_defs {
+        none: Sure.Synth.many(names.tail, defs),
+        some: Sure.Synth.many(names.tail, new_defs.value),
+      }
+    },
+  }

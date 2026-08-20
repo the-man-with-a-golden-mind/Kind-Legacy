@@ -1,0 +1,12 @@
+Sure.Parser.mirror: Parser(Sure.Term)
+  Sure.Parser.block("mirror", Parser {
+    Sure.Parser.text("mirror(")
+    get equa = Sure.Parser.term
+    Sure.Parser.text(")")
+    let term = Sure.Term.ref("Equal.mirror")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, equa)
+    return term
+  })

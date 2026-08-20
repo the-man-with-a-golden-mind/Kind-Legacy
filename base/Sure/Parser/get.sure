@@ -1,0 +1,31 @@
+Sure.Parser.get.names: Parser(List<Sure.Name>)
+  Sure.Parser.items!("{", Sure.Parser.name1, "}")
+
+Sure.Parser.get.open(names: List<Sure.Name>, tuple: Sure.Term, body: Sure.Term): Sure.Term
+  let term = tuple
+  let term = Sure.Term.app(term, Sure.Term.lam("", (x) Sure.Term.hol(Bits.e)))
+  let term = Sure.Term.app(term, List.fold!(names)!(body, (nam,bod) Sure.Term.lam(nam, (x) bod)))
+  term
+
+Sure.Parser.get(body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Sure.Parser.block("let", Parser {
+    Sure.Parser.text("let ")
+    get nams = Sure.Parser.get.names
+    Sure.Parser.text("=")
+    get expr = Sure.Parser.term
+    Parser.maybe!(Sure.Parser.text(";"))
+    get body = body(unit)
+    return Sure.Parser.get.open(nams, expr, body)
+  })
+
+Sure.Parser.get.omit(body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Sure.Parser.block("let", Parser {
+    Sure.Parser.text("{")
+    get nams = Sure.Parser.get.names
+    Sure.Parser.text("}")
+    Sure.Parser.text("= ")
+    get expr = Sure.Parser.term
+    Parser.maybe!(Sure.Parser.text(";"))
+    get body = body(unit)
+    return Sure.Parser.get.open(nams, expr, body)
+  })

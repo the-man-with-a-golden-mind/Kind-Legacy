@@ -1,0 +1,10 @@
+Sure.Parser.some: Parser(Sure.Term)
+  Sure.Parser.block("some", Parser {
+    Sure.Parser.text("some(")
+    get expr = Sure.Parser.term
+    Sure.Parser.text(")")
+    let term = Sure.Term.ref("Maybe.some")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, expr)
+    return term
+  })

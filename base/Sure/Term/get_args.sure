@@ -1,0 +1,11 @@
+// Gets all arguments of a sequence of applications, returns function.
+// - get_args(`(((f x) y) z)`) == {`f`, [`x`,`y`,`z`]}
+Sure.Term.get_args(term: Sure.Term): Pair(Sure.Term, List(Sure.Term))
+  Sure.Term.get_args.go(term, [])
+
+Sure.Term.get_args.go(term: Sure.Term, args: List(Sure.Term)): Pair(Sure.Term, List(Sure.Term))
+  case term {
+    app: Sure.Term.get_args.go(term.func, term.argm & args)
+    imp: Sure.Term.get_args.go(term.expr, args)
+    ori: Sure.Term.get_args.go(term.expr, args)
+  } default {term, args}

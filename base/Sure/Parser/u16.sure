@@ -1,0 +1,9 @@
+Sure.Parser.u16: Parser(Sure.Term)
+  Sure.Parser.block("u16", Parser {
+    Sure.Parser.spaces
+    get natx = Parser.nat
+    Parser.text("s")
+    let term = Sure.Term.ref("U16.from_nat")
+    let term = Sure.Term.app(term, Sure.Term.nat(natx))
+    return term
+  })

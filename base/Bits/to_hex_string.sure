@@ -1,0 +1,2 @@
+Bits.to_hex_string(x: Bits): String
+  Bits.hex.encode(x)

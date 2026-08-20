@@ -1,0 +1,5 @@
+// Sets the process-local state stored at `key`.
+// Encoded as key, then a newline, then the value (value may contain newlines).
+IO.set_state(key: String, val: String): IO<Unit>
+  IO.ask<Unit>("set_state", key | "\n" | val, (ok)
+  IO.end<Unit>(Unit.new))

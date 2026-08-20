@@ -1,0 +1,18 @@
+// Types that are optimized to native values
+Sure.Comp.Prim.natives: List(Pair(String, Sure.Comp.Prim))
+  [
+    {"Bool", Sure.Comp.Prim.bool}
+    {"Nat", Sure.Comp.Prim.nat}
+    {"Bits", Sure.Comp.Prim.bits}
+    //{"U8", Sure.Comp.Prim.u8}
+    {"U16", Sure.Comp.Prim.u16}
+    {"U32", Sure.Comp.Prim.u32}
+    //{"U64", Sure.Comp.Prim.u64}
+    //{"U256", Sure.Comp.Prim.u256}
+    //{"F64", Sure.Comp.Prim.f64}
+    {"String", Sure.Comp.Prim.string}
+    //{"Buffer32", Sure.Comp.Prim.buffer32}
+  ]
+
+Sure.Comp.Prim.natives.names: List(String)
+  List.map!!(Pair.fst!!, Sure.Comp.Prim.natives)

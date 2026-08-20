@@ -1,0 +1,30 @@
+Sure.Parser.map: Parser(Sure.Term)
+  Sure.Parser.block("map", Parser {
+    get vals = Sure.Parser.items!(
+      "{", 
+      Parser {
+        get key = Sure.Parser.term
+        Sure.Parser.text(":")
+        get val = Sure.Parser.term
+        return {key, val}
+      },
+      "}")
+    let list = List.fold!(vals)!(
+      Sure.Term.app(Sure.Term.ref("List.nil"), Sure.Term.hol(Bits.e)),
+      (kv,xs)
+        let {key,val} = kv
+        let pair = Sure.Term.ref("Pair.new")
+        let pair = Sure.Term.app(pair, Sure.Term.hol(Bits.e))
+        let pair = Sure.Term.app(pair, Sure.Term.hol(Bits.e))
+        let pair = Sure.Term.app(pair, key)
+        let pair = Sure.Term.app(pair, val)
+        let term = Sure.Term.ref("List.cons")
+        let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+        let term = Sure.Term.app(term, pair)
+        let term = Sure.Term.app(term, xs)
+        term)
+      let term = Sure.Term.ref("Map.from_list")
+      let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+      let term = Sure.Term.app(term, list)
+      return term
+  })

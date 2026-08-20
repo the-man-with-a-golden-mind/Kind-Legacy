@@ -1,0 +1,18 @@
+Sure.Parser.char: Parser(Sure.Term)
+  Sure.Parser.block("char", Parser {
+    Sure.Parser.text("'")
+    get chrx = Sure.Parser.char.single
+    Sure.Parser.text("'")
+    return Sure.Term.chr(chrx)
+  })
+
+Sure.Parser.char.single: Parser(Char)
+  Parser.choice!([
+    Parser.choice!(List.mapped!(Sure.Code.escapes)!((esc) case esc {
+      new: Parser {
+        Parser.text(esc.fst)
+        return esc.snd
+      }
+    })),
+    Parser.one,
+  ])

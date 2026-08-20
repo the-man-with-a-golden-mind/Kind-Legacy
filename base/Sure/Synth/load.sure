@@ -1,0 +1,193 @@
+Sure.Synth.load.cached.name(name: Sure.Name): String
+  ".cache/" | Bits.hex.encode(Sure.Name.to_bits(name))
+
+Sure.Synth.load.cached.get_file(name: Sure.Name): IO<String>
+  IO.get_file(Sure.Synth.load.cached.name(name))
+
+Sure.Synth.load.cached.set_file(name: Sure.Name, value: String): IO<Unit>
+  IO.set_file(Sure.Synth.load.cached.name(name), value)
+
+Sure.Synth.load.cached.def(name: Sure.Name): IO<Maybe<Sure.Def>>
+  IO {
+    //IO.print("-- getting cache of " | name)
+    get cache_file = Sure.Synth.load.cached.get_file(name|".file")
+    if Bool.not(String.is_empty(cache_file)) then IO {
+      //IO.print("-- cache file isn't empty " | name)
+      get cache_hash = Sure.Synth.load.cached.get_file(name|".hash")
+      get file_hash = IO.file_hash(cache_file)
+      let hash_ok = Bool.and(
+        Bool.not(String.is_empty(cache_hash)),
+        String.eql(cache_hash, file_hash))
+      get cache_time = Sure.Synth.load.cached.get_file(name|".time")
+      get cache_file_time = IO.get_file_mtime(cache_file)
+      let time_ok = Bool.and(
+        String.is_empty(cache_hash),
+        String.eql(cache_time, cache_file_time))
+      if Bool.or(hash_ok, time_ok) then IO {
+        //IO.print("-- cache time is correct " | name)
+        get cache_term = Sure.Synth.load.cached.get_file(name|".term")
+        get cache_type = Sure.Synth.load.cached.get_file(name|".type")
+        get cache_isct = Sure.Synth.load.cached.get_file(name|".isct")
+        get cache_arit = Sure.Synth.load.cached.get_file(name|".arit")
+        return Maybe {
+          let file = cache_file
+          let code = "<cached>"
+          let orig = {0,0}
+          get term = Sure.Core.read(cache_term)
+          get type = Sure.Core.read(cache_type)
+          get isct = Bool.read(cache_isct)
+          get arit = some(Nat.read(cache_arit))
+          let stat = Sure.Status.done(true)
+          //let msge = log("-- cache "|name|": "|Sure.Core.show(type)|" = "|Sure.Core.show(term)) unit
+          return Sure.Def.new(file, code, orig, name, term, type, isct, arit, stat)
+        }
+      } else IO { return none }
+    } else IO { return none }
+  }
+
+Sure.Synth.load.cached.is_loop(name: String, defs: Sure.Defs): Bool
+  case Sure.Map.get!(name, defs) as got {
+    some: 
+      open got.value
+      case got.value.stat {
+        done: got.value.stat.cached
+      } default false
+    none: false
+  }
+
+Sure.Synth.load.cached(names: List(Sure.Name), defs: Sure.Defs): IO<Maybe<Sure.Defs>>
+  //log("- kslc " | String.join(", ", names)) 
+  case names {
+    nil: IO {
+      return some(defs)
+    }
+    cons: if Sure.Synth.load.cached.is_loop(names.head, defs)
+      then IO {
+        //IO.print("-- " | names.head | " already cached")
+        Sure.Synth.load.cached(names.tail, defs)
+      }
+      else IO {
+        let name = names.head
+        get defn = Sure.Synth.load.cached.def(name)
+        case defn {
+          none: IO {
+            //IO.print("-- " | names.head | " cache failed")
+            return none
+          }
+          some: open defn.value; IO {
+            let defs = Sure.Map.set!(name, defn.value, defs)
+            let deps = Sure.Map.new!
+            let deps = Sure.Core.dependencies.go(defn.value.term, deps)
+            let deps = Sure.Core.dependencies.go(defn.value.type, deps)
+            let deps = Sure.Map.keys!(deps)
+            get defs = Sure.Synth.load.cached(deps, defs)
+            case defs {
+              none: IO {
+                //IO.print("-- " | names.head | " cache failed because of a dep")
+                return none
+              }
+              some: IO {
+                //IO.print("-- " | names.head | " cached!")
+                Sure.Synth.load.cached(names.tail, defs.value)
+              }
+            }
+          }
+        }
+      }
+  }
+
+Sure.Synth.load(name: Sure.Name, defs: Sure.Defs): IO<Maybe<Sure.Defs>>
+  IO {
+    // Cache is keyed by name. A project file on SURE_PATH/KIND_PATH must
+    // not lose to a cached stdlib term of the same name (e.g. Main).
+    get paths = Sure.Synth.path_env
+    get shadowed = Sure.Synth.get_kind_code.search_files(
+      Sure.Synth.files_of(name),
+      String.split(paths, ":"))
+    if Bool.not(String.is_empty(shadowed)) then IO {
+      Sure.Synth.load.go(name, Sure.Synth.files_of(name), defs)
+    } else IO {
+      get cached_defs = Sure.Synth.load.cached([name], defs)
+      case cached_defs {
+        some: IO {
+          return some(cached_defs.value)
+        }
+        none: IO {
+          Sure.Synth.load.go(name, Sure.Synth.files_of(name), defs)
+        }
+      }
+    }
+  }
+
+Sure.Synth.get_kind_code(file: String): IO(String)
+  IO {
+    get paths = Sure.Synth.path_env
+    get from_path = Sure.Synth.get_kind_code.search(file, String.split(paths, ":"))
+    if Bool.not(String.is_empty(from_path)) then IO {
+      return from_path
+    } else IO {
+      get code = IO.get_file(file)
+      if Bool.not(String.is_empty(code)) then IO {
+        return code
+      } else if String.is_upper(String.take(1, file)) then IO {
+        get remote = IO.request("https://raw.githubusercontent.com/HigherOrderCO/Kind1/master/base/" | file)
+        return remote
+      } else IO {
+        return ""
+      }
+    }
+  }
+
+Sure.Synth.get_kind_code.search(file: String, paths: List<String>): IO<String>
+  case paths {
+    nil:
+      IO { return "" }
+    cons:
+      if String.is_empty(paths.head) then
+        Sure.Synth.get_kind_code.search(file, paths.tail)
+      else IO {
+        get code = IO.get_file(paths.head | "/" | file)
+        if String.is_empty(code) then
+          Sure.Synth.get_kind_code.search(file, paths.tail)
+        else IO {
+          return code
+        }
+      }
+  }
+
+Sure.Synth.get_kind_code.search_files(files: List<String>, paths: List<String>): IO<String>
+  case files {
+    nil:
+      IO { return "" }
+    cons: IO {
+      get code = Sure.Synth.get_kind_code.search(files.head, paths)
+      if String.is_empty(code) then
+        Sure.Synth.get_kind_code.search_files(files.tail, paths)
+      else IO {
+        return code
+      }
+    }
+  }
+
+Sure.Synth.load.go(name: String, files: List<String>, defs: Sure.Defs): IO<Maybe<Sure.Defs>>
+  case files {
+    nil: IO {
+      return none
+    }
+    cons: IO {
+      get code = Sure.Synth.get_kind_code(files.head)
+      let read = Sure.Defs.read(files.head, code, defs)
+      case read {
+        left: Sure.Synth.load.go(name, files.tail, defs)
+        right: IO {
+          let defs = read.value
+          case Sure.Map.get!(name, defs) as got {
+            none: Sure.Synth.load.go(name, files.tail, defs),
+            some: IO {
+              return some(defs)
+            }
+          }
+        }
+      }
+    }
+  }

@@ -1,0 +1,58 @@
+Sure.Parser.getwhile(body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Sure.Parser.block("let-while", Parser {
+    Parser.maybe!(Sure.Parser.text("let "))
+    Sure.Parser.text("{")
+    get nam0 = Sure.Parser.name1
+    Sure.Parser.text(",")
+    get nam1 = Sure.Parser.name1
+    Sure.Parser.text("}")
+    Sure.Parser.text("=")
+    Sure.Parser.text("while ")
+    get cond = Sure.Parser.term
+    Sure.Parser.text(":")
+    get loop = Sure.Parser.term
+    Parser.maybe!(Sure.Parser.text(";"))
+    get body = body(unit)
+    let moti = Sure.Term.lam("", (x) Sure.Term.hol(Bits.e))
+    let term = Sure.Term.ref("Function.while")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let init = Sure.Term.ref("Pair.new")
+    let init = Sure.Term.app(init, Sure.Term.hol(Bits.e))
+    let init = Sure.Term.app(init, Sure.Term.hol(Bits.e))
+    let init = Sure.Term.app(init, Sure.Term.ref(nam0))
+    let init = Sure.Term.app(init, Sure.Term.ref(nam1))
+    let term = Sure.Term.app(term, init)
+    let term = Sure.Term.app(term, Sure.Term.lam("s", (s) Sure.Term.app(Sure.Term.app(s, moti), Sure.Term.lam(nam0, (x) Sure.Term.lam(nam1, (y) cond)))))
+    let term = Sure.Term.app(term, Sure.Term.lam("s", (s) Sure.Term.app(Sure.Term.app(s, moti), Sure.Term.lam(nam0, (x) Sure.Term.lam(nam1, (y) loop)))))
+    let term = Sure.Term.app(Sure.Term.app(term, moti), Sure.Term.lam(nam0, (x) Sure.Term.lam(nam1, (y) body)))
+    return term
+  })
+
+Sure.Parser.getwhile.with(body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Parser {
+    Sure.Parser.text("while ")
+    get cond = Sure.Parser.term
+    Sure.Parser.text("with ")
+    Sure.Parser.text("{")
+    get nam0 = Sure.Parser.name1
+    Sure.Parser.text(",")
+    get nam1 = Sure.Parser.name1
+    Sure.Parser.text("}")
+    Sure.Parser.text(":")
+    get loop = Sure.Parser.term
+    Parser.maybe!(Sure.Parser.text(";"))
+    get body = body(unit)
+    let moti = Sure.Term.lam("", (x) Sure.Term.hol(Bits.e))
+    let term = Sure.Term.ref("Function.while")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let init = Sure.Term.ref("Pair.new")
+    let init = Sure.Term.app(init, Sure.Term.hol(Bits.e))
+    let init = Sure.Term.app(init, Sure.Term.hol(Bits.e))
+    let init = Sure.Term.app(init, Sure.Term.ref(nam0))
+    let init = Sure.Term.app(init, Sure.Term.ref(nam1))
+    let term = Sure.Term.app(term, init)
+    let term = Sure.Term.app(term, Sure.Term.lam("s", (s) Sure.Term.app(Sure.Term.app(s, moti), Sure.Term.lam(nam0, (x) Sure.Term.lam(nam1, (y) cond)))))
+    let term = Sure.Term.app(term, Sure.Term.lam("s", (s) Sure.Term.app(Sure.Term.app(s, moti), Sure.Term.lam(nam0, (x) Sure.Term.lam(nam1, (y) loop)))))
+    let term = Sure.Term.app(Sure.Term.app(term, moti), Sure.Term.lam(nam0, (x) Sure.Term.lam(nam1, (y) body)))
+    return term
+  }

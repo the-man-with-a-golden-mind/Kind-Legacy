@@ -1,0 +1,6 @@
+Sure.Parser.arrow(xtyp: Sure.Term): Parser(Sure.Term)
+  Parser {
+    Sure.Parser.text("->")
+    get body = Sure.Parser.term
+    return Sure.Term.all(false, "", "", xtyp, (s,x) body)
+  }

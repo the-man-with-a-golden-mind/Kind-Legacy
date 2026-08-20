@@ -1,0 +1,491 @@
+// Term
+// ====
+
+type Sure.Core.Term {
+  var(
+    name: String
+    indx: Nat
+  )
+  ref(
+    name: String
+  )
+  typ
+  all(
+    eras: Bool
+    self: String
+    name: String
+    xtyp: Sure.Core.Term
+    body: Sure.Core.Term -> Sure.Core.Term -> Sure.Core.Term
+  )
+  lam(
+    name: String
+    body: Sure.Core.Term -> Sure.Core.Term
+  )
+  app(
+    func: Sure.Core.Term
+    argm: Sure.Core.Term
+  )
+  let(
+    name: String
+    expr: Sure.Core.Term 
+    body: Sure.Core.Term -> Sure.Core.Term
+  )
+  ann(
+    done: Bool
+    expr: Sure.Core.Term
+    type: Sure.Core.Term
+  )
+}
+
+type Sure.Core.Def {
+  new(
+    name: String
+    type: Sure.Core.Term
+    term: Sure.Core.Term
+  )
+}
+
+Sure.Core.Ctx : Type
+  List<Pair<String,Sure.Core.Term>>
+
+Sure.Core.Defs: Type
+  Map<Sure.Core.Def>
+
+Sure.Core.Term.return(term : Sure.Core.Term) : IO<Sure.Core.Term>
+  IO {
+    return term
+  }
+
+Sure.Core.error(str : String, def_name : String, term : Sure.Core.Term, type : Maybe<Sure.Core.Term>, ctx : Sure.Core.Ctx) : IO<Sure.Core.Term>
+  let msg = "Error on " | def_name | "\n"
+  let msg = msg | str
+  let msg = msg | "\nExpression :" | Sure.Core.Term.show(term) 
+  IO {
+    IO.print(msg)
+    IO.exit
+    return term
+  }
+
+Sure.Core.Term.show(term : Sure.Core.Term) : String
+  case term {
+    var:
+      term.name
+    ref:
+      term.name
+    typ:
+      "*"
+    all: 
+      let bind = if term.eras then "%" else "@"
+      let self = term.self
+      let name = term.name
+      let xtyp = Sure.Core.Term.show(term.xtyp)
+      let body = term.body(Sure.Core.Term.var(self, 0), Sure.Core.Term.var(name, 0))
+      bind | self | "(" | name | ":" | xtyp | ") " | Sure.Core.Term.show(body)
+    lam :
+      let name = term.name
+      let body = term.body(Sure.Core.Term.var(name, 0))
+      "#" | name | " " | Sure.Core.Term.show(body)
+    app :
+      let func = Sure.Core.Term.show(term.func)
+      let arg = Sure.Core.Term.show(term.argm)
+      "(" | func | " " | arg | ")"
+    let :
+      let name = term.name
+      let expr = Sure.Core.Term.show(term.expr)
+      let body = term.body(Sure.Core.Term.var(name, 0))
+      "!" | name | "=" | expr | ";" | Sure.Core.Term.show(body)
+    ann : 
+      Sure.Core.Term.show(term.expr)
+  }
+
+Sure.Core.read.is_name(chr: Char): Bool
+  Bool.or(Bool.and(U16.gte(chr,46#16), U16.lte(chr,47#16)),  // ./
+  Bool.or(Bool.and(U16.gte(chr,48#16), U16.ltn(chr,58#16)),  // 0-9
+  Bool.or(Bool.and(U16.gte(chr,65#16), U16.ltn(chr,91#16)),  // A-Z
+  Bool.or(Bool.and(U16.gte(chr,95#16), U16.ltn(chr,96#16)),  // _
+  Bool.or(Bool.and(U16.gte(chr,97#16), U16.ltn(chr,123#16)), // a-z
+  Bool.false)))))
+
+Sure.Core.read.name(code: String): Pair<String, String>
+  case code {
+    nil:
+      {code, ""}
+    cons:
+      if Sure.Core.read.is_name(code.head) then
+        let {code, name} = Sure.Core.read.name(code.tail)
+        {code, String.cons(code.head, name)}
+      else
+        {code, ""}
+  }
+
+Sure.Core.read.char(code: String, chr: Char): Pair<String, Unit>
+  let {code, skip} = Sure.Core.read.spaces(code)
+  case code {
+    nil:
+      {"", unit}
+    cons:
+      if U16.eql(code.head, chr) then
+        {code.tail, unit}
+      else
+        {"", unit}
+  }
+
+Sure.Core.read.spaces(code: String): Pair<String, Unit>
+  case code {
+    nil:
+      {code, Unit.new}
+    cons:
+      if Char.eql(code.head, ' ') || Char.eql(code.head, '\n') then
+        let {code, name} = Sure.Core.read.spaces(code.tail)
+        {code, Unit.new}
+      else
+        {code, Unit.new}
+  }
+
+Sure.Core.read.nat(code: String): Pair<String, String>
+  case code {
+    nil:
+      {code, "0"}
+    cons:
+      let chr = code.head
+      if Bool.and(U16.gte(chr,48#16), U16.ltn(chr,58#16)) then
+        let {code, name} = Sure.Core.read.nat(code.tail)
+        {code.tail, String.cons(chr, name)}
+      else
+        {code, "0"}
+  }
+
+Sure.Core.read.find<A: Type>(list: List<A>, cond: A -> Nat -> Bool, indx: Nat, skip: Nat): Maybe<Pair<A,Nat>>
+  case list {
+    nil:
+      none
+    cons:
+      if cond(list.head, indx) then
+        if Nat.eql(skip, 0) then
+          some({list.head, indx})
+        else
+          Sure.Core.read.find!(list.tail, cond, Nat.succ(indx), Nat.pred(skip))
+      else
+        Sure.Core.read.find!(list.tail, cond, Nat.succ(indx), skip)
+  }
+
+
+Sure.Core.read.term(code: String): Pair<String, Sure.Core.Ctx -> Sure.Core.Term>
+  let {code, skip} = Sure.Core.read.spaces(code)
+  case code {
+    nil:
+      {"", (ctx) Sure.Core.Term.ref("error")}
+    cons:
+      let head = code.head
+      let code = code.tail
+      if Char.eql(head, '*') then
+        {code, (ctx) Sure.Core.Term.typ}
+      else if U16.eql(head, '@') then
+        let {code, self} = Sure.Core.read.name(code)
+        let {code, skip} = Sure.Core.read.char(code, '(')
+        let {code, name} = Sure.Core.read.name(code)
+        let {code, skip} = Sure.Core.read.char(code, ':')
+        let {code, bind} = Sure.Core.read.term(code)
+        let {code, skip} = Sure.Core.read.char(code, ')')
+        let {code, body} = Sure.Core.read.term(code)
+        {code, (ctx) Sure.Core.Term.all(false, self, name, bind(ctx), (s,x) body({name,x}&{self,s}&ctx))}
+      else if U16.eql(head, '%') then
+        let {code, self} = Sure.Core.read.name(code)
+        let {code, skip} = Sure.Core.read.char(code, '(')
+        let {code, name} = Sure.Core.read.name(code)
+        let {code, skip} = Sure.Core.read.char(code, ':')
+        let {code, bind} = Sure.Core.read.term(code)
+        let {code, skip} = Sure.Core.read.char(code, ')')
+        let {code, body} = Sure.Core.read.term(code)
+        {code, (ctx) Sure.Core.Term.all(true, self, name, bind(ctx), (s,x) body({name,x}&{self,s}&ctx))}
+      else if U16.eql(head, '#') then
+        let {code, name} = Sure.Core.read.name(code)
+        let {code, body} = Sure.Core.read.term(code)
+        {code, (ctx) Sure.Core.Term.lam(name, (x) body({name,x} & ctx))}
+      else if U16.eql(head, '(') then
+        let {code, func} = Sure.Core.read.term(code)
+        let {code, argm} = Sure.Core.read.term(code)
+        let {code, skip} = Sure.Core.read.char(code, ')')
+        {code, (ctx) Sure.Core.Term.app(func(ctx), argm(ctx))}
+      else if U16.eql(head, '!') then
+        let {code, name} = Sure.Core.read.name(code)
+        let {code, skip} = Sure.Core.read.char(code, '=')
+        let {code, expr} = Sure.Core.read.term(code)
+        let {code, skip} = Sure.Core.read.char(code, ';')
+        let {code, body} = Sure.Core.read.term(code)
+        {code, (ctx) Sure.Core.Term.let(name, expr(ctx), (x) body({name,x} & ctx))}
+      else if U16.eql(head, '{') then
+        let {code, expr} = Sure.Core.read.term(code)
+        let {code, skip} = Sure.Core.read.char(code, ':')
+        let {code, type} = Sure.Core.read.term(code)
+        let {code, skip} = Sure.Core.read.char(code, '}')
+        {code, (ctx) Sure.Core.Term.ann(false, expr(ctx), type(ctx))}
+      else
+        if Sure.Core.read.is_name(head) then
+          let {code, name} = Sure.Core.read.name(code)
+          let name = String.cons(head, name)
+          let {code, brui} = case code {
+            nil: {"", "0"}
+            cons: if U16.eql(code.head,'^')
+              then Sure.Core.read.nat(code.tail)
+              else {code, "0"}
+          }
+          {code, (ctx)
+            def fun = (x,i) String.eql(Pair.fst!!(x), name)
+            let got = Sure.Core.read.find!(ctx, fun, 0, Nat.read(brui))
+            case got {
+              some: Pair.snd!!(Pair.fst!!(got.value))
+              none: Sure.Core.Term.ref(name)
+            }}
+        else
+          {"", (ctx) Sure.Core.Term.ref("error")}
+  }
+
+
+Sure.Core.serialize(term : Sure.Core.Term, dep : Nat, ini : Nat) : String
+  case term {
+    var : 
+      let lvl = term.indx
+      if (lvl >=? ini) then "^-" | Nat.show((dep - lvl) - 1) else "^+" | Nat.show(lvl)
+    ref : "$" | term.name
+    typ : "*"
+    all : 
+      let init = if term.eras then "%" else "@"
+      let self = term.self
+      let bind = Sure.Core.serialize(term.xtyp, dep, ini)
+      let body =  Sure.Core.serialize(term.body(Sure.Core.Term.var("", dep), Sure.Core.Term.var("", dep+1)), dep+2, ini)
+      init | self | bind | body
+    lam : "#" | Sure.Core.serialize(term.body(Sure.Core.Term.var("", dep)), dep+1, ini)
+    app :
+      let func = Sure.Core.serialize(term.func, dep, ini)
+      let argm = Sure.Core.serialize(term.argm, dep, ini)
+      "(" | func | " " | argm | ")"
+    let : 
+      let expr = Sure.Core.serialize(term.expr, dep, ini)
+      let body = Sure.Core.serialize(term.body(Sure.Core.Term.var("", dep)), dep+1, ini);
+     "!" | expr | body
+    ann : 
+       Sure.Core.serialize(term.expr, dep, ini)
+  }
+
+Sure.Core.equal(a : Sure.Core.Term, 
+                    b : Sure.Core.Term, 
+                    defs : Sure.Core.Defs,
+                    dep : Nat,
+                    seen : Set
+                    ) : Bool
+  let a1 = Sure.Core.reduce(a, defs)
+  let b1 = Sure.Core.reduce(b, defs)
+  let a_serialized = Sure.Core.serialize(a1, dep, dep)
+  let b_serialized = Sure.Core.serialize(b1, dep, dep)
+
+  let codification = a_serialized | "==" | b_serialized
+  if (String.eql(a_serialized, b_serialized) || Set.has(codification, seen)) then
+    true
+  else 
+    let seen = Set.set(codification, seen)
+    case a1 b1 {
+      all all : 
+        let a1_body = a1.body(Sure.Core.Term.var(a1.self, dep), Sure.Core.Term.var(a1.name, dep+1))
+        let b1_body = b1.body(Sure.Core.Term.var(a1.self, dep), Sure.Core.Term.var(a1.name, dep+1));
+        Bool.eql(a1.eras, b1.eras) && String.eql(a1.self, b1.self) && 
+          Sure.Core.equal(a1.xtyp, b1.xtyp, defs, dep+0, seen) &&
+            Sure.Core.equal(a1_body, b1_body, defs, dep+2, seen)
+       lam lam : 
+        let a1_body = a1.body(Sure.Core.Term.var(a1.name, dep))
+        let b1_body = b1.body(Sure.Core.Term.var(a1.name, dep))
+        Sure.Core.equal(a1_body, b1_body, defs, dep+1, seen)
+        app app : 
+          Sure.Core.equal(a1.func, b1.func, defs, dep, seen)
+            && Sure.Core.equal(a1.argm, b1.argm, defs, dep, seen)
+        let let : 
+           let a1_body = a1.body(Sure.Core.Term.var(a1.name, dep))
+           let b1_body = b1.body(Sure.Core.Term.var(a1.name, dep))
+           Sure.Core.equal(a1.expr, b1.expr, defs, dep+0, seen) && Sure.Core.equal(a1_body, b1_body, defs, dep+1, seen)
+        ann ann : 
+           Sure.Core.equal(a1.expr, b1.expr, defs, dep, seen)
+    } default false
+
+Sure.Core.reduce(term: Sure.Core.Term, defs: Sure.Core.Defs): Sure.Core.Term
+  case term {
+    ref: // deref
+      let got = Map.get!(term.name, defs)
+      case got {
+        none: Sure.Core.Term.ref(term.name)
+        some: got.value@term
+      }
+    app: // beta-reduction
+      let func = Sure.Core.reduce(term.func, defs)
+      case func {
+        lam: Sure.Core.reduce(func.body(term.argm), defs)
+      } default Sure.Core.Term.app(func, term.argm)
+    ann : 
+      Sure.Core.reduce(term.expr, defs)
+    let : 
+      Sure.Core.reduce(term.body(term.expr), defs)
+  } default term
+
+Sure.Core.normalize(term : Sure.Core.Term, defs : Sure.Core.Defs) : Sure.Core.Term
+  let norm_weak = Sure.Core.reduce(term, defs)
+  case norm_weak {
+    var : Sure.Core.Term.var(norm_weak.name, norm_weak.indx)
+    ref : Sure.Core.Term.ref(norm_weak.name)
+    typ : Sure.Core.Term.typ
+    all : 
+      let eras = norm_weak.eras
+      let self = norm_weak.self
+      let name = norm_weak.name
+      let xtyp = Sure.Core.normalize(norm_weak.xtyp, defs)
+      let body = ((s, x) Sure.Core.normalize(norm_weak.body(s, x), defs)) :: Sure.Core.Term -> Sure.Core.Term -> Sure.Core.Term 
+      Sure.Core.Term.all(eras, self, name, xtyp, body)
+    lam :
+      let name = norm_weak.name
+      let body = (x) Sure.Core.normalize(norm_weak.body(x), defs)
+      Sure.Core.Term.lam(name, body)
+    app :
+      let func = Sure.Core.normalize(norm_weak.func, defs)
+      let argm = Sure.Core.normalize(norm_weak.argm, defs)
+      Sure.Core.Term.app(func, argm)
+    let :
+      Sure.Core.normalize(norm_weak.body(norm_weak.expr), defs)
+    ann :
+      Sure.Core.normalize(norm_weak.expr, defs)
+  }
+
+
+Sure.Core.type_check(term : Sure.Core.Term, type : Sure.Core.Term, def_name : String, defs: Sure.Core.Defs, ctx : Sure.Core.Ctx) : IO<Sure.Core.Term>
+  def return = Sure.Core.Term.return
+  def throw = Sure.Core.error
+  let typev = Sure.Core.reduce(type, defs)
+  case term { // / Γ |- λX.T : ΠX : κ.κ0 --> Γ, X : κ |- T : κ0 Γ |- κ : *, or even when k = *, by * : * 
+    lam : case typev {
+      all :
+        let self_var = Sure.Core.Term.ann(true, term, type)
+        let name_var = Sure.Core.Term.ann(true, Sure.Core.Term.var(term.name, List.length!(ctx) + 1), typev.xtyp)
+        let body_typ = typev.body(self_var, name_var)
+        let body_ctx = {term.name, typev.xtyp} & ctx
+        Sure.Core.type_check(term.body(name_var), body_typ, def_name, defs, body_ctx)
+    } default throw("Lambda has a non-function type", def_name, term, some(typev), ctx)
+      let : 
+        IO {
+          get expr_typ = Sure.Core.type_infer(term.expr, def_name, defs, ctx)
+          let expr_var = Sure.Core.Term.ann(true, Sure.Core.Term.var(term.name, List.length!(ctx)), expr_typ)
+          let body_ctx = {term.name, expr_typ} & ctx
+          Sure.Core.type_check(term.body(expr_var), type, def_name, defs, body_ctx)
+        }
+  } default 
+    IO {
+      get infr = Sure.Core.type_infer(term, def_name, defs, ctx)
+      let eq = Sure.Core.equal(type, infr, defs, List.length!(ctx), Set.new)
+      if eq then
+        return(term)
+      else 
+        let type0_str = Sure.Core.Term.show(Sure.Core.normalize(type, Map.new!))
+        let infr0_str = Sure.Core.Term.show(Sure.Core.normalize(infr, Map.new!))
+        throw("Found type: " | infr0_str |
+          "\nInstead of: " | type0_str, def_name, term, some(typev), ctx)
+    }
+
+Sure.Core.type_infer(term : Sure.Core.Term, def_name : String, defs: Sure.Core.Defs, ctx : Sure.Core.Ctx) : IO<Sure.Core.Term>
+  def return = Sure.Core.Term.return
+  def throw = Sure.Core.error
+  case term {
+    var: return(Sure.Core.Term.var(term.name, term.indx))
+    ref: case Map.get!(term.name, defs) as reference {
+      none: throw("Unbound reference", def_name, term, none, ctx)
+      some: 
+        open reference.value as reference
+        return(reference.type)
+    }
+    typ: return(Sure.Core.Term.typ)
+    app: 
+      IO {
+        get func_infer  = Sure.Core.type_infer(term.func, def_name, defs, ctx)
+        let func_typ = Sure.Core.reduce(func_infer, defs)
+        case func_typ {
+          all: 
+             IO {
+               let self_var = Sure.Core.Term.ann(true, term.func, func_typ)
+               let name_var = Sure.Core.Term.ann(true, term.argm, func_typ.xtyp)
+               Sure.Core.type_check(term.argm, func_typ.xtyp, def_name, defs, ctx)
+               let term_typ = func_typ.body(self_var, name_var)
+               return(term_typ)
+             }
+          } default throw("Non-function application.", def_name, term, none, ctx)
+      }
+    let:
+      IO {
+        get expr_typ = Sure.Core.type_infer(term.expr, def_name, defs, ctx)
+        let expr_var = Sure.Core.Term.ann(true, Sure.Core.Term.var(term.name, List.length!(ctx)+1), expr_typ)
+        let body_ctx = {term.name, expr_typ} & ctx  
+        Sure.Core.type_infer(term.body(expr_var), def_name, defs, body_ctx)
+      }
+    all:
+      IO {
+        let self_var = Sure.Core.Term.ann(true, Sure.Core.Term.var(term.self, List.length!(ctx)), term)
+        let name_var = Sure.Core.Term.ann(true, Sure.Core.Term.var(term.name, List.length!(ctx)), term.xtyp)
+        let body_ctx = {term.self, term} & {term.name, term.xtyp} & ctx
+        Sure.Core.type_check(term.xtyp, Sure.Core.Term.typ, def_name, defs, ctx)
+        Sure.Core.type_check(term.body(self_var, name_var), Sure.Core.Term.typ, def_name, defs, body_ctx)
+        return (Sure.Core.Term.typ)
+      }
+    ann:
+        if not(term.done) then
+          Sure.Core.type_check(term.expr, term.type, def_name defs, ctx)
+        else
+          return(term.type)
+    
+  } default throw("Can't infer", def_name, term, none, ctx)
+
+
+Sure.Core.parse_defs(code : String) : Sure.Core.Defs
+  case code {
+    cons: 
+      let {code, skip} = Sure.Core.read.spaces(code)
+      let {code, name} = Sure.Core.read.name(code)
+      let {code, skip} = Sure.Core.read.spaces(code)
+      let {code, skip} = Sure.Core.read.char(code, ':')
+      let {code, skip} = Sure.Core.read.spaces(code)
+      let {code, type} = Sure.Core.read.term(code)
+      let {code, skip} = Sure.Core.read.spaces(code)
+      let {code, skip} = Sure.Core.read.char(code, '=')
+      let {code, skip} = Sure.Core.read.spaces(code)
+      let {code, body} = Sure.Core.read.term(code)
+      let {code, skip} = Sure.Core.read.char(code, ';')
+      let map = Sure.Core.parse_defs(code)
+      Map.set!(name, Sure.Core.Def.new(name, type([]), body([])), map)
+     // {name : Sure.Core.Def.new(name, type([]), body([]))}
+
+    nil:
+      {}
+  }
+
+Sure.Core.read(code: String): Maybe<Sure.Core.Term>
+  let {code, term} = Sure.Core.read.term(code | ";")
+  case code {
+    nil: none
+    cons: some(term([]))
+  }
+
+Sure.Core.Check(defs : Sure.Core.Defs, list_defs : List<Pair<String, Sure.Core.Def>>) : IO<Unit>
+  case list_defs {
+    nil : IO.pass
+    cons : IO {
+      let name = Pair.fst!!(list_defs.head)
+      let definition = Pair.snd!!(list_defs.head)
+      open definition
+      IO.print(name | " = " |  Sure.Core.Term.show(definition.term) | " : " | Sure.Core.Term.show(definition.type) | "\n")
+      Sure.Core.type_check(definition.type, Sure.Core.Term.typ, name defs, [])
+      Sure.Core.type_check(definition.term, definition.type, name, defs, [])
+      Sure.Core.Check(defs, list_defs.tail)
+      return unit
+    }
+  }
+
+Sure.Core : IO<Unit>
+  IO {
+    get fmc = IO.get_file("./Kind/Core/example.fmc")    
+    let defs = Sure.Core.parse_defs(fmc)
+    Sure.Core.Check(defs, Map.to_list!(defs))
+    return unit
+  }

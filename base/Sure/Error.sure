@@ -1,0 +1,41 @@
+type Sure.Error {
+  // Two types do not match
+  type_mismatch(
+    origin: Maybe<Pair<Nat,Nat>>,
+    expected: Either<String, Sure.Term>,
+    detected: Either<String, Sure.Term>,
+    context: Sure.Context,
+  ),
+  // Found a goal to be shown
+  show_goal(
+    name: Sure.Name,
+    dref: List<Bits>,
+    verb: Bool,
+    goal: Maybe<Sure.Term>,
+    context: Sure.Context,
+  ),
+  // Waits for another term's type checking
+  waiting(
+    name: Sure.Name,
+  ),
+  // Error in a dependency
+  indirect(
+    name: Sure.Name,
+  ),
+  // Patch the original term
+  patch(
+    path: Bits,
+    term: Sure.Term,
+  ),
+  // Some reference isn't found
+  undefined_reference(
+    origin: Maybe<Pair<Nat,Nat>>,
+    name: Sure.Name,
+  ),
+  // A lambda without a type
+  cant_infer(
+    origin: Maybe<Pair<Nat,Nat>>,
+    term: Sure.Term,
+    context: Sure.Context,
+  ),
+}

@@ -1,0 +1,32 @@
+// Reads a natural number from `str` in `base` (2–36).
+// Digits are 0-9 then a-z / A-Z. Stops at the first invalid digit.
+Nat.read_base(base: Nat, str: String): Nat
+  Nat.read_base.go(base, str, 0)
+
+Nat.read_base.go(base: Nat, str: String, acc: Nat): Nat
+  case str {
+    nil:
+      acc
+    cons:
+      let digit = Nat.read_base.digit(str.head)
+      case digit {
+        none:
+          acc
+        some:
+          if Nat.ltn(digit.value, base) then
+            Nat.read_base.go(base, str.tail, Nat.add(Nat.mul(acc, base), digit.value))
+          else
+            acc
+      }
+  }
+
+Nat.read_base.digit(chr: Char): Maybe<Nat>
+  let n = U16.to_nat(chr)
+  if U16.gte(chr, '0') && U16.lte(chr, '9') then
+    some(Nat.sub(n, 48))
+  else if U16.gte(chr, 'A') && U16.lte(chr, 'Z') then
+    some(Nat.add(10, Nat.sub(n, 65)))
+  else if U16.gte(chr, 'a') && U16.lte(chr, 'z') then
+    some(Nat.add(10, Nat.sub(n, 97)))
+  else
+    none

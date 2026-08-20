@@ -1,0 +1,9 @@
+Sure.Term.SmartMotive.nams.cont(name: Sure.Name, term: Sure.Term, binds: List<Sure.Name>, defs: Sure.Defs): List<Sure.Name>
+  case Sure.Term.reduce(term, defs) as term {
+    all: Sure.Term.SmartMotive.nams.cont(
+      name,
+      term.body(Sure.Term.ref(term.self),Sure.Term.ref(term.name)),
+      List.cons!(String.flatten([name, ".", term.name]), binds),
+      defs),
+    _: List.cons!(name, List.tail!(binds)),
+  }

@@ -1,0 +1,2 @@
+Sure.Parser.gtn: Sure.Term -> Parser(Sure.Term)
+  Sure.Parser.op(">?", "Nat.gtn")

@@ -1,0 +1,8 @@
+type Sure.Comp.Language {
+  new(
+    gram: Sure.Comp.Grammar
+    nati: Sure.Comp.Natives
+    opts: Sure.Comp.Optimizeds
+    base: Sure.Comp.Basics
+  )
+}

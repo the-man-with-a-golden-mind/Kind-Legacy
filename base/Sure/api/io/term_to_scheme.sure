@@ -1,0 +1,8 @@
+Sure.api.io.term_to_scheme(name: String): IO<String>
+  IO {
+    get defs = Sure.Synth.one(name, Sure.Map.new!)
+    let defs = (defs <> Sure.Map.new!)
+    let compiled = Sure.Comp.Defs.compile(defs)
+    let schemed = Sure.Comp.transpile(Sure.Comp.Target.Scheme.Language, name, compiled)
+    return schemed;
+  }

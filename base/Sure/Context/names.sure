@@ -1,0 +1,2 @@
+Sure.Context.names(ctx: Sure.Context): List<Sure.Name>
+  List.mapped!(ctx)!((x) Pair.fst!!(x))

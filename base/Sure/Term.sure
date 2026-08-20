@@ -1,0 +1,122 @@
+type Sure.Term {
+  // A variable bound by another constructor
+  var(
+    name: Sure.Name, // the variable name, used for pretty printing
+    indx: Nat, // the variable bruijn level, used for equality and binding
+  ),
+  // A reference to a top-level definition
+  ref(
+    name: Sure.Name, // the reference name
+  ),
+  // The type of types
+  typ,
+  // The self-dependent function type (self-Pi)
+  all(
+    eras: Bool, // if it is erased at runtime
+    self: Sure.Name, // the term name
+    name: Sure.Name, // the input name
+    xtyp: Sure.Term, // the input type
+    body: Sure.Term -> Sure.Term -> Sure.Term, // the returned type
+  ),
+  // An anonymous function (lambda)
+  lam(
+    name: Sure.Name, // the input name
+    body: Sure.Term -> Sure.Term, // the returned body
+  ),
+  // A function application
+  app(
+    func: Sure.Term, // the function
+    argm: Sure.Term, // the argument
+  ),
+  // A local definition
+  let(
+    name: Sure.Name, // the expression name
+    expr: Sure.Term, // the expression value
+    body: Sure.Term -> Sure.Term, // the body where name=value
+  ),
+  // A local alias
+  def(
+    name: Sure.Name, // the expression name
+    expr: Sure.Term, // the expression value
+    body: Sure.Term -> Sure.Term, // the body where name=value
+  ),
+  // An inline annotation
+  ann(
+    done: Bool, // was this type-checked?
+    term: Sure.Term, // the annotated term
+    type: Sure.Term, // the annotated type
+  ),
+  // A hole to show the goal
+  gol(
+    name: Sure.Name, // the goal's name
+    dref: List<Bits>, // a list of labels to expand when displaying it
+    verb: Bool, // show labels of expandable terms?
+  ),
+  // A hole to be auto-filled
+  hol(
+    path: Bits,
+  ),
+  // A natural number
+  nat(
+    natx: Nat,
+  ),
+  // A character
+  chr(
+    chrx: Char,
+  ),
+  // A string
+  str(
+    strx: String,
+  ),
+  // A numeric literal
+  num(
+    sign: Maybe(Bool)
+    numb: Nat
+    frac: Maybe(Nat)
+  ),
+  // A case-of expression
+  cse(
+    path: Bits,
+    expr: Sure.Term,
+    name: Sure.Name,
+    with: List<Sure.Ann>,
+    cses: BitsMap<Sure.Term>,
+    moti: Maybe<Sure.Term>,
+  ),
+  // A record maker
+  new(
+    args: List(Sure.Term)
+  ),
+  // A field-get expression
+  get(
+    expr: Sure.Term,
+    fkey: String,
+  ),
+  // A field-set expression
+  set(
+    expr: Sure.Term,
+    fkey: String,
+    fval: Sure.Term,
+  ),
+  // A field-mut expression
+  mut(
+    expr: Sure.Term,
+    fkey: String,
+    ffun: Sure.Term,
+  ),
+  // An operator
+  ope(
+    name: String,
+    arg0: Sure.Term,
+    arg1: Sure.Term,
+  )
+  // An implicit type or term
+  imp(
+    expr: Sure.Term,
+  )
+  // An origin
+  ori(
+    orig: Pair<Nat,Nat>,
+    expr: Sure.Term,
+  )
+}

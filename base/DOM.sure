@@ -1,0 +1,8 @@
+// HTML document model. Sure.Parser.dom desugars <tag> to these constructors.
+// tag is a string so custom elements are included; Html.Tag enumerates the spec.
+
+type DOM {
+  text(value: String)
+  node(tag: String, props: Map<String>, style: Map<String>, children: List<DOM>)
+  fragment(children: List<DOM>)
+}

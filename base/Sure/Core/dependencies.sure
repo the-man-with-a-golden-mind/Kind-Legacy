@@ -1,0 +1,36 @@
+Sure.Core.dependencies(term: Sure.Term): List(String)
+  Sure.Map.keys!(Sure.Core.dependencies.go(term, Sure.Map.new!))
+  
+Sure.Core.dependencies.go(term: Sure.Term, deps: Sure.Map(Unit)): Sure.Map(Unit)
+  let nil = Sure.Term.typ
+  case term {
+    var:
+      deps
+    ref:
+      Sure.Map.set!(term.name, unit, deps)
+    typ:
+      deps
+    all: 
+      let deps = Sure.Core.dependencies.go(term.xtyp, deps)
+      let deps = Sure.Core.dependencies.go(term.body(nil,nil), deps)
+      deps
+    lam:
+      let deps = Sure.Core.dependencies.go(term.body(nil), deps)
+      deps
+    app:
+      let deps = Sure.Core.dependencies.go(term.func, deps)
+      let deps = Sure.Core.dependencies.go(term.argm, deps)
+      deps
+    let:
+      let deps = Sure.Core.dependencies.go(term.expr, deps)
+      let deps = Sure.Core.dependencies.go(term.body(nil), deps)
+      deps
+    def:
+      let deps = Sure.Core.dependencies.go(term.expr, deps)
+      let deps = Sure.Core.dependencies.go(term.body(nil), deps)
+      deps
+    ann:
+      let deps = Sure.Core.dependencies.go(term.term, deps)
+      let deps = Sure.Core.dependencies.go(term.type, deps)
+      deps
+  } default deps

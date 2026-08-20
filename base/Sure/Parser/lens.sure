@@ -1,0 +1,143 @@
+type Sure.Parser.lens.dir {
+  record(key: Sure.Name)
+  list(key: Sure.Term)
+  map(key: Sure.Term)
+}
+
+Sure.Parser.lens.path: Parser<Sure.Parser.lens.dir>
+  Parser.choice!([
+    Parser {
+      Sure.Parser.text("@")
+      get key = Sure.Parser.name1
+      return Sure.Parser.lens.dir.record(key)
+    }
+    Parser {
+      Sure.Parser.text_now("[")
+      get key = Sure.Parser.term
+      Sure.Parser.text("]")
+      return Sure.Parser.lens.dir.list(key)
+    }
+    Parser {
+      Sure.Parser.text_now("{")
+      get key = Sure.Parser.term
+      Sure.Parser.text("}")
+      return Sure.Parser.lens.dir.map(key)
+    }
+  ])
+
+Sure.Parser.lens(term: Sure.Term): Parser<Sure.Term>
+  Parser {
+    get dirs = Parser.many1!(Sure.Parser.lens.path)
+    Parser.choice!([
+      // mut
+      Parser {
+        Sure.Parser.text("<~")
+        get xfun = Sure.Parser.term
+        return Sure.Parser.lens.mutter(term, (x) Sure.Term.app(xfun, x), dirs, false)
+      }
+      // set
+      Parser {
+        Sure.Parser.text("<-")
+        get xval = Sure.Parser.term
+        return Sure.Parser.lens.mutter(term, () xval, dirs, true)
+      }
+      Parser {
+        return Sure.Parser.lens.getter(term, dirs)
+      }
+    ])
+  }
+
+Sure.Parser.lens.let(body: Unit -> Parser(Sure.Term)): Parser<Sure.Term>
+  Parser {
+    Sure.Parser.text("let ")
+    get name = Sure.Parser.name1
+    get dirs = Parser.many1!(Sure.Parser.lens.path)
+    get symb = Parser.option([Sure.Parser.text("<~"), Sure.Parser.text("<-")])
+    get expr = Sure.Parser.term
+    Parser.maybe!(Sure.Parser.text(";"))
+    get body = body(unit)
+    let expr = case symb {
+      zero: Sure.Parser.lens.mutter(Sure.Term.ref(name), (x) Sure.Term.app(expr,x), dirs, false)
+      succ: Sure.Parser.lens.mutter(Sure.Term.ref(name), (x) expr, dirs, true)
+    }
+    return Sure.Term.let(name, expr, (x) body)
+  }
+
+Sure.Parser.lens.mutter(expr: Sure.Term, func: Sure.Term -> Sure.Term, dirs: List<Sure.Parser.lens.dir>, is_set: Bool): Sure.Term
+  case dirs {
+    nil: func(expr)
+    cons: case dirs.head {
+      record:
+        Sure.Term.mut(expr, dirs.head.key, Sure.Term.lam("x", (x) Sure.Parser.lens.mutter(x, func, dirs.tail, is_set)))
+      list:
+        let term = Sure.Term.ref("List.mut")
+        let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+        let term = Sure.Term.app(term, dirs.head.key)
+        let term = Sure.Term.app(term, Sure.Term.lam("x", (x) Sure.Parser.lens.mutter(x, func, dirs.tail, is_set)))
+        let term = Sure.Term.app(term, expr)
+        term
+      map:
+        let sets = List.is_empty!(dirs.tail) && is_set
+        let term = Sure.Term.ref(if sets then "Map.set" else "Map.mut")
+        let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+        let term = Sure.Term.app(term, dirs.head.key)
+        let argf = if sets then func(Sure.Term.ref("?")) else Sure.Term.lam("x", (x) Sure.Parser.lens.mutter(x, func, dirs.tail, is_set))
+        let term = Sure.Term.app(term, argf)
+        let term = Sure.Term.app(term, expr)
+        term
+    }
+  }
+
+Sure.Parser.lens.getter(expr: Sure.Term, dirs: List<Sure.Parser.lens.dir>): Sure.Term
+  case dirs {
+    nil:
+      let term = Sure.Term.ref("Maybe.some")
+      let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+      let term = Sure.Term.app(term, expr)
+      term
+    cons: case dirs.head {
+      record:
+        let term = Sure.Term.get(expr, dirs.head.key)
+        case dirs.tail {
+          nil:
+            term
+          cons:
+            Sure.Parser.lens.getter(term, dirs.tail)
+        }
+      list:
+        let term = Sure.Term.ref("List.get")
+        let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+        let term = Sure.Term.app(term, dirs.head.key)
+        let term = Sure.Term.app(term, expr)
+        case dirs.tail {
+          nil:
+            term
+          cons:
+            let bind = Sure.Term.ref("Maybe.bind")
+            let bind = Sure.Term.app(bind, Sure.Term.hol(Bits.e))
+            let bind = Sure.Term.app(bind, Sure.Term.hol(Bits.e))
+            let bind = Sure.Term.app(bind, term)
+            let bind = Sure.Term.app(bind, Sure.Term.lam("x", (x) Sure.Parser.lens.getter(x, dirs.tail)))
+            bind
+        }
+      map:
+        let term = Sure.Term.ref("Map.get")
+        let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+        let term = Sure.Term.app(term, dirs.head.key)
+        let term = Sure.Term.app(term, expr)
+        case dirs.tail {
+          nil:
+            term
+          cons:
+            let bind = Sure.Term.ref("Maybe.bind")
+            let bind = Sure.Term.app(bind, Sure.Term.hol(Bits.e))
+            let bind = Sure.Term.app(bind, Sure.Term.hol(Bits.e))
+            let bind = Sure.Term.app(bind, term)
+            let bind = Sure.Term.app(bind, Sure.Term.lam("x", (x) Sure.Parser.lens.getter(x, dirs.tail)))
+            bind
+        }
+    }
+  }
+  
+      
+  

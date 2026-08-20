@@ -1,0 +1,2 @@
+F32.lte: F32 -> F32 -> Bool //prim//
+  F32.lte

@@ -1,0 +1,133 @@
+Sure.Parser.term: Parser(Sure.Term)
+  Sure.Parser.block("term", Parser {
+    get term = Parser.choice!([
+      Sure.Parser.dom
+      Sure.Parser.forall
+      Sure.Parser.lambda
+      Sure.Parser.lambda.erased
+      Sure.Parser.parenthesis
+      Sure.Parser.letforrange.u32((x) Sure.Parser.term)
+      Sure.Parser.letforrange.u32.with((x) Sure.Parser.term)
+      Sure.Parser.letforrange.i32((x) Sure.Parser.term)
+      Sure.Parser.letforrange.i32.with((x) Sure.Parser.term)
+      Sure.Parser.letforrange.nat((x) Sure.Parser.term)
+      Sure.Parser.letforrange.nat.with((x) Sure.Parser.term)
+      Sure.Parser.letforin((x) Sure.Parser.term)
+      Sure.Parser.letforin.with((x) Sure.Parser.term)
+      Sure.Parser.letforinmap((x) Sure.Parser.term)
+      Sure.Parser.letforinmap.with((x) Sure.Parser.term)
+      Sure.Parser.letwhile((x) Sure.Parser.term)
+      Sure.Parser.letwhile.with((x) Sure.Parser.term)
+      Sure.Parser.getforin((x) Sure.Parser.term)
+      Sure.Parser.getforin.with((x) Sure.Parser.term)
+      Sure.Parser.let.abort((x) Sure.Parser.term)
+      Sure.Parser.let((x) Sure.Parser.term)
+      // Sure.Parser.let.omit((x) Sure.Parser.term)
+      Sure.Parser.getwhile((x) Sure.Parser.term)
+      Sure.Parser.getwhile.with((x) Sure.Parser.term)
+      Sure.Parser.get((x) Sure.Parser.term)
+      // Sure.Parser.get.omit((x) Sure.Parser.term)
+      Sure.Parser.def((x) Sure.Parser.term)
+      Sure.Parser.lens.let((x) Sure.Parser.term)
+      Sure.Parser.use.abort((x) Sure.Parser.term)
+      Sure.Parser.use((x) Sure.Parser.term)
+      Sure.Parser.implicit
+      Sure.Parser.goal_rewrite
+      Sure.Parser.if
+      Sure.Parser.when
+      Sure.Parser.char
+      Sure.Parser.string('"')
+      Sure.Parser.string('`')
+      Sure.Parser.new
+      Sure.Parser.sigma.type
+      Sure.Parser.some
+      Sure.Parser.not
+      Sure.Parser.left
+      Sure.Parser.right
+      Sure.Parser.apply
+      Sure.Parser.chain
+      Sure.Parser.mirror
+      Sure.Parser.comprehension
+      Sure.Parser.comprehension.mapped
+      Sure.Parser.comprehension_range
+      Sure.Parser.list
+      Sure.Parser.map
+      Sure.Parser.log((x) Sure.Parser.term)
+      Sure.Parser.do
+      Sure.Parser.case
+      Sure.Parser.open((x) Sure.Parser.term)
+      Sure.Parser.without
+      Sure.Parser.switch
+      Sure.Parser.goal
+      Sure.Parser.hole
+      Sure.Parser.float.64
+      Sure.Parser.float.32
+      Sure.Parser.machine_integer.signed(256)
+      Sure.Parser.machine_integer.signed(128)
+      Sure.Parser.machine_integer.signed(64)
+      Sure.Parser.machine_integer.signed(32)
+      Sure.Parser.machine_integer.signed(16)
+      Sure.Parser.machine_integer.signed(8)
+      Sure.Parser.machine_integer.unsigned(1024)
+      Sure.Parser.machine_integer.unsigned(256)
+      Sure.Parser.machine_integer.unsigned(128)
+      Sure.Parser.machine_integer.unsigned(64)
+      Sure.Parser.machine_integer.unsigned(32)
+      Sure.Parser.machine_integer.unsigned(16)
+      Sure.Parser.machine_integer.unsigned(8)
+      Sure.Parser.u64 // TODO: deprecated
+      Sure.Parser.u32 // TODO: deprecated
+      Sure.Parser.u16 // TODO: deprecated
+      Sure.Parser.u8 // TODO: deprecated
+      Sure.Parser.num
+      Sure.Parser.reference
+      Parser {
+        Sure.Parser.spaces
+        Parser.fail!("Expected a term.")
+      }
+    ])
+    get term = Sure.Parser.term.suffix(term)
+    return term
+  })
+
+Sure.Parser.term.suffix(term: Sure.Term): Parser(Sure.Term)
+  (pst)
+  open pst
+  let suffix_parser = Parser.choice!([
+   Sure.Parser.application.hole(term)
+   Sure.Parser.application(term)
+   Sure.Parser.application.erased(term)
+   Sure.Parser.lens(term)
+   Sure.Parser.arrow(term)
+   Sure.Parser.concat(term)
+   Sure.Parser.equality(term)
+   Sure.Parser.add(term)
+   Sure.Parser.sub(term)
+   Sure.Parser.mul(term)
+   Sure.Parser.div(term)
+   Sure.Parser.mod(term)
+   Sure.Parser.ltn(term)
+   Sure.Parser.lte(term)
+   Sure.Parser.eql(term)
+   Sure.Parser.gte(term)
+   Sure.Parser.gtn(term)
+   Sure.Parser.and(term)
+   Sure.Parser.or(term)
+   Sure.Parser.composition(term)
+   Sure.Parser.default(term)
+   Sure.Parser.cons(term)
+   Sure.Parser.string_concat(term)
+   Sure.Parser.sigma(term)
+   Sure.Parser.inequality(term)
+   Sure.Parser.rewrite(term)
+   Sure.Parser.annotation(term)
+  ]);
+  case suffix_parser(pst) as suffix_parsed {
+    error:
+      open suffix_parsed.err
+      let err = Parser.Error.maybe_combine(pst.err, some(suffix_parsed.err))
+      let pst = Parser.State.new(err, pst.nam, pst.ini, pst.idx, pst.str)
+      Parser.Reply.value!(pst, term)
+    value: 
+      Sure.Parser.term.suffix(suffix_parsed.val, suffix_parsed.pst)
+  }

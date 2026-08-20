@@ -1,0 +1,33 @@
+Sure.Synth.files.go(files: List<String>, defs: Sure.Defs): IO<Pair<List<Sure.Name>, Sure.Defs>>
+  case files {
+    nil: IO {
+      return {List.nil!, defs}
+    }
+    cons: IO {
+      get file_synth = Sure.Synth.file(files.head, defs)
+      case file_synth {
+        left: Sure.Synth.files.go(files.tail, defs)
+        right: IO {
+          let nams = Pair.fst!!(file_synth.value)
+          let defs = Pair.snd!!(file_synth.value)
+          get rest = Sure.Synth.files.go(files.tail, defs)
+          let nams = List.concat!(nams, Pair.fst!!(rest))
+          let defs = Pair.snd!!(rest)
+          return {nams, defs}
+        }
+      }
+    }
+  }
+
+Sure.Synth.remove_duplicate_names(names: List<String>): List<String>
+  let map = List.fold!(names)!(Sure.Map.new!, (name) Sure.Map.set!(name, unit))
+  List.mapped!(BitsMap.keys!(map))!(Sure.Name.from_bits)
+
+Sure.Synth.files(files: List<String>, defs: Sure.Defs): IO<Pair<List<Sure.Name>, Sure.Defs>>
+  IO {
+    var got = Sure.Synth.files.go(files, defs)
+    let nams = Sure.Synth.remove_duplicate_names(Pair.fst!!(got))
+    let defs = Pair.snd!!(got)
+    return {nams, defs}
+  }
+

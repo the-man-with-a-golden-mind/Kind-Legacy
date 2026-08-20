@@ -1,0 +1,13 @@
+Sure.api.io.check_files(files: List<String>): IO<Unit>
+  IO {
+    get loaded = Sure.Synth.files(files, Sure.Map.new!)
+    let nams = Pair.fst!!(loaded)
+    let defs = Pair.snd!!(loaded)
+    case nams {
+      nil: IO.print("No valid Kind file found.")
+      cons: IO {
+        IO.print(Sure.Defs.report(defs, nams))
+        Sure.Defs.cache(defs)
+      }
+    }
+  }

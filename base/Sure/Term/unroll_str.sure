@@ -1,0 +1,11 @@
+Sure.Term.unroll_str(strx: String): Sure.Term
+  case strx {
+    nil:
+      Sure.Term.ref(Sure.Name.read("String.nil")),
+    cons:
+      let char = Sure.Term.chr(strx.head);
+      let term = Sure.Term.ref(Sure.Name.read("String.cons"));
+      let term = Sure.Term.app(term, char);
+      let term = Sure.Term.app(term, Sure.Term.str(strx.tail));
+      term,
+  }

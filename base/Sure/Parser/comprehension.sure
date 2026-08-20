@@ -1,0 +1,143 @@
+Sure.Parser.comprehension: Parser<Sure.Term>
+  Parser {
+    Sure.Parser.text("[")
+    get loop = Sure.Parser.term
+    Sure.Parser.text("for")
+    get elem = Sure.Parser.name1
+    Sure.Parser.text("in")
+    get list = Sure.Parser.term
+    Parser.maybe!(Sure.Parser.text("where"))
+
+    get filters = Parser.until!(Sure.Parser.text("]"), Parser {
+      Sure.Parser.spaces
+      get term = Sure.Parser.term
+      Parser.maybe!(Sure.Parser.text(","))
+      return term
+    })
+
+    let and = Sure.Parser.comprehension.and_all(filters)
+
+    let filter_fun = Sure.Term.ref("List.filter")
+    let filter_fun = Sure.Term.app(filter_fun, Sure.Term.hol(Bits.e))
+    let lam_filter = Sure.Term.lam(elem, (i) and)
+    let filter_fun = Sure.Term.app(filter_fun, lam_filter)
+    let filter_fun = Sure.Term.app(filter_fun, list)
+    
+    let term = Sure.Term.ref("List.map")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let lamb = Sure.Term.lam(elem, (i) loop)
+    let term = Sure.Term.app(term, lamb)
+    let term = Sure.Term.app(term, filter_fun)
+    
+    return term
+  }
+
+Sure.Parser.comprehension.mapped: Parser<Sure.Term>
+  Parser {
+    Sure.Parser.text("[")
+    Sure.Parser.text("for")
+    get elem = Sure.Parser.name1
+    Sure.Parser.text("in")
+    get list = Sure.Parser.term
+    get cond = Parser.maybe!(Parser {
+      Sure.Parser.text("where")
+      get cond = Sure.Parser.term
+      return cond
+    })
+    Sure.Parser.text(":")
+    get loop = Sure.Parser.term
+    Sure.Parser.text("]")
+
+    let term = Sure.Term.ref("List.map")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let lamb = Sure.Term.lam(elem, (i) loop)
+    let term = Sure.Term.app(term, lamb)
+    let term = Sure.Term.app(term, case cond {
+      none:
+        list
+      some:
+        let filt = Sure.Term.ref("List.filter")
+        let filt = Sure.Term.app(filt, Sure.Term.hol(Bits.e))
+        let filt = Sure.Term.app(filt, Sure.Term.lam(elem, (i) cond.value))
+        let filt = Sure.Term.app(filt, list)
+        filt
+    })
+    
+    return term
+  }
+
+// transform list of Sure.Term in a Sure.Term representing a list
+Sure.Parser.comprehension.and_all(a: List<Sure.Term>): Sure.Term
+  case a {
+    nil: 
+      Sure.Term.ref("Bool.true")
+    cons:
+      let and  = Sure.Term.ref("Bool.and")
+      let and = Sure.Term.app(and, a.head)
+      let and = Sure.Term.app(and, Sure.Parser.comprehension.and_all(a.tail))
+      and
+  }
+
+// prototype
+Sure.Parser.comprehension_map: Parser<Sure.Term>
+  Parser {
+    Sure.Parser.text("{")
+    get loop = Sure.Parser.term
+    Sure.Parser.text("for")
+    get val = Sure.Parser.name1
+    Sure.Parser.text("in")
+    get map = Sure.Parser.term
+    Sure.Parser.text("}")
+    
+    let term = Sure.Term.ref("BBT.map")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let lamb = Sure.Term.lam(val, (v) loop)
+    let term = Sure.Term.app(term, lamb)
+    let term = Sure.Term.app(term, map)
+
+    return term
+  }
+
+Sure.Parser.comprehension_range: Parser<Sure.Term>
+  Parser.choice!([
+    Sure.Parser.comprehension_range.go(none)
+    Sure.Parser.comprehension_range.go(some("I32"))
+    Sure.Parser.comprehension_range.go(some("U32"))
+  ])
+
+Sure.Parser.comprehension_range.go(typename: Maybe<String>): Parser(Sure.Term)
+  Sure.Parser.block("comprehension_range", Parser {
+    Sure.Parser.text("[")
+    get idx0 = Sure.Parser.term
+    Sure.Parser.text("to")
+    get idx1 = Sure.Parser.term
+    let list = 
+      ((x) 
+        let term = Sure.Term.ref(x|".range")
+        let term = Sure.Term.app(term, idx0)
+        let term = Sure.Term.app(term, idx1)
+        term) :: String -> Sure.Term
+
+    case typename {
+      none: Parser {
+        // optional for nat
+        Parser.maybe!(Parser {
+          Sure.Parser.text(":")
+          Sure.Parser.text("Nat")
+        })
+        Sure.Parser.text("]")
+        return list("Nat")
+      }
+      some: 
+        Parser {
+          Sure.Parser.text(":")
+          Sure.Parser.text(typename.value)
+          Sure.Parser.text("]")
+          return list(typename.value)
+        }
+    }
+  })

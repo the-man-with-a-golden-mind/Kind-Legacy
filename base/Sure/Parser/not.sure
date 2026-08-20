@@ -1,0 +1,9 @@
+Sure.Parser.not: Parser(Sure.Term)
+  Sure.Parser.block("not", Parser {
+    Sure.Parser.text("not(")
+    get expr = Sure.Parser.term
+    Sure.Parser.text(")")
+    let term = Sure.Term.ref("Bool.not")
+    let term = Sure.Term.app(term, expr)
+    return term
+  })

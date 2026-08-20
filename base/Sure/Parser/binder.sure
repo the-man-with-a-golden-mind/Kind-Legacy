@@ -1,0 +1,23 @@
+Sure.Parser.binder(sep: String, no_spaces: Bool): Parser(List<Sure.Binder>)
+  Parser {
+    get lists = Parser.many1!(Parser.choice!([
+      Sure.Parser.binder.homo(sep, true, no_spaces)
+      Sure.Parser.binder.homo(sep, false, no_spaces)
+    ]))
+    return List.flatten!(lists)
+  }
+
+Sure.Parser.binder.homo(sep: String, eras: Bool, no_spaces: Bool): Parser(List<Sure.Binder>)
+  Parser {
+    let open = if eras then "<" else "("
+    let clos = if eras then ">" else ")"
+    let items_parser = 
+      if no_spaces then 
+        Sure.Parser.items_now
+      else 
+        Sure.Parser.items
+    get bind = items_parser!(open, Sure.Parser.name_term(sep), clos)
+    return List.mapped!(bind)!((pair) case pair {
+      new: Sure.Binder.new(eras, pair.fst, pair.snd)
+    })
+  }

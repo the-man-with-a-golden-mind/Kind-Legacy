@@ -1,0 +1,2 @@
+Sure.Map.map<A: Type, B: Type>(fn: A -> B, map: Sure.Map(A)): Sure.Map(B)
+  BitsMap.map<A,B>(fn, map)

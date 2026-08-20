@@ -1,0 +1,9 @@
+// Gets all arguments of a sequence of applications, returns function.
+// - get_args(`(((f x) y) z)`) == {`f`, [`x`,`y`,`z`]}
+Sure.Comp.get_args(term: Sure.Comp): Pair(Sure.Comp, List(Sure.Comp))
+  Sure.Comp.get_args.go(term, [])
+
+Sure.Comp.get_args.go(term: Sure.Comp, args: List(Sure.Comp)): Pair(Sure.Comp, List(Sure.Comp))
+  case term {
+    app: Sure.Comp.get_args.go(term.func, term.argm & args)
+  } default {term, args}

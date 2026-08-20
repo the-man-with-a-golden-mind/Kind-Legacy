@@ -1,0 +1,27 @@
+Sure.Parser.int: Parser(Sure.Term)
+  Sure.Parser.block("int", Parser {
+    Sure.Parser.spaces
+    //Parser.log("on int")
+    //Parser.log_code
+    //Parser.log("---------------")
+    get sgn_num = Parser.choice!([
+      Sure.Parser.int_pos,
+      Sure.Parser.int_neg,
+    ])
+    //Parser.log("sgn_num = " | Bool.show(Pair.fst!!(sgn_num)) | " " | Nat.show(Pair.snd!!(sgn_num)))
+    // #TODO removing let causes weird errors
+    // as of kind 1.0.28
+    let term = case sgn_num {
+      new:
+        let ret = Sure.Term.ref("Int.from_nat")
+        let ret = Sure.Term.app(ret, Sure.Term.nat(sgn_num.snd))
+        case sgn_num.fst {
+          true:
+            ret
+          false:
+            let inv = Sure.Term.ref("Int.neg")
+            Sure.Term.app(inv, ret)
+        }
+    }
+    return term
+  })

@@ -1,0 +1,24 @@
+Sure.Parser.switch.case: Parser(Pair<Sure.Term, Sure.Term>)
+  Parser {
+    get key = Sure.Parser.term
+    Sure.Parser.text(":")
+    get val = Sure.Parser.term
+    return {key, val}
+  }
+
+Sure.Parser.switch: Parser(Sure.Term)
+  Sure.Parser.block("switch", Parser {
+    Sure.Parser.text("switch")
+    get cond = Sure.Parser.term
+    get cses = Sure.Parser.items!("{", Sure.Parser.switch.case, "}")
+    Sure.Parser.text("default")
+    get dflt = Sure.Parser.term
+    let term = List.fold!(cses)!(dflt, (cse, rest)
+      open cse
+      let term = Sure.Term.app(cond, cse.fst)
+      let term = Sure.Term.app(term, Sure.Term.lam("", (x) Sure.Term.hol(Bits.e)))
+      let term = Sure.Term.app(term, cse.snd)
+      let term = Sure.Term.app(term, rest)
+      term)
+    return term
+  })

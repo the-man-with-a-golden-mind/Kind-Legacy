@@ -1,0 +1,22 @@
+Sure.Parser.open(body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Sure.Parser.block("open", Parser {
+    Sure.Parser.text("open ")
+    get expr = Sure.Parser.term
+    get name = Parser.maybe!(Parser {
+      Sure.Parser.text("as")
+      Sure.Parser.name1
+    })
+    Parser.maybe!(Sure.Parser.text(";"))
+    let name = case name {
+      none: case Sure.Term.reduce(expr, Sure.Map.new!) as expr {
+        ref: expr.name,
+        var: expr.name,
+      } default Sure.Name.read("self"),
+      some: name.value,
+    }
+    let wyth = []
+    get body = body(unit)
+    let cses = Sure.Map.set!("_", body, Sure.Map.new!)
+    let moti = Maybe.some!(Sure.Term.hol(Bits.e))
+    return Sure.Term.cse(Bits.e, expr, name, wyth, cses, moti)
+  })

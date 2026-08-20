@@ -1,0 +1,2 @@
+Sure.Parser.or: Sure.Term -> Parser(Sure.Term)
+  Sure.Parser.op("||", "Bool.or")

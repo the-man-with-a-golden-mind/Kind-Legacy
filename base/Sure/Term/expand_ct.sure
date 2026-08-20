@@ -1,0 +1,57 @@
+Sure.Term.expand_ct(term: Sure.Term, defs: Sure.Defs, arity: Nat): Sure.Term
+  case term {
+    ref:
+      case Sure.Map.get!(term.name, defs) as got {
+        none:
+          Sure.Term.ref(term.name)
+        some:
+          open got.value
+          if Bool.and(got.value.isct, Nat.gtn(arity, got.value.arit)) then
+            got.value.term
+          else
+            Sure.Term.ref(term.name)
+      }
+    var:
+      Sure.Term.var(term.name, term.indx),
+    typ:
+      Sure.Term.typ,
+    all: 
+      def xtyp = Sure.Term.expand_ct(term.xtyp, defs, 0);
+      def body = (s,x) Sure.Term.expand_ct(term.body(s,x), defs, 0);
+      Sure.Term.all(term.eras, term.self, term.name, xtyp, body),
+    lam:
+      def body = (x) Sure.Term.expand_ct(term.body(x), defs, 0);
+      Sure.Term.lam(term.name, body),
+    app:
+      def func = Sure.Term.expand_ct(term.func, defs, Nat.succ(arity));
+      def argm = Sure.Term.expand_ct(term.argm, defs, 0);
+      Sure.Term.app(func, argm),
+    let:
+      def expr = Sure.Term.expand_ct(term.expr, defs, 0);
+      def body = (x) Sure.Term.expand_ct(term.body(x), defs, 0);
+      Sure.Term.let(term.name, expr, body),
+    def:
+      def expr = Sure.Term.expand_ct(term.expr, defs, 0);
+      def body = (x) Sure.Term.expand_ct(term.body(x), defs, 0);
+      Sure.Term.def(term.name, expr, body),
+    ann:
+      def term = Sure.Term.expand_ct(term.term, defs, 0);
+      def type = Sure.Term.expand_ct(term.type, defs, 0);
+      Sure.Term.ann(term.done, term, type),
+    gol:
+      Sure.Term.gol(term.name, term.dref, term.verb),
+    hol:
+      Sure.Term.hol(term.path),
+    nat:
+      Sure.Term.nat(term.natx),
+    chr:
+      Sure.Term.chr(term.chrx),
+    str:
+      Sure.Term.str(term.strx),
+    imp:
+      def expr = Sure.Term.expand_ct(term.expr, defs, 0)
+      Sure.Term.imp(expr),
+    ori:
+      def expr = Sure.Term.expand_ct(term.expr, defs, 0);
+      Sure.Term.ori(term.orig, expr),
+  } default term

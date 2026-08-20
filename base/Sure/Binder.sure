@@ -1,0 +1,7 @@
+type Sure.Binder {
+  new(
+    eras: Bool,
+    name: Sure.Name,
+    term: Sure.Term,
+  )
+}

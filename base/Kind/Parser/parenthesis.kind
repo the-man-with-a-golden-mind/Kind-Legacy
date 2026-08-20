@@ -1,7 +1,0 @@
-Kind.Parser.parenthesis: Parser(Kind.Term)
-  Kind.Parser.block("parenthesis", Parser {
-    Kind.Parser.text("(")
-    get term = Kind.Parser.term
-    Kind.Parser.text(")")
-    return term
-  })

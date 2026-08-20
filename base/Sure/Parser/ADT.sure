@@ -1,0 +1,320 @@
+type Sure.Parser.ADT.Constructor {
+  new(
+    name: Sure.Name,
+    args: List<Sure.Binder>,
+    inds: List<Sure.Binder>,
+  )
+}
+
+type Sure.Parser.ADT.Datatype {
+  new(
+    name: Sure.Name,
+    pars: List<Sure.Binder>,
+    inds: List<Sure.Binder>,
+    ctrs: List<Sure.Parser.ADT.Constructor>,
+    deri: List<String>,
+  )
+}
+
+type Sure.Parser.ADT.Derived {
+  new(
+    name: Sure.Name
+    arit: Nat
+    term: Sure.Term
+    type: Sure.Term
+  )
+}
+
+Sure.Parser.ADT.adt: Parser(Sure.Parser.ADT.Datatype)
+  Parser {
+    Sure.Parser.text("type ")
+    get name = Sure.Parser.name1
+    get pars = Parser.maybe!(Sure.Parser.binder(":", false))
+    get inds = Parser.maybe!(Parser {
+      Sure.Parser.text("~")
+      Sure.Parser.binder(":", false)
+    })
+    let pars = Maybe.default!(pars, [])
+    let inds = Maybe.default!(inds, [])
+    get ctrs = Sure.Parser.items!("{", Sure.Parser.ADT.ctor(name), "}")
+    get deri = Parser.maybe!(Parser {
+      Sure.Parser.text("deriving")
+      Sure.Parser.items!("(", Sure.Parser.name1, ")")
+    })
+    let deri = case deri {
+      none: []
+      some: deri.value
+    }
+    return Sure.Parser.ADT.Datatype.new(name, pars, inds, ctrs, deri)
+  }
+
+Sure.Parser.ADT.ctor(namespace: Sure.Name): Parser(Sure.Parser.ADT.Constructor)
+  Parser {
+    get name = Sure.Parser.name1
+    get args = Parser.maybe!(Sure.Parser.binder(":", false))
+    get inds = Parser.maybe!(Parser {
+      Sure.Parser.text("~")
+      Sure.Parser.binder("=", false)
+    })
+    let args = Maybe.default!(args, [])
+    let inds = Maybe.default!(inds, [])
+    return Sure.Parser.ADT.Constructor.new(name, args, inds)
+  }
+
+Sure.Parser.ADT.Constructor.build_term(type: Sure.Parser.ADT.Datatype, ctor: Sure.Parser.ADT.Constructor): Sure.Term
+  open type
+  open ctor
+  Sure.Parser.ADT.Constructor.build_term.go(type, ctor, type.name, type.pars, ctor.args)
+  
+Sure.Parser.ADT.Constructor.build_term.go(
+  type: Sure.Parser.ADT.Datatype,
+  ctor: Sure.Parser.ADT.Constructor,
+  name: Sure.Name,
+  pars: List<Sure.Binder>,
+  args: List<Sure.Binder>,
+): Sure.Term
+  case pars {
+    cons: case pars.head {
+      new:
+        def par_name = pars.head.name
+        def par_body = (x) Sure.Parser.ADT.Constructor.build_term.go(type, ctor, name, pars.tail, args)
+        Sure.Term.lam(par_name, par_body)
+    }
+    nil: case args {
+      cons: case args.head {
+        new:
+          def ctr_name = args.head.name
+          def ctr_body = (x) Sure.Parser.ADT.Constructor.build_term.go(type, ctor, name, pars, args.tail)
+          Sure.Term.lam(ctr_name, ctr_body)
+      },
+      nil:
+        def lam_name = Sure.Name.read("P")
+        def lam_body = (x) Sure.Parser.ADT.Constructor.build_term.opt(type, ctor)
+        Sure.Term.lam(lam_name, lam_body)
+    }
+  }
+
+Sure.Parser.ADT.Constructor.build_term.opt(type: Sure.Parser.ADT.Datatype, ctor: Sure.Parser.ADT.Constructor): Sure.Term
+  open type
+  Sure.Parser.ADT.Constructor.build_term.opt.go(type, ctor, type.ctrs)
+
+Sure.Parser.ADT.Constructor.build_term.opt.go(
+  type: Sure.Parser.ADT.Datatype,
+  ctor: Sure.Parser.ADT.Constructor,
+  ctrs: List<Sure.Parser.ADT.Constructor>,
+): Sure.Term
+  case ctrs {
+    cons: case ctrs.head {
+      new:
+        def name = ctrs.head.name
+        def body = (x) Sure.Parser.ADT.Constructor.build_term.opt.go(type, ctor, ctrs.tail)
+        Sure.Term.lam(name, body)
+    }
+    nil: 
+      case ctor {
+        new:
+          let ret = Sure.Term.ref(ctor.name)
+          let ret = for arg in ctor.args:
+            Sure.Term.app(ret, Sure.Term.ref(case arg { new: arg.name }))
+          ret
+      }
+  }
+
+Sure.Parser.ADT.Constructor.build_type(type: Sure.Parser.ADT.Datatype, ctor: Sure.Parser.ADT.Constructor): Sure.Term
+  case type {
+    new: case ctor {
+      new: Sure.Parser.ADT.Constructor.build_type.go(
+        type,
+        ctor,
+        type.name,
+        type.pars,
+        ctor.args)
+    }
+  }
+
+Sure.Parser.ADT.Constructor.build_type.go(
+  type: Sure.Parser.ADT.Datatype,
+  ctor: Sure.Parser.ADT.Constructor,
+  name: Sure.Name,
+  pars: List<Sure.Binder>,
+  args: List<Sure.Binder>,
+): Sure.Term
+  case pars {
+    cons: case pars.head {
+      new:
+        def pars_eras = pars.head.eras;
+        def pars_name = pars.head.name;
+        def pars_xtyp = pars.head.term;
+        def pars_body = (s,x) Sure.Parser.ADT.Constructor.build_type.go(type, ctor, name, pars.tail, args);
+        Sure.Term.all(pars_eras, "", pars_name, pars_xtyp, pars_body),
+    },
+    nil: case args {
+      cons: case args.head {
+        new:
+          def ctr_eras = args.head.eras;
+          def ctr_name = args.head.name;
+          def ctr_xtyp = args.head.term;
+          def ctr_body = (s,x) Sure.Parser.ADT.Constructor.build_type.go(type, ctor, name, pars, args.tail);
+          Sure.Term.all(ctr_eras, "", ctr_name, ctr_xtyp, ctr_body),
+      },
+      nil: case type {
+        new: case ctor {
+          new:
+            let type = Sure.Term.ref(name);
+            let type = for v in type.pars:
+              Sure.Term.app(type, Sure.Term.ref(case v { new: v.name }));
+            let type = for v in ctor.inds:
+              Sure.Term.app(type, case v { new: v.term });
+            type,
+        }
+      }
+    }
+  }
+
+Sure.Parser.ADT.Datatype.build_term(type: Sure.Parser.ADT.Datatype): Sure.Term
+  case type {
+    new: Sure.Parser.ADT.Datatype.build_term.go(type, type.name, type.pars, type.inds),
+  }
+
+Sure.Parser.ADT.Datatype.build_term.go(
+  type: Sure.Parser.ADT.Datatype,
+  name: Sure.Name,
+  pars: List<Sure.Binder>,
+  inds: List<Sure.Binder>,
+): Sure.Term
+  case pars {
+    cons:
+      open pars.head
+      def par_name = pars.head.name
+      def par_body = (x) Sure.Parser.ADT.Datatype.build_term.go(type, name, pars.tail, inds)
+      Sure.Term.lam(par_name, par_body)
+    nil: case inds {
+      cons:
+        open inds.head
+        def ind_name = inds.head.name
+        def ind_body = (x) Sure.Parser.ADT.Datatype.build_term.go(type, name, pars, inds.tail)
+        Sure.Term.lam(ind_name, ind_body)
+      nil: 
+        def moti = Sure.Parser.ADT.Datatype.build_term.motive(type)
+        def body = (s,x) Sure.Parser.ADT.Datatype.build_term.constructors(type) // TODO
+        Sure.Term.all(Bool.true, String.concat(name,".Self"), Sure.Name.read("P"), moti, body)
+    }
+  }
+
+Sure.Parser.ADT.Datatype.build_term.constructor(type: Sure.Parser.ADT.Datatype, ctor: Sure.Parser.ADT.Constructor): Sure.Term
+  open ctor
+  Sure.Parser.ADT.Datatype.build_term.constructor.go(type, ctor, ctor.args)
+
+Sure.Parser.ADT.Datatype.build_term.constructor.go(
+  type: Sure.Parser.ADT.Datatype,
+  ctor: Sure.Parser.ADT.Constructor,
+  args: List<Sure.Binder>,
+): Sure.Term
+  case args {
+    cons:
+      open args.head
+      let eras = args.head.eras
+      let name = args.head.name
+      let xtyp = args.head.term
+      let body = Sure.Parser.ADT.Datatype.build_term.constructor.go(type, ctor, args.tail)
+      Sure.Term.all(eras, "", name, xtyp, (s,x) body)
+    nil:
+      open type
+      open ctor
+      let ret = Sure.Term.ref(Sure.Name.read("P"))
+      let ret = for v in ctor.inds:
+        Sure.Term.app(ret, case v { new: v.term })
+      let ctr = String.flatten([type.name,Sure.Name.read("."),ctor.name])
+      let slf = Sure.Term.ref(ctr)
+      let slf = for v in type.pars:
+        Sure.Term.app(slf, Sure.Term.ref(case v { new: v.name }))
+      let slf = for v in ctor.args:
+        Sure.Term.app(slf, Sure.Term.ref(case v { new: v.name }))
+      Sure.Term.app(ret, slf)
+  }
+
+Sure.Parser.ADT.Datatype.build_term.constructors(type: Sure.Parser.ADT.Datatype): Sure.Term
+  open type
+  Sure.Parser.ADT.Datatype.build_term.constructors.go(type, type.name, type.ctrs)
+
+Sure.Parser.ADT.Datatype.build_term.constructors.go(
+  type: Sure.Parser.ADT.Datatype,
+  name: Sure.Name,
+  ctrs: List<Sure.Parser.ADT.Constructor>,
+): Sure.Term
+  case ctrs {
+    cons:
+      open ctrs.head
+      Sure.Term.all(Bool.false, "",
+        ctrs.head.name,
+        Sure.Parser.ADT.Datatype.build_term.constructor(type, ctrs.head),
+        (s,x) Sure.Parser.ADT.Datatype.build_term.constructors.go(type, name, ctrs.tail))
+    nil:
+      open type
+      let ret = Sure.Term.ref(Sure.Name.read("P"));
+      let ret = for v in type.inds:
+        Sure.Term.app(ret, Sure.Term.ref(case v { new: v.name }));
+      Sure.Term.app(ret, Sure.Term.ref(String.concat(name,".Self")))
+  }
+
+Sure.Parser.ADT.Datatype.build_term.motive(
+  type: Sure.Parser.ADT.Datatype,
+): Sure.Term
+  open type
+  Sure.Parser.ADT.Datatype.build_term.motive.go(type, type.name, type.inds)
+
+Sure.Parser.ADT.Datatype.build_term.motive.go(
+  type: Sure.Parser.ADT.Datatype,
+  name: Sure.Name,
+  inds: List<Sure.Binder>,
+): Sure.Term
+  case inds {
+    cons:
+      open inds.head
+      def ind_eras = inds.head.eras
+      def ind_name = inds.head.name
+      def ind_xtyp = inds.head.term
+      def ind_body = (s,x) Sure.Parser.ADT.Datatype.build_term.motive.go(type, name, inds.tail)
+      Sure.Term.all(ind_eras, "", ind_name, ind_xtyp, ind_body)
+    nil:
+      open type
+      let slf = Sure.Term.ref(name)
+      let slf = for v in type.pars:
+        Sure.Term.app(slf, Sure.Term.ref(case v { new: v.name }))
+      let slf = for v in type.inds:
+      Sure.Term.app(slf, Sure.Term.ref(case v { new: v.name }))
+      Sure.Term.all(Bool.false, "", "", slf, (s,x) Sure.Term.typ)
+  }
+
+Sure.Parser.ADT.Datatype.build_type(type: Sure.Parser.ADT.Datatype): Sure.Term
+  case type {
+    new: Sure.Parser.ADT.Datatype.build_type.go(type, type.name, type.pars, type.inds),
+  }
+
+Sure.Parser.ADT.Datatype.build_type.go(
+  type: Sure.Parser.ADT.Datatype,
+  name: Sure.Name,
+  pars: List<Sure.Binder>,
+  inds: List<Sure.Binder>,
+): Sure.Term
+  case pars {
+    cons: case pars.head {
+      new:
+        def par_eras = pars.head.eras;
+        def par_name = pars.head.name;
+        def par_xtyp = pars.head.term;
+        def par_body = (s,x) Sure.Parser.ADT.Datatype.build_type.go(type, name, pars.tail, inds);
+        Sure.Term.all(Bool.false, "", par_name, par_xtyp, par_body)
+    },
+    nil: case inds {
+      cons: case inds.head {
+        new: 
+          def ind_eras = inds.head.eras;
+          def ind_name = inds.head.name;
+          def ind_xtyp = inds.head.term;
+          def ind_body = (s,x) Sure.Parser.ADT.Datatype.build_type.go(type, name, pars, inds.tail);
+          Sure.Term.all(Bool.false, "", ind_name, ind_xtyp, ind_body)
+      },
+      nil: Sure.Term.typ,
+    }
+  }

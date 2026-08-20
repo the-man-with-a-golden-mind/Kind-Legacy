@@ -1,0 +1,6 @@
+// Writes `content` to `name`. Uses set_file2: first line is the path, rest is
+// the body (so paths may contain '='). The old "set_file" query (name=body)
+// remains in the host for the pre-bootstrap compiler blob.
+IO.set_file(name: String, content: String): IO<Unit>
+  IO.ask<Unit>("set_file2", name | "\n" | content, (ok)
+  IO.end<Unit>(Unit.new))

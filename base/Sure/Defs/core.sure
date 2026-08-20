@@ -1,0 +1,12 @@
+Sure.Defs.core(defs: Sure.Defs): String
+  let result = ""
+  let result = for defn in BitsMap.values!(defs):
+    open defn
+    case defn.stat {
+      done:
+        let name = defn.name
+        let term = Sure.Core.show(defn.term)
+        let type = Sure.Core.show(defn.type)
+        String.flatten([result, name, " : ", type, " = ", term, ";\n"])
+  } default result
+  result

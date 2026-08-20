@@ -1,0 +1,6 @@
+Sure.Parser.annotation(term: Sure.Term): Parser(Sure.Term)
+  Parser {
+    Sure.Parser.text("::")
+    get type = Sure.Parser.term
+    return Sure.Term.ann(false, term, type)
+  }

@@ -1,0 +1,55 @@
+Sure.Synth.fix(
+  file: String,
+  code: String,
+  orig: Pair<Nat,Nat>,
+  name: Sure.Name,
+  term: Sure.Term,
+  type: Sure.Term,
+  isct: Bool,
+  arit: Nat,
+  defs: Sure.Defs,
+  errs: List<Sure.Error>,
+  fixd: Bool,
+): IO<Maybe<Sure.Defs>>
+  case errs {
+    nil:
+      if fixd then IO {
+        let type = Sure.Term.bind([], (x) Bits.i(x), type);
+        let term = Sure.Term.bind([], (x) Bits.o(x), term);
+        let defs = Sure.Map.set!(name, Sure.Def.new(file, code, orig, name, term, type, isct, arit, Sure.Status.init), defs);
+        return Maybe.some!(defs);
+      } else IO {
+        return Maybe.none!;
+      },
+    cons: case errs.head {
+      waiting: IO {
+        get new_defs = Sure.Synth.one(errs.head.name, defs);
+        case new_defs {
+          none: Sure.Synth.fix(file, code, orig, name, term, type, isct, arit, defs, errs.tail, fixd),
+          some: Sure.Synth.fix(file, code, orig, name, term, type, isct, arit, new_defs.value, errs.tail, Bool.true),
+        }
+      },
+      undefined_reference: IO {
+        get new_defs = Sure.Synth.one(errs.head.name, defs);
+        case new_defs {
+          none: Sure.Synth.fix(file, code, orig, name, term, type, isct, arit, defs, errs.tail, fixd),
+          some: Sure.Synth.fix(file, code, orig, name, term, type, isct, arit, new_defs.value, errs.tail, Bool.true),
+        }
+      },
+      patch: case errs.head.path {
+        e: IO { // shouldn't happen
+          return Maybe.none!;
+        },
+        o: IO { // hole is on term
+          let term = Sure.Term.patch_at(errs.head.path.pred, term, (x) errs.head.term);
+          Sure.Synth.fix(file, code, orig, name, term, type, isct, arit, defs, errs.tail, Bool.true);
+        },
+        i: IO { // hole is on type
+          let type = Sure.Term.patch_at(errs.head.path.pred, type, (x) errs.head.term);
+          Sure.Synth.fix(file, code, orig, name, term, type, isct, arit, defs, errs.tail, Bool.true);
+        },
+      },
+      // The error isn't fixable
+      _: Sure.Synth.fix(file, code, orig, name, term, type, isct, arit, defs, errs.tail, fixd),
+    }
+  }

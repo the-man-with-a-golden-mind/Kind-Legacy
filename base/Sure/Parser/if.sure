@@ -1,0 +1,14 @@
+Sure.Parser.if: Parser(Sure.Term)
+  Sure.Parser.block("if", Parser {
+    Sure.Parser.text("if ")
+    get cond = Sure.Parser.term
+    Sure.Parser.text("then")
+    get tcse = Sure.Parser.term
+    Sure.Parser.text("else")
+    get fcse = Sure.Parser.term
+    let term = cond
+    let term = Sure.Term.app(term, Sure.Term.lam("", (x) Sure.Term.hol(Bits.e)))
+    let term = Sure.Term.app(term, tcse)
+    let term = Sure.Term.app(term, fcse)
+    return term
+  })

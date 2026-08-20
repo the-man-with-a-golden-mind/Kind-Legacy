@@ -1,0 +1,38 @@
+Sure.Parser.letwhile(body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Sure.Parser.block("let-while", Parser {
+    Sure.Parser.text("let ")
+    get name = Sure.Parser.name1
+    Sure.Parser.text("=")
+    Sure.Parser.text("while ")
+    get cond = Sure.Parser.term
+    Sure.Parser.text(":")
+    get loop = Sure.Parser.term
+    Parser.maybe!(Sure.Parser.text(";"))
+    get body = body(unit)
+    let term = Sure.Term.ref("Function.while")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.ref(name))
+    let term = Sure.Term.app(term, Sure.Term.lam(name, (s) cond))
+    let term = Sure.Term.app(term, Sure.Term.lam(name, (s) loop))
+    let term = Sure.Term.let(name, term, (x) body)
+    return term
+  })
+
+Sure.Parser.letwhile.with(body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Sure.Parser.block("let-while", Parser {
+    Sure.Parser.text("while ")
+    get cond = Sure.Parser.term
+    Sure.Parser.text("with ")
+    get name = Sure.Parser.name1
+    Sure.Parser.text(":")
+    get loop = Sure.Parser.term
+    Parser.maybe!(Sure.Parser.text(";"))
+    get body = body(unit)
+    let term = Sure.Term.ref("Function.while")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.ref(name))
+    let term = Sure.Term.app(term, Sure.Term.lam(name, (s) cond))
+    let term = Sure.Term.app(term, Sure.Term.lam(name, (s) loop))
+    let term = Sure.Term.let(name, term, (x) body)
+    return term
+  })

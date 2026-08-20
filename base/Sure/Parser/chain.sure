@@ -1,0 +1,16 @@
+Sure.Parser.chain: Parser(Sure.Term)
+  Sure.Parser.block("chain", Parser {
+    Sure.Parser.text("chain(")
+    get eql0 = Sure.Parser.term
+    Sure.Parser.text(",")
+    get eql1 = Sure.Parser.term
+    Sure.Parser.text(")")
+    let term = Sure.Term.ref("Equal.chain")
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, Sure.Term.hol(Bits.e))
+    let term = Sure.Term.app(term, eql0)
+    let term = Sure.Term.app(term, eql1)
+    return term
+  })

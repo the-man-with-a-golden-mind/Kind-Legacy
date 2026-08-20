@@ -1,0 +1,10 @@
+Sure.Parser.def(body: Unit -> Parser(Sure.Term)): Parser(Sure.Term)
+  Sure.Parser.block("def", Parser {
+    Sure.Parser.text("def ")
+    get name = Sure.Parser.name1
+    Sure.Parser.text("=")
+    get expr = Sure.Parser.term
+    Parser.maybe!(Sure.Parser.text(";"))
+    get body = body(unit)
+    return Sure.Term.def(name, expr, (x) body)
+  })

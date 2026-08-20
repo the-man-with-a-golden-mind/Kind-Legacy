@@ -1,0 +1,9 @@
+Sure.Term.unroll_nat(natx: Nat): Sure.Term
+  case natx {
+    zero:
+      Sure.Term.ref(Sure.Name.read("Nat.zero")),
+    succ:
+      let func = Sure.Term.ref(Sure.Name.read("Nat.succ"));
+      let argm = Sure.Term.nat(natx.pred);
+      Sure.Term.app(func, argm),
+  }

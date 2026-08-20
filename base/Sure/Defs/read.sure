@@ -1,0 +1,10 @@
+Sure.Defs.read(file: String, code: String, defs: Sure.Defs): Either<String, Sure.Defs>
+  case Sure.Parser.file(file, code, defs, Parser.State.new(none, "", 0, 0, code)) as parsed {
+    error:
+      open parsed.err
+      let hdr = if parsed.err.msg =? "" then none else some(parsed.err.msg)
+      let str = Sure.Code.highlight(hdr, some(file), code, parsed.err.ini, parsed.err.idx, Nat.succ(parsed.err.idx))
+      Either.left!!(str)
+    value:
+      Either.right!!(parsed.val)
+  }

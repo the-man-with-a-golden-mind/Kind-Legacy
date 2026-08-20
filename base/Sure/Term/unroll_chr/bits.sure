@@ -1,0 +1,6 @@
+Sure.Term.unroll_chr.bits(bits: Bits): Sure.Term
+  case bits {
+    e: Sure.Term.ref(Sure.Name.read("Bits.e")),
+    o: Sure.Term.app(Sure.Term.ref(Sure.Name.read("Bits.o")), Sure.Term.unroll_chr.bits(bits.pred)),
+    i: Sure.Term.app(Sure.Term.ref(Sure.Name.read("Bits.i")), Sure.Term.unroll_chr.bits(bits.pred)),
+  }

@@ -1,0 +1,67 @@
+Sure.Term.show_pretty(term: Sure.Term): String
+  case term {
+    var:
+      Sure.Name.show(term.name)
+    ref:
+      Sure.Name.show(term.name)
+    typ:
+      "Type"
+    all:
+      let op = if term.eras then "<" else "("
+      let cl = if term.eras then ">" else ")"
+      Sure.Name.show(term.self)|op|Sure.Name.show(term.name)|": "
+      |Sure.Term.show_pretty(term.xtyp)|cl|" -> "|Sure.Term.show_pretty(term.body(Sure.Term.ref(term.self), Sure.Term.ref(term.name)))
+    lam:
+      "("|Sure.Name.show(term.name)|") "|Sure.Term.show_pretty(term.body(Sure.Term.ref(term.name)))
+    app:
+      Sure.Term.show_pretty(term.func)|"("|Sure.Term.show_pretty(term.argm)|")"
+    let:
+      "let "|Sure.Name.show(term.name)|" = "|Sure.Term.show_pretty(term.expr)|" "
+      |Sure.Term.show_pretty(term.body(Sure.Term.ref(term.name)))
+    def:
+      "def "|Sure.Name.show(term.name)|" = "|Sure.Term.show_pretty(term.expr)|" "
+      |Sure.Term.show_pretty(term.body(Sure.Term.ref(term.name)))
+    ann:
+      Sure.Term.show_pretty(term.term)|" :: "|Sure.Term.show_pretty(term.type)
+    gol:
+      "?"|Sure.Name.show(term.name)
+    hol:
+      "_"
+    nat:
+      Nat.show(term.natx)
+    chr:
+      "'"|Char.to_string(term.chrx)|"'"
+    str:
+      `"`|term.strx|`"`
+    num:
+      case term.sign {
+        some:
+          if term.sign.value then "+" else "-"
+        none:
+          ""
+      }
+      |Nat.show(term.numb)
+      |case term.frac {
+        none:
+          ""
+        some:
+          "."|Nat.show(term.frac.value)
+      }
+    cse:
+      "case " | Sure.Term.show_pretty(term.expr) | " {..}"
+    new:
+      let string_list = List.map!!(Sure.Term.show_pretty, term.args)
+      "{"|String.join(", ", string_list)|"}"
+    get:
+      Sure.Term.show_pretty(term.expr)|"@"|term.fkey
+    set:
+      Sure.Term.show_pretty(term.expr)|"@"|term.fkey|" <- "|Sure.Term.show_pretty(term.fval)
+    mut:
+      Sure.Term.show_pretty(term.expr)|"@"|term.fkey|" <= "|Sure.Term.show_pretty(term.ffun)
+    ope:
+      Sure.Term.show_pretty(term.arg0)|" "|term.name|" "|Sure.Term.show_pretty(term.arg1)
+    imp:
+      Sure.Term.show_pretty(term.expr)
+    ori:
+      Sure.Term.show_pretty(term.expr)
+  }

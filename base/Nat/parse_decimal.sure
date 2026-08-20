@@ -1,0 +1,2 @@
+Nat.parse_decimal(str: String): Nat
+  Nat.read_base(10, str)

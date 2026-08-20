@@ -1,0 +1,67 @@
+Sure.Parser.ADT.Derive.show.type(adt: Sure.Parser.ADT.Datatype): Maybe<Sure.Term>
+  open adt
+  if List.is_empty!(adt.pars) && List.is_empty!(adt.inds) then
+    some(Sure.Term.all(false, "", "", Sure.Term.ref(adt.name), (s,x) Sure.Term.ref("String")))
+  else
+    none
+
+Sure.Parser.ADT.Derive.show.term(adt: Sure.Parser.ADT.Datatype): Maybe<Sure.Term>
+  open adt
+  if List.is_empty!(adt.pars) && List.is_empty!(adt.inds) then
+    some(Sure.Term.lam("x", (x) 
+      let ctrs = Sure.Parser.ADT.Derive.show.term.ctrs(adt.name, adt.ctrs)
+      let cses = Sure.Map.new!
+      for ctr in ctrs with cses:
+        open ctr
+        Sure.Map.set!(ctr.fst, ctr.snd, cses)
+      Sure.Term.cse(Bits.e, x, "x", [], cses, none)
+    ))
+  else
+    none
+
+Sure.Parser.ADT.Derive.show.term.ctrs(adt_name: String, ctrs: List<Sure.Parser.ADT.Constructor>): List<Pair<String,Sure.Term>>
+  case ctrs {
+    nil:
+      []
+    cons:
+      List.cons!(
+        Sure.Parser.ADT.Derive.show.ctr(adt_name, ctrs.head),
+        Sure.Parser.ADT.Derive.show.term.ctrs(adt_name, ctrs.tail))
+  }
+
+Sure.Parser.ADT.Derive.show.ctr(adt_name: String, ctr: Sure.Parser.ADT.Constructor): Pair<String,Sure.Term>
+  open ctr
+  let func = Sure.Term.str(adt_name | "." | ctr.name)
+  case ctr.args {
+    nil: 
+      {ctr.name, func}
+    cons: 
+      let args = Sure.Parser.ADT.Derive.show.term.args(ctr.args, true)
+      let term = List.fold!(args)!(Sure.Term.str(")"), (x,t) Sure.Term.app(Sure.Term.app(Sure.Term.ref("String.concat"), x), t))
+      let term = Sure.Term.app(Sure.Term.app(Sure.Term.ref("String.concat"), func), term)
+      {ctr.name, term}
+  }
+
+Sure.Parser.ADT.Derive.show.term.cont(call: Sure.Term): Sure.Term
+  let {call_func, call_args} = Sure.Term.get_args(call)
+  let term = Sure.Term.ref(Sure.Term.extract_name(call_func) | ".show")
+  let term = for par in call_args: Sure.Term.app(term, Sure.Term.hol(Bits.e))
+  let term = for par in call_args: Sure.Term.app(term, Sure.Parser.ADT.Derive.show.term.cont(par))
+  term
+
+Sure.Parser.ADT.Derive.show.term.args(args: List<Sure.Binder>, fst: Bool): List<Sure.Term>
+  case args {
+    nil:
+      []
+    cons:
+      open args.head
+      //log(Sure.Term.show(args.head.term))
+      let {call_func, call_args} = Sure.Term.get_args(args.head.term)
+      //log("-> " | Sure.Term.show(call_func) | " ... " | String.join(",", List.mapped!(call_args)!(Sure.Term.show)))
+      let term = Sure.Parser.ADT.Derive.show.term.cont(args.head.term)
+      //let term = for par in call_args: Sure.Term.app(term, Sure.Term.hol(Bits.e))
+      //let term = for par in call_args: Sure.Term.app(term, Sure.Term.ref(Sure.Term.extract_name(par) | ".show"))
+      let term = Sure.Term.app(term, Sure.Term.ref("x." | args.head.name))
+      let term = Sure.Term.app(Sure.Term.app(Sure.Term.ref("String.concat"), Sure.Term.str(if fst then "(" else ",")), term)
+      List.cons!(term, Sure.Parser.ADT.Derive.show.term.args(args.tail, false))
+  }

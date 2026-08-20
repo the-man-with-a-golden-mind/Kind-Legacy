@@ -1,0 +1,11 @@
+Sure.Term.has_holes(term: Sure.Term): Bool
+  case term {
+    all: Bool.or(Sure.Term.has_holes(term.xtyp), Sure.Term.has_holes(term.body(Sure.Term.typ,Sure.Term.typ))),
+    lam: Sure.Term.has_holes(term.body(Sure.Term.typ)),
+    app: Bool.or(Sure.Term.has_holes(term.func), Sure.Term.has_holes(term.argm)),
+    let: Bool.or(Sure.Term.has_holes(term.expr), Sure.Term.has_holes(term.body(Sure.Term.typ))),
+    def: Bool.or(Sure.Term.has_holes(term.expr), Sure.Term.has_holes(term.body(Sure.Term.typ))),
+    ann: Bool.or(Sure.Term.has_holes(term.term), Sure.Term.has_holes(term.type)),
+    hol: true,
+    ori: Sure.Term.has_holes(term.expr),
+  } default false

@@ -1,0 +1,2 @@
+Sure.Parser.sub: Sure.Term -> Parser(Sure.Term)
+  Sure.Parser.op("-", "Nat.sub")

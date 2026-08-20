@@ -1,0 +1,10 @@
+// Applies a term to a list of arguments, inlining if possible.
+// - apply(`λx.λy.((k x) y)`, [`A`, `B`, `C`]) == `(((k A) B) C)`
+Sure.Comp.apply(term: Sure.Comp, args: List(Sure.Comp)): Sure.Comp
+  case args {
+    nil:
+      term
+    cons: case term {
+      lam: Sure.Comp.apply(Sure.Comp.subst(term.name, args.head, term.body), args.tail)
+    } default Sure.Comp.apply(Sure.Comp.app(term, args.head), args.tail)
+  }
