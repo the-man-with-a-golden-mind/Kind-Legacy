@@ -1,2 +1,2 @@
-IO.job_all.empty: IO.job_all("") == IO.ask<String>("job_all", "", (text) IO.end<String>(text))
+IO.job_all.empty: IO.job_all("") == IO.ask<String>("job_all", "", (text) IO.end<String>(IO.tagged.payload(text)))
   refl

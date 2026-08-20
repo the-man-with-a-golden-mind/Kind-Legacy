@@ -13,5 +13,9 @@ Sure.api.export: IO<Unit>
     let e = Sure.api.io.show_term_normal
     let e = Sure.api.check_code
     let e = Sure.Term.read
+    let e = Sure.Defs.read
+    let e = Sure.Parser.file
+    let e = Sure.Parser.file.mod
+    let e = Sure.Mod.resolve
     return unit
   }

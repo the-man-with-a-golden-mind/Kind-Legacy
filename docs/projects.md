@@ -17,7 +17,7 @@ A Sure project is a directory with `sure.json` and `src/*.sure`.
 }
 ```
 
-`type` is `application` or `package`. `sure.lock` pins git revisions; `sure install` checks out those pins. `kind.json` is still read. The incremental build cache hashes compiler + stdlib + lockfile + every source directory. Modules are expanded in the CLI before the checker; they are not yet elaborator semantics.
+`type` is `application` or `package`. `sure.lock` pins git revisions; `sure install` checks out those pins. `kind.json` is still read. The incremental build cache hashes the compiler blob, `compiler.js`, host schema, FormCore, stdlib, lockfile, every `source-directories` entry, and transitive dependency sources. `module` / `import` are elaborated by `Sure.Parser.file`. The host only expands `when`, HTML, `admit`, and `import M exposing (..)` into an explicit list.
 
 ## Scaffold
 
@@ -29,7 +29,7 @@ sure new --package ada/boxes
 Applications get `src/Main.sure` and `src/Spec.sure`. Packages get `src/<Mod>.sure` and an empty theorem list.
 
 ```
-// module Main exposing (Main)
+module Main exposing (Main)
 Main: IO<Unit>
   IO {
     IO.print("hello from myapp")
@@ -37,7 +37,7 @@ Main: IO<Unit>
 ```
 
 ```
-// module Spec exposing (add2)
+module Spec exposing (add2)
 Spec.add2: Nat.add(2, 2) == 4
   refl
 ```

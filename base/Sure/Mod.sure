@@ -1,4 +1,4 @@
-// Elm-style modules: a name is a path. Headers are `// module` / `// import`.
+// Elm-style modules: a name is a path. Headers are `module` / `import`.
 // Packages expose modules. Empty names and junk are not modules.
 
 type Sure.Mod.Sort {
@@ -225,7 +225,9 @@ Sure.Mod.from_imp(
     nil: none
     cons:
       open imps.head
-      if Sure.Mod.has(name, imps.head.snd) then
+      if Bool.and(Sure.Mod.has(name, imps.head.snd), String.eql(name, imps.head.fst)) then
+        some(name)
+      else if Sure.Mod.has(name, imps.head.snd) then
         some(imps.head.fst | "." | name)
       else Sure.Mod.from_imp(imps.tail, name)
   }
@@ -274,4 +276,12 @@ Sure.Mod.resolve.imp: Sure.Mod.resolve(
   [Pair.new<String, List<String>>("Boxes", ["len"])],
   "len"
 ) == "Boxes.len"
+  refl
+
+Sure.Mod.resolve.imp_type: Sure.Mod.resolve(
+  "Audit",
+  ["Audit.report"],
+  [Pair.new<String, List<String>>("Boxes", ["Boxes", "empty", "len"])],
+  "Boxes"
+) == "Boxes"
   refl

@@ -1,4 +1,4 @@
 // SHA-256 of a string as lowercase hex.
 IO.sha256(text: String): IO<String>
   IO.ask<String>("sha256", text, (hash)
-  IO.end<String>(hash))
+  IO.end<String>(IO.tagged.payload(hash)))

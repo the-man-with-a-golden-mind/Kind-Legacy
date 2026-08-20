@@ -1,2 +1,2 @@
-IO.job_race.empty: IO.job_race("") == IO.ask<String>("job_race", "", (w) IO.end<String>(w))
+IO.job_race.empty: IO.job_race("") == IO.ask<String>("job_race", "", (w) IO.end<String>(IO.tagged.payload(w)))
   refl

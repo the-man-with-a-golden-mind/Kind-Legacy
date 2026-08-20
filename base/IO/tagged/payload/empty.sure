@@ -1,0 +1,2 @@
+IO.tagged.payload.empty: IO.tagged.payload("") == ""
+  refl

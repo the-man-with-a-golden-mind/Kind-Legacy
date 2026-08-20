@@ -11,9 +11,10 @@ Truth pass (audit):
 - Incremental build cache hashes `compiler.js`, `host-schema.js`, `gen-host.js`, the checker blob, FormCore, stdlib, lockfile, every `source-directories` entry, and transitive dependency sources.
 - `sure install` materializes `sure.lock` git revisions (direct and lock-listed transitive names) instead of cloning latest HEAD.
 - HTTP request headers are sent. `Crypto.random` does not fall back to `Math.random`. WebSocket client frames are masked. Generated HTML inlines CSS (no CDN). `File.bracket` is acquire / use / release. `Stream.take` is a pull stream (`IO<List<A>>`), not `List.take`.
-- `Host.decode` accepts only tagged `0\\n` / `1\\n` replies. Empty and untagged payloads are `Host.Err.empty` / `Host.Err.bad_tag`.
+- `Host.decode` accepts only tagged `0\\n` / `1\\n` replies. Empty and untagged payloads are `Host.Err.empty` / `Host.Err.bad_tag`. String `IO.*` ops take `IO.tagged.payload` (success body, else `""`).
 - `Proc.exec(file, args)` / `Proc.run(file, args)` spawn argv with `shell: false`. `Proc.unsafe.shell(cmd)` is the shell-string hatch.
-- Bootstrap writes `sure.js` atomically, injects the prepare hook as a fixed point, and uses `process.execPath` (no shell). `node bin/bootstrap.js --check` is in CI. Full compile-twice regeneration is unbounded and is not CI.
+- Bootstrap writes `sure.js` atomically from `Sure.api.export`, injects the prepare hook as a fixed point, and uses `process.execPath` (no shell). Stage-two loads `Defs.read` on a `module Hello` snippet and requires `Hello.greet`. Full compile-twice regeneration is unbounded and is not CI.
+- Live checker elaborates `module` / `import` in `Sure.Parser.file`. The host does not rewrite identifiers. `module` / `import` / `exposing` are header words, not reserved names (`case exposing {` is a field). `import M exposing (..)` is expanded to published names (Parser.file cannot see the other file). `when` / HTML / `admit` still expand in the host. `Sure.Mod.from_imp` keeps `import Boxes exposing (Boxes)` as `Boxes`, not `Boxes.Boxes`.
 - `IO.bracket` always runs `release` (JS `finally`). `File.bracket` uses it so a cancelled `use` still closes the fd.
 - `sure test` is a bounded suite (listed theorems, checks, `Main --run`, prove-edges). It does not type-check `Prove.all` or run `Test.main`.
 - Module qualification matches `Sure.Mod.resolve` / `Sure.Parser.file.rewrite` (locals, then `Module.name`, then import exposing).

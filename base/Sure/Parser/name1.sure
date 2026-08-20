@@ -14,9 +14,6 @@ Sure.Parser.name1: Parser(Sure.Name)
       "for"     : reserved
       "else"    : reserved
       "switch"  : reserved
-      "module"  : reserved
-      "import"  : reserved
-      "exposing": reserved
       "."       : reserved
       ".."      : reserved
       "..."     : reserved

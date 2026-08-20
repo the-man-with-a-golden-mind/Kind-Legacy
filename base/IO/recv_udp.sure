@@ -14,7 +14,7 @@ type IO.recv_udp.Message {
 
 IO.recv_udp(port: Nat): IO<List<IO.recv_udp.Message>>
   IO.ask<List<IO.recv_udp.Message>>("recv_udp", Nat.show(port), (msges_str)
-  let msges = String.split(msges_str, ";")
+  let msges = String.split(IO.tagged.payload(msges_str), ";")
   case msges {
     cons:
       if String.eql(msges.head,"") then

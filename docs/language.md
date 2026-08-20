@@ -14,7 +14,7 @@ The exhaustive desugaring list lives in [SYNTAX.md](../SYNTAX.md). This chapter 
 
 ## Modules
 
-A `.sure` file is a **module**. Put `module Tweeter exposing (..)` at the top. Names **inside** the file are unqualified. Outside the file they are `Tweeter.ok_user`.
+A `.sure` file is a **module**. Put `module Tweeter exposing (..)` at the top. `Sure.Parser.file` elaborates the header: names **inside** the file are unqualified; outside they are `Tweeter.ok_user`.
 
 ```
 module Tweeter exposing (..)
@@ -288,11 +288,11 @@ Nat.add(n: Nat, m: Nat): Nat
 ## Comments and package headers
 
 ```
-// module Foo exposing (bar, Baz)
-// import Nat exposing (add)
+module Foo exposing (bar, Baz)
+import Nat exposing (add)
 ```
 
-The checker ignores these headers. `sure prove` and the package loader do not: a package's dependents may only use `exposed-modules`. See [Projects](projects.md).
+`Sure.Parser.file` reads those headers. A `// module` / `// import` line is a comment and is ignored. A package's dependents may only use `exposed-modules`. See [Projects](projects.md).
 
 A `//` line above a definition is what `sure doc Term` prints.
 

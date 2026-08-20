@@ -1,4 +1,4 @@
 // SHA-256 of a file's contents as lowercase hex. Missing file → empty string.
 IO.file_hash(name: String): IO<String>
   IO.ask<String>("file_hash", name, (hash)
-  IO.end<String>(hash))
+  IO.end<String>(IO.tagged.payload(hash)))

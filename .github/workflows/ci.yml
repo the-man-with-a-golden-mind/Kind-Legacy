@@ -46,6 +46,12 @@ jobs:
         run: node -e 'var c=require("./bin/js/src/compiler.js"); var s=c.html_expand_source("<input type={k} />\\nList<Nat>"); if(s.indexOf("type=k")<0||s.indexOf("List<Nat>")<0) process.exit(1)'
       - name: Bootstrap integrity
         run: node bin/bootstrap.js --check
+      - name: Module file proves (Parser.file)
+        working-directory: examples/hello
+        run: node --stack-size=10000 ../../bin/js/src/main.js prove Hello.Spec
+      - name: Import exposing proves (Parser.file)
+        working-directory: examples/boxes
+        run: node --stack-size=10000 ../../bin/js/src/main.js prove Audit.empty_ok
       - name: DOM junk tag is empty
         run: node --stack-size=10000 bin/js/src/main.js prove DOM.render.junk_tag
       - name: Fmt uses source, not show_term

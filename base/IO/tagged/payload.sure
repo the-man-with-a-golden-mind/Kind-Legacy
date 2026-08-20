@@ -1,0 +1,6 @@
+// Host payload. `0\n` body is data. Error, empty, and junk tags are "".
+IO.tagged.payload(text: String): String
+  case IO.tagged.read(text) as tag {
+    err: ""
+    ok: tag.value
+  }

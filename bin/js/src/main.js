@@ -9,9 +9,13 @@ var kind = require("./sure.js");
     if (k.indexOf("Kind.") === 0) {
       var s = "Sure." + k.slice(5);
       if (obj[s] == null) obj[s] = obj[k];
+    } else if (k.indexOf("Sure.") === 0) {
+      var s = "Kind." + k.slice(5);
+      if (obj[s] == null) obj[s] = obj[k];
     }
   }
 })(kind);
+globalThis.__sureParserModules = !!(kind["Sure.Parser.file.mod"] || kind["Kind.Parser.file.mod"]);
 function checker(name) {
   return kind["Sure." + name] || kind["Kind." + name];
 }
@@ -47,10 +51,13 @@ var BOUNDED_THEOREMS = [
   "Stream.take.zero",
   "Host.decode.untagged",
   "Host.decode.empty",
+  "IO.tagged.payload.ok",
+  "IO.tagged.payload.err",
   "Html.ok_ident.junk",
   "DOM.render.junk_tag",
   "Sure.Mod.resolve.short",
   "Sure.Mod.resolve.imp",
+  "Sure.Mod.resolve.imp_type",
   "Host.encode.all.fs_open"
 ];
 var BOUNDED_CHECKS = [
@@ -5077,6 +5084,13 @@ async function run_prove_edges() {
   if (exp.indexOf("Hello.greet") < 0 || exp.indexOf("Hello.Spec") < 0 || !/Hello\.greet ==/.test(exp)) {
     console.log("fail read module"); failed += 1;
   } else console.log("ok   read module");
+  var prev_mod = globalThis.__sureParserModules;
+  globalThis.__sureParserModules = true;
+  var prep = compiler.prepare_source("Hello.sure", "module Hello exposing (..)\ngreet: String\n  \"Sure\"\n");
+  globalThis.__sureParserModules = prev_mod;
+  if (prep.indexOf("module Hello") < 0 || prep.indexOf("// module Hello") >= 0) {
+    console.log("fail parser-owned module " + prep); failed += 1;
+  } else console.log("ok   parser-owned module");
   var impsrc = mod_expand_source("Audit.sure", "module Audit exposing (..)\nimport Boxes exposing (empty)\nreport: Nat\n  empty\n");
   if (impsrc.indexOf("Boxes.empty") < 0) {
     console.log("fail import exposing " + impsrc); failed += 1;
@@ -5989,6 +6003,8 @@ function spawn_term_run(term) {
     failed += await run_prove_edges();
     process.exit(failed ? 1 : 0);
   }
+
+  apply_project_env();
 
   if (flag === "--fmc") {
     var fmcc0 = await kind.run(checker("api.io.term_to_core")(name));

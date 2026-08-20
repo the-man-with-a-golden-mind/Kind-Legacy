@@ -1,4 +1,4 @@
 // Returns directory entries joined by ';', or empty if the path is missing.
 IO.get_dir(name: String): IO<String>
   IO.ask<String>("get_dir", name, (entries)
-  IO.end<String>(entries))
+  IO.end<String>(IO.tagged.payload(entries)))

@@ -1,4 +1,4 @@
 // param is id0\nid1. Result is "0" or "1".
 IO.job_race(ids: String): IO<String>
   IO.ask<String>("job_race", ids, (w)
-  IO.end<String>(w))
+  IO.end<String>(IO.tagged.payload(w)))

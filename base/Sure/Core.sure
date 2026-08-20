@@ -98,7 +98,7 @@ Sure.Core.Term.show(term : Sure.Core.Term) : String
       Sure.Core.Term.show(term.expr)
   }
 
-Sure.Core.read.is_name(chr: Char): Bool
+Sure.Core.parse.is_name(chr: Char): Bool
   Bool.or(Bool.and(U16.gte(chr,46#16), U16.lte(chr,47#16)),  // ./
   Bool.or(Bool.and(U16.gte(chr,48#16), U16.ltn(chr,58#16)),  // 0-9
   Bool.or(Bool.and(U16.gte(chr,65#16), U16.ltn(chr,91#16)),  // A-Z
@@ -106,20 +106,20 @@ Sure.Core.read.is_name(chr: Char): Bool
   Bool.or(Bool.and(U16.gte(chr,97#16), U16.ltn(chr,123#16)), // a-z
   Bool.false)))))
 
-Sure.Core.read.name(code: String): Pair<String, String>
+Sure.Core.parse.name(code: String): Pair<String, String>
   case code {
     nil:
       {code, ""}
     cons:
-      if Sure.Core.read.is_name(code.head) then
-        let {code, name} = Sure.Core.read.name(code.tail)
+      if Sure.Core.parse.is_name(code.head) then
+        let {code, name} = Sure.Core.parse.name(code.tail)
         {code, String.cons(code.head, name)}
       else
         {code, ""}
   }
 
-Sure.Core.read.char(code: String, chr: Char): Pair<String, Unit>
-  let {code, skip} = Sure.Core.read.spaces(code)
+Sure.Core.parse.char(code: String, chr: Char): Pair<String, Unit>
+  let {code, skip} = Sure.Core.parse.spaces(code)
   case code {
     nil:
       {"", unit}
@@ -130,32 +130,32 @@ Sure.Core.read.char(code: String, chr: Char): Pair<String, Unit>
         {"", unit}
   }
 
-Sure.Core.read.spaces(code: String): Pair<String, Unit>
+Sure.Core.parse.spaces(code: String): Pair<String, Unit>
   case code {
     nil:
       {code, Unit.new}
     cons:
       if Char.eql(code.head, ' ') || Char.eql(code.head, '\n') then
-        let {code, name} = Sure.Core.read.spaces(code.tail)
+        let {code, name} = Sure.Core.parse.spaces(code.tail)
         {code, Unit.new}
       else
         {code, Unit.new}
   }
 
-Sure.Core.read.nat(code: String): Pair<String, String>
+Sure.Core.parse.nat(code: String): Pair<String, String>
   case code {
     nil:
       {code, "0"}
     cons:
       let chr = code.head
       if Bool.and(U16.gte(chr,48#16), U16.ltn(chr,58#16)) then
-        let {code, name} = Sure.Core.read.nat(code.tail)
+        let {code, name} = Sure.Core.parse.nat(code.tail)
         {code.tail, String.cons(chr, name)}
       else
         {code, "0"}
   }
 
-Sure.Core.read.find<A: Type>(list: List<A>, cond: A -> Nat -> Bool, indx: Nat, skip: Nat): Maybe<Pair<A,Nat>>
+Sure.Core.parse.find<A: Type>(list: List<A>, cond: A -> Nat -> Bool, indx: Nat, skip: Nat): Maybe<Pair<A,Nat>>
   case list {
     nil:
       none
@@ -164,14 +164,14 @@ Sure.Core.read.find<A: Type>(list: List<A>, cond: A -> Nat -> Bool, indx: Nat, s
         if Nat.eql(skip, 0) then
           some({list.head, indx})
         else
-          Sure.Core.read.find!(list.tail, cond, Nat.succ(indx), Nat.pred(skip))
+          Sure.Core.parse.find!(list.tail, cond, Nat.succ(indx), Nat.pred(skip))
       else
-        Sure.Core.read.find!(list.tail, cond, Nat.succ(indx), skip)
+        Sure.Core.parse.find!(list.tail, cond, Nat.succ(indx), skip)
   }
 
 
-Sure.Core.read.term(code: String): Pair<String, Sure.Core.Ctx -> Sure.Core.Term>
-  let {code, skip} = Sure.Core.read.spaces(code)
+Sure.Core.parse.term(code: String): Pair<String, Sure.Core.Ctx -> Sure.Core.Term>
+  let {code, skip} = Sure.Core.parse.spaces(code)
   case code {
     nil:
       {"", (ctx) Sure.Core.Term.ref("error")}
@@ -181,58 +181,58 @@ Sure.Core.read.term(code: String): Pair<String, Sure.Core.Ctx -> Sure.Core.Term>
       if Char.eql(head, '*') then
         {code, (ctx) Sure.Core.Term.typ}
       else if U16.eql(head, '@') then
-        let {code, self} = Sure.Core.read.name(code)
-        let {code, skip} = Sure.Core.read.char(code, '(')
-        let {code, name} = Sure.Core.read.name(code)
-        let {code, skip} = Sure.Core.read.char(code, ':')
-        let {code, bind} = Sure.Core.read.term(code)
-        let {code, skip} = Sure.Core.read.char(code, ')')
-        let {code, body} = Sure.Core.read.term(code)
+        let {code, self} = Sure.Core.parse.name(code)
+        let {code, skip} = Sure.Core.parse.char(code, '(')
+        let {code, name} = Sure.Core.parse.name(code)
+        let {code, skip} = Sure.Core.parse.char(code, ':')
+        let {code, bind} = Sure.Core.parse.term(code)
+        let {code, skip} = Sure.Core.parse.char(code, ')')
+        let {code, body} = Sure.Core.parse.term(code)
         {code, (ctx) Sure.Core.Term.all(false, self, name, bind(ctx), (s,x) body({name,x}&{self,s}&ctx))}
       else if U16.eql(head, '%') then
-        let {code, self} = Sure.Core.read.name(code)
-        let {code, skip} = Sure.Core.read.char(code, '(')
-        let {code, name} = Sure.Core.read.name(code)
-        let {code, skip} = Sure.Core.read.char(code, ':')
-        let {code, bind} = Sure.Core.read.term(code)
-        let {code, skip} = Sure.Core.read.char(code, ')')
-        let {code, body} = Sure.Core.read.term(code)
+        let {code, self} = Sure.Core.parse.name(code)
+        let {code, skip} = Sure.Core.parse.char(code, '(')
+        let {code, name} = Sure.Core.parse.name(code)
+        let {code, skip} = Sure.Core.parse.char(code, ':')
+        let {code, bind} = Sure.Core.parse.term(code)
+        let {code, skip} = Sure.Core.parse.char(code, ')')
+        let {code, body} = Sure.Core.parse.term(code)
         {code, (ctx) Sure.Core.Term.all(true, self, name, bind(ctx), (s,x) body({name,x}&{self,s}&ctx))}
       else if U16.eql(head, '#') then
-        let {code, name} = Sure.Core.read.name(code)
-        let {code, body} = Sure.Core.read.term(code)
+        let {code, name} = Sure.Core.parse.name(code)
+        let {code, body} = Sure.Core.parse.term(code)
         {code, (ctx) Sure.Core.Term.lam(name, (x) body({name,x} & ctx))}
       else if U16.eql(head, '(') then
-        let {code, func} = Sure.Core.read.term(code)
-        let {code, argm} = Sure.Core.read.term(code)
-        let {code, skip} = Sure.Core.read.char(code, ')')
+        let {code, func} = Sure.Core.parse.term(code)
+        let {code, argm} = Sure.Core.parse.term(code)
+        let {code, skip} = Sure.Core.parse.char(code, ')')
         {code, (ctx) Sure.Core.Term.app(func(ctx), argm(ctx))}
       else if U16.eql(head, '!') then
-        let {code, name} = Sure.Core.read.name(code)
-        let {code, skip} = Sure.Core.read.char(code, '=')
-        let {code, expr} = Sure.Core.read.term(code)
-        let {code, skip} = Sure.Core.read.char(code, ';')
-        let {code, body} = Sure.Core.read.term(code)
+        let {code, name} = Sure.Core.parse.name(code)
+        let {code, skip} = Sure.Core.parse.char(code, '=')
+        let {code, expr} = Sure.Core.parse.term(code)
+        let {code, skip} = Sure.Core.parse.char(code, ';')
+        let {code, body} = Sure.Core.parse.term(code)
         {code, (ctx) Sure.Core.Term.let(name, expr(ctx), (x) body({name,x} & ctx))}
       else if U16.eql(head, '{') then
-        let {code, expr} = Sure.Core.read.term(code)
-        let {code, skip} = Sure.Core.read.char(code, ':')
-        let {code, type} = Sure.Core.read.term(code)
-        let {code, skip} = Sure.Core.read.char(code, '}')
+        let {code, expr} = Sure.Core.parse.term(code)
+        let {code, skip} = Sure.Core.parse.char(code, ':')
+        let {code, type} = Sure.Core.parse.term(code)
+        let {code, skip} = Sure.Core.parse.char(code, '}')
         {code, (ctx) Sure.Core.Term.ann(false, expr(ctx), type(ctx))}
       else
-        if Sure.Core.read.is_name(head) then
-          let {code, name} = Sure.Core.read.name(code)
+        if Sure.Core.parse.is_name(head) then
+          let {code, name} = Sure.Core.parse.name(code)
           let name = String.cons(head, name)
           let {code, brui} = case code {
             nil: {"", "0"}
             cons: if U16.eql(code.head,'^')
-              then Sure.Core.read.nat(code.tail)
+              then Sure.Core.parse.nat(code.tail)
               else {code, "0"}
           }
           {code, (ctx)
             def fun = (x,i) String.eql(Pair.fst!!(x), name)
-            let got = Sure.Core.read.find!(ctx, fun, 0, Nat.read(brui))
+            let got = Sure.Core.parse.find!(ctx, fun, 0, Nat.read(brui))
             case got {
               some: Pair.snd!!(Pair.fst!!(got.value))
               none: Sure.Core.Term.ref(name)
@@ -441,17 +441,17 @@ Sure.Core.type_infer(term : Sure.Core.Term, def_name : String, defs: Sure.Core.D
 Sure.Core.parse_defs(code : String) : Sure.Core.Defs
   case code {
     cons: 
-      let {code, skip} = Sure.Core.read.spaces(code)
-      let {code, name} = Sure.Core.read.name(code)
-      let {code, skip} = Sure.Core.read.spaces(code)
-      let {code, skip} = Sure.Core.read.char(code, ':')
-      let {code, skip} = Sure.Core.read.spaces(code)
-      let {code, type} = Sure.Core.read.term(code)
-      let {code, skip} = Sure.Core.read.spaces(code)
-      let {code, skip} = Sure.Core.read.char(code, '=')
-      let {code, skip} = Sure.Core.read.spaces(code)
-      let {code, body} = Sure.Core.read.term(code)
-      let {code, skip} = Sure.Core.read.char(code, ';')
+      let {code, skip} = Sure.Core.parse.spaces(code)
+      let {code, name} = Sure.Core.parse.name(code)
+      let {code, skip} = Sure.Core.parse.spaces(code)
+      let {code, skip} = Sure.Core.parse.char(code, ':')
+      let {code, skip} = Sure.Core.parse.spaces(code)
+      let {code, type} = Sure.Core.parse.term(code)
+      let {code, skip} = Sure.Core.parse.spaces(code)
+      let {code, skip} = Sure.Core.parse.char(code, '=')
+      let {code, skip} = Sure.Core.parse.spaces(code)
+      let {code, body} = Sure.Core.parse.term(code)
+      let {code, skip} = Sure.Core.parse.char(code, ';')
       let map = Sure.Core.parse_defs(code)
       Map.set!(name, Sure.Core.Def.new(name, type([]), body([])), map)
      // {name : Sure.Core.Def.new(name, type([]), body([]))}
@@ -460,8 +460,8 @@ Sure.Core.parse_defs(code : String) : Sure.Core.Defs
       {}
   }
 
-Sure.Core.read(code: String): Maybe<Sure.Core.Term>
-  let {code, term} = Sure.Core.read.term(code | ";")
+Sure.Core.parse(code: String): Maybe<Sure.Core.Term>
+  let {code, term} = Sure.Core.parse.term(code | ";")
   case code {
     nil: none
     cons: some(term([]))

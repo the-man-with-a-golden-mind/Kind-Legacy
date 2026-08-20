@@ -873,12 +873,53 @@ function expand_module(file, src) {
   return {code: code, map: map, original: src};
 }
 
+function expand_open_imports(file, src) {
+  src = String(src || "");
+  if (!src || String(file || "").slice(-5) !== ".sure") return src;
+  var parsed = parse_module_headers(src);
+  if (!parsed.imports || !parsed.imports.length) return src;
+  var need = false;
+  for (var pi = 0; pi < parsed.imports.length; pi++) {
+    if (parsed.imports[pi] && parsed.imports[pi].exposing && parsed.imports[pi].exposing.all) {
+      need = true;
+      break;
+    }
+  }
+  if (!need) return src;
+  var catalog = Object.create(null);
+  try { catalog = mod_catalog_dir(path.dirname(path.resolve(String(file || ".")))); } catch (e) {}
+  var lines = src.split("\n");
+  var out = [];
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i];
+    var imp = mod_read_import(line);
+    if (imp && imp.exposing && imp.exposing.all) {
+      var aliases = mod_import_aliases(imp, catalog);
+      var names = Object.keys(aliases);
+      if (names.length) {
+        out.push("import " + imp.name + " exposing (" + names.join(", ") + ")");
+        continue;
+      }
+    }
+    out.push(line);
+  }
+  return out.join("\n");
+}
+
 function prepare_source(file, src) {
   src = String(src || "");
   var with_html = html_expand_source(src);
   var with_when = when_expand_source(with_html);
-  var exp = expand_module(file, with_when);
-  return exp.code;
+  // Parser.file elaborates `module` / `import`. Do not rewrite idents here.
+  // `import M exposing (..)` becomes an explicit list; Parser.file cannot
+  // see the other file while parsing this one.
+  var with_open = expand_open_imports(file, with_when);
+  SOURCE_MAPS[path.resolve(String(file || "."))] = {
+    original: src,
+    expanded: with_open,
+    map: [{orig: 0, exp: 0, olen: src.length, elen: with_open.length}]
+  };
+  return with_open;
 }
 
 function get_map(file) {
@@ -910,6 +951,7 @@ module.exports = {
   expand_module: expand_module,
   when_expand_source: when_expand_source,
   html_expand_source: html_expand_source,
+  expand_open_imports: expand_open_imports,
   mod_expand_source: mod_expand_source,
   parse_module_headers: parse_module_headers,
   format_source: format_source,
