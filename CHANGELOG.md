@@ -12,7 +12,8 @@ Truth pass (audit):
 - Checker def cache is one record per name (source hash + blob key). `Synth.one` writes it. Empty/junk records are none. `sure test` runs `Main` in-process.
 - `sure install` materializes `sure.lock` git revisions (direct and lock-listed transitive names) instead of cloning latest HEAD.
 - HTTP request headers are sent. `Crypto.random` does not fall back to `Math.random`. WebSocket client frames are masked. Generated HTML inlines CSS (no CDN). `File.bracket` is acquire / use / release. `Stream.take` is a pull stream (`IO<List<A>>`), not `List.take`.
-- `Host.decode` accepts only tagged `0\\n` / `1\\n` replies. Empty and untagged payloads are `Host.Err.empty` / `Host.Err.bad_tag`. String `IO.*` ops take `IO.tagged.payload` (success body, else `""`).
+- `Host.decode` is generated from `host-schema.js` with encode. It accepts only tagged `0\\n` / `1\\n`. Empty and untagged payloads are `Host.Err.empty` / `Host.Err.bad_tag`. String `IO.*` ops take `IO.tagged.payload` (success body, else `""`).
+- RFC 6455 client frames and handshake are `vendor/formcore-js/ws-frames.js` and are bounded-tested. `./bin/sure` skips a Node binary that cannot start (broken ICU) and honors `SURE_NODE`.
 - `Proc.exec(file, args)` / `Proc.run(file, args)` spawn argv with `shell: false`. `Proc.unsafe.shell(cmd)` is the shell-string hatch.
 - Bootstrap writes `sure.js` atomically from `Sure.api.export`, injects the prepare hook as a fixed point, and uses `process.execPath` (no shell). Stage-two loads `Defs.read` on a `module Hello` snippet and requires `Hello.greet`. Full compile-twice regeneration is unbounded and is not CI.
 - Live checker elaborates `module` / `import` in `Sure.Parser.file`. The host does not rewrite identifiers. `import M exposing (..)` loads `M` then resolves short names from defs. `when` / HTML / `admit` still expand in the host. `Sure.Mod.from_imp` keeps `import Boxes exposing (Boxes)` as `Boxes`, not `Boxes.Boxes`.

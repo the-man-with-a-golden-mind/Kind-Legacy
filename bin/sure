@@ -15,4 +15,28 @@ if [ "$want_bun" = 1 ]; then
   echo "sure: bun not found (--bun or SURE_RUNTIME=bun)" >&2
   exit 1
 fi
-exec node --stack-size=10000 "$MAIN" "$@"
+pick_node() {
+  if [ -n "$SURE_NODE" ]; then
+    if "$SURE_NODE" -e 'process.exit(0)' >/dev/null 2>&1; then
+      printf '%s\n' "$SURE_NODE"
+      return 0
+    fi
+  fi
+  _oldifs=$IFS
+  IFS=:
+  for _dir in $PATH; do
+    _n="$_dir/node"
+    if [ -x "$_n" ] && "$_n" -e 'process.exit(0)' >/dev/null 2>&1; then
+      printf '%s\n' "$_n"
+      IFS=$_oldifs
+      return 0
+    fi
+  done
+  IFS=$_oldifs
+  return 1
+}
+NODE="$(pick_node)" || {
+  echo "sure: no working node (broken ICU or missing). Set SURE_NODE to a Node binary that runs." >&2
+  exit 1
+}
+exec "$NODE" --stack-size=10000 "$MAIN" "$@"

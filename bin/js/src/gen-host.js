@@ -4,17 +4,26 @@ var fs = require("fs");
 var path = require("path");
 var schema = require("../../../vendor/formcore-js/host-schema.js");
 
-var dest = path.resolve(__dirname, "../../../base/Host/encode.sure");
-var generated = schema.encodeSure();
+var destEnc = path.resolve(__dirname, "../../../base/Host/encode.sure");
+var destDec = path.resolve(__dirname, "../../../base/Host/decode.sure");
+var generatedEnc = schema.encodeSure();
+var generatedDec = schema.decodeSure();
 
 if (process.argv.indexOf("--check") >= 0) {
-  var on_disk = fs.readFileSync(dest, "utf8");
-  if (on_disk !== generated) {
+  var enc = fs.readFileSync(destEnc, "utf8");
+  var dec = fs.readFileSync(destDec, "utf8");
+  if (enc !== generatedEnc) {
     console.error("Host.encode.sure is stale. Run: node bin/js/src/gen-host.js");
+    process.exit(1);
+  }
+  if (dec !== generatedDec) {
+    console.error("Host.decode.sure is stale. Run: node bin/js/src/gen-host.js");
     process.exit(1);
   }
   process.exit(0);
 }
 
-fs.writeFileSync(dest, generated);
-console.log("wrote " + dest);
+fs.writeFileSync(destEnc, generatedEnc);
+fs.writeFileSync(destDec, generatedDec);
+console.log("wrote " + destEnc);
+console.log("wrote " + destDec);

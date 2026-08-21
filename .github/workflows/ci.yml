@@ -16,10 +16,15 @@ jobs:
         run: npm install --omit=dev --prefix bin/js
       - name: Version
         run: node --stack-size=10000 bin/js/src/main.js --version
-      - name: Generate host encode matches source
+      - name: Generate host encode/decode matches source
         run: node bin/js/src/gen-host.js --check
       - name: Bootstrap integrity
         run: node bin/bootstrap.js --check
+      - name: Bootstrap regenerates committed blob
+        timeout-minutes: 20
+        run: |
+          node bin/bootstrap.js
+          git diff --exit-code -- bin/js/src/sure.js
       - name: Module file proves (Parser.file)
         working-directory: examples/hello
         run: node --stack-size=10000 ../../bin/js/src/main.js prove Hello.Spec

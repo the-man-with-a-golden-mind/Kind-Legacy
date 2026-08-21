@@ -1263,7 +1263,8 @@ function compiler_input_hash() {
     path.join(__dirname, "gen-host.js"),
     path.join(__dirname, "sure.js"),
     path.join(formcore_path, "FmcToJs.js"),
-    path.join(formcore_path, "host-schema.js")
+    path.join(formcore_path, "host-schema.js"),
+    path.join(formcore_path, "ws-frames.js")
   ].forEach(function(p) {
     h.update(file_fingerprint(p));
     h.update("\0");
@@ -5213,6 +5214,36 @@ async function run_prove_edges() {
   else console.log("ok   lock hash dirty");
   if (dep_tree_hash("") || dep_tree_hash(path.join(hasht, "missing"))) { console.log("fail lock hash missing"); failed += 1; }
   else console.log("ok   lock hash missing");
+  var ws = require(path.join(formcore_path, "ws-frames.js"));
+  var mask = Buffer.from([1, 2, 3, 4]);
+  var framed = ws.ws_mask_frame("hi", mask);
+  if (!framed || framed[0] !== 0x81 || (framed[1] & 0x80) === 0) {
+    console.log("fail ws mask header"); failed += 1;
+  } else console.log("ok   ws mask header");
+  var rec = {buf: framed};
+  var got = ws.ws_take_frame(rec);
+  if (!got || got.text !== "hi") { console.log("fail ws roundtrip " + (got && got.text)); failed += 1; }
+  else console.log("ok   ws roundtrip");
+  var emptyF = ws.ws_mask_frame("", mask);
+  var emptyG = ws.ws_take_frame({buf: emptyF});
+  if (!emptyG || emptyG.text !== "") { console.log("fail ws empty payload"); failed += 1; }
+  else console.log("ok   ws empty payload");
+  var junkF = ws.ws_take_frame({buf: Buffer.alloc(0)});
+  if (junkF !== null) { console.log("fail ws short frame"); failed += 1; }
+  else console.log("ok   ws short frame");
+  var closeBuf = Buffer.from([0x88, 0x00]);
+  var closeG = ws.ws_take_frame({buf: closeBuf});
+  if (!closeG || !closeG.close) { console.log("fail ws close opcode"); failed += 1; }
+  else console.log("ok   ws close opcode");
+  var hs = ws.ws_handshake_request("ws://example.com/chat", "dGhlIHNhbXBsZSBub25jZQ==");
+  if (!hs || hs.indexOf("Upgrade: websocket") < 0 || hs.indexOf("Sec-WebSocket-Version: 13") < 0 || hs.indexOf("Host: example.com") < 0) {
+    console.log("fail ws handshake request"); failed += 1;
+  } else console.log("ok   ws handshake request");
+  if (ws.ws_handshake_request("not a url", "x") !== "" ) { console.log("fail ws handshake junk url"); failed += 1; }
+  else console.log("ok   ws handshake junk url");
+  if (ws.ws_handshake_ok("") || ws.ws_handshake_ok("HTTP/1.1 200 OK") || !ws.ws_handshake_ok("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n")) {
+    console.log("fail ws handshake ok"); failed += 1;
+  } else console.log("ok   ws handshake ok");
   var mk = {type: "package", "source-directories": ["lib"], dependencies: {direct: {a: {path: "../a"}}, indirect: {}}};
   if (man_kind(mk) !== "package" || man_src_dirs(mk, "/p")[0] !== path.resolve("/p", "lib") || !man_direct(mk).a) {
     console.log("fail man shape"); failed += 1;

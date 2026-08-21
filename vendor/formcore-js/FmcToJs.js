@@ -1,5 +1,10 @@
 var fmc = require("./FormCore.js");
 var HOST_SCHEMA = require("./host-schema.js");
+var fs = require("fs");
+var path = require("path");
+var WS_FRAMES_SRC = fs.readFileSync(path.join(__dirname, "ws-frames.js"), "utf8")
+  .replace(/^["']use strict["'];\s*/m, "")
+  .replace(/module\.exports[\s\S]*$/, "");
 
 const Var = (name)           => ({ctor:"Var",name});
 const Ref = (name)           => ({ctor:"Ref",name});
@@ -2307,41 +2312,11 @@ function compile_defs(defs, main, opts) {
     code += "      } catch (e) { res('1\\n' + String(e && e.message || e)); }\n";
     code += "    });\n";
     code += "  };\n";
-    code += "  var ws_mask_frame = (payload) => {\n";
-    code += "    var data = Buffer.from(String(payload == null ? '' : payload), 'utf8');\n";
-    code += "    var mask = require('crypto').randomBytes(4);\n";
-    code += "    var len = data.length;\n";
-    code += "    var hdr = 2 + (len < 126 ? 0 : len < 65536 ? 2 : 8) + 4;\n";
-    code += "    var buf = Buffer.alloc(hdr + len);\n";
-    code += "    buf[0] = 0x81;\n";
-    code += "    var o = 2;\n";
-    code += "    if (len < 126) buf[1] = 0x80 | len;\n";
-    code += "    else if (len < 65536) { buf[1] = 0x80 | 126; buf.writeUInt16BE(len, 2); o = 4; }\n";
-    code += "    else { buf[1] = 0x80 | 127; buf.writeBigUInt64BE(BigInt(len), 2); o = 10; }\n";
-    code += "    mask.copy(buf, o); o += 4;\n";
-    code += "    for (var i = 0; i < len; i++) buf[o + i] = data[i] ^ mask[i & 3];\n";
-    code += "    return buf;\n";
-    code += "  };\n";
-    code += "  var ws_take_frame = (rec) => {\n";
-    code += "    var buf = rec.buf || Buffer.alloc(0);\n";
-    code += "    if (buf.length < 2) return null;\n";
-    code += "    var b0 = buf[0], b1 = buf[1];\n";
-    code += "    var opcode = b0 & 15;\n";
-    code += "    var masked = (b1 & 0x80) !== 0;\n";
-    code += "    var len = b1 & 127;\n";
-    code += "    var o = 2;\n";
-    code += "    if (len === 126) { if (buf.length < 4) return null; len = buf.readUInt16BE(2); o = 4; }\n";
-    code += "    else if (len === 127) { if (buf.length < 10) return null; len = Number(buf.readBigUInt64BE(2)); o = 10; }\n";
-    code += "    var mlen = masked ? 4 : 0;\n";
-    code += "    if (buf.length < o + mlen + len) return null;\n";
-    code += "    var mask = masked ? buf.slice(o, o + 4) : null;\n";
-    code += "    o += mlen;\n";
-    code += "    var payload = Buffer.alloc(len);\n";
-    code += "    for (var i = 0; i < len; i++) payload[i] = buf[o + i] ^ (mask ? mask[i & 3] : 0);\n";
-    code += "    rec.buf = buf.slice(o + len);\n";
-    code += "    if (opcode === 8) return {close: true, text: ''};\n";
-    code += "    if (opcode === 9) { try { rec.sock.write(Buffer.from([0x8A, 0x00])); } catch (eP) {} return {ping: true, text: ''}; }\n";
-    code += "    return {text: payload.toString('utf8')};\n";
+    code += WS_FRAMES_SRC;
+    code += "  var ws_take_frame_host = (rec) => {\n";
+    code += "    var frame = ws_take_frame(rec);\n";
+    code += "    if (frame && frame.ping) { try { rec.sock.write(Buffer.from([0x8A, 0x00])); } catch (eP) {} }\n";
+    code += "    return frame;\n";
     code += "  };\n";
     code += "  var host_tcp_send = (lib, param) => {\n";
     code += "    var nl = param.indexOf('\\n'); var id = nl === -1 ? param : param.slice(0, nl); var data = nl === -1 ? '' : param.slice(nl + 1);\n";
@@ -2355,7 +2330,7 @@ function compile_defs(defs, main, opts) {
     code += "    return new Promise((res) => {\n";
     code += "      var take = () => {\n";
     code += "        if (rec.ws) {\n";
-    code += "          var frame = ws_take_frame(rec);\n";
+    code += "          var frame = ws_take_frame_host(rec);\n";
     code += "          if (!frame) return false;\n";
     code += "          if (frame.ping) return take();\n";
     code += "          if (frame.close) { res('1\\nclosed'); return true; }\n";
@@ -2377,9 +2352,9 @@ function compile_defs(defs, main, opts) {
     code += "      return host_tcp_connect(lib, u.hostname + '\\n' + port + '\\n' + (tlsOn ? '1' : '0')).then((raw) => {\n";
     code += "        if (raw.indexOf('0\\n') !== 0) return raw;\n";
     code += "        var id = raw.slice(2); var key = require('crypto').randomBytes(16).toString('base64');\n";
-    code += "        var req = 'GET ' + (u.pathname || '/') + (u.search || '') + ' HTTP/1.1\\r\\nHost: ' + u.host + '\\r\\nUpgrade: websocket\\r\\nConnection: Upgrade\\r\\nSec-WebSocket-Key: ' + key + '\\r\\nSec-WebSocket-Version: 13\\r\\n\\r\\n';\n";
+    code += "        var req = ws_handshake_request(param, key);\n";
     code += "        return host_tcp_send(lib, id + '\\n' + req).then(() => host_tcp_recv(lib, id)).then((r) => {\n";
-    code += "          if (String(r).indexOf('101') >= 0) {\n";
+    code += "          if (ws_handshake_ok(r)) {\n";
     code += "            if (HOST_TCP[id]) HOST_TCP[id].ws = true;\n";
     code += "            HOST_RES.push({kind: 'ws', id: id});\n";
     code += "            return '0\\n' + id;\n";

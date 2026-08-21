@@ -121,8 +121,47 @@ function encodeSure() {
   return lines.join("\n");
 }
 
+var REPLY = {
+  ok: "0\\n",
+  err: "1\\n",
+  empty: ["", "empty_name"],
+  missing: ["missing", "not found", "ENOENT"]
+};
+
+function decodeSure() {
+  var emptyEq = REPLY.empty.map(function(t) {
+    return "String.eql(m, " + JSON.stringify(t) + ")";
+  }).filter(function(s) { return s !== "String.eql(m, \"\")"; });
+  var missEq = REPLY.missing.map(function(t) {
+    return "String.eql(m, " + JSON.stringify(t) + ")";
+  });
+  var lines = [
+    "Host.decode(raw: String): Host.Event",
+    "  if String.starts_with(raw, \"0\\n\") then",
+    "    Host.ok_string(String.drop(2, raw))",
+    "  else if String.starts_with(raw, \"1\\n\") then",
+    "    let m = String.drop(2, raw)",
+    "    if String.is_empty(m) then Host.err(Host.Err.empty)"
+  ];
+  emptyEq.forEach(function(eq) {
+    lines.push("    else if " + eq + " then Host.err(Host.Err.empty)");
+  });
+  missEq.forEach(function(eq) {
+    lines.push("    else if " + eq + " then Host.err(Host.Err.missing)");
+  });
+  lines.push("    else Host.err(Host.Err.io(m))");
+  lines.push("  else if String.is_empty(raw) then");
+  lines.push("    Host.err(Host.Err.empty)");
+  lines.push("  else");
+  lines.push("    Host.err(Host.Err.bad_tag)");
+  lines.push("");
+  return lines.join("\n");
+}
+
 module.exports = {
   ops: OPS,
   queries: queries(),
-  encodeSure: encodeSure
+  reply: REPLY,
+  encodeSure: encodeSure,
+  decodeSure: decodeSure
 };
